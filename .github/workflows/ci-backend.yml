@@ -1,4 +1,4 @@
-name: Back-End workflows
+name: CI Backend
 
 on:
   workflow_call:
