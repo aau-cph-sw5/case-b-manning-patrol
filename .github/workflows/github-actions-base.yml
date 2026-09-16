@@ -3,6 +3,6 @@ run-name: ${{ github.actor }} is running workflows
 on: [push, pull_request]
 jobs:
   frontend:
-   uses: .github/workflows/github-actions-fe.yml
+   uses: ./.github/workflows/github-actions-fe.yml
   backend:
-    uses: .github/workflows/github-actions-be.yml
+    uses: ./.github/workflows/github-actions-be.yml
