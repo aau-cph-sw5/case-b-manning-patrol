@@ -1,4 +1,8 @@
 name: Front-End Workflow
+
+on:
+  workflow_call:
+
 jobs:
   build:
 

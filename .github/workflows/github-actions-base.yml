@@ -2,5 +2,7 @@ name: Main Workflow
 run-name: ${{ github.actor }} is running workflows
 on: [push, pull_request]
 jobs:
-  - run: .github/workflows/github-actions-fe.yml
-  - run: .github/workflows/github-actions-be.yml
+  frontend:
+   uses: .github/workflows/github-actions-fe.yml
+  backend:
+    uses: .github/workflows/github-actions-be.yml

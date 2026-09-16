@@ -1,5 +1,8 @@
 name: Back-End workflows
 
+on:
+  workflow_call:
+
 permissions:
   contents: read
 
