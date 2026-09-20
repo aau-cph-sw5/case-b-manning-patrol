@@ -5,13 +5,17 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
+        workdir: [manning-patrol-android-frontend, manning-patrol-desktop-frontend]
         node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.workdir }}
 
     steps:
     - uses: actions/checkout@v4
@@ -20,6 +24,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: ${{matrix.workdir}}/package-lock.json
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
