@@ -14,11 +14,11 @@
 	"paths": {
 		"/observations": {
 			"get": {
-				"summary": "Get current observations",
-				"description": "Returns the set of areas currently observed by the device. Each observation carries an area identifier and an observation timestamp.",
+				"summary": "Get current observed areas",
+				"description": "Returns the set of areas currently observed by all stewards. Each observation carries a beacon_id, area_type, slug, and timestamp.",
 				"responses": {
 					"200": {
-						"description": "Successful response with current observations",
+						"description": "Successful response with currently observed areas",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -45,8 +45,8 @@
 		},
 		"/observation-events": {
 			"get": {
-				"summary": "Stream observation events",
-				"description": "Returns a stream of events when areas start or stop being observed. Allows consumers to close records without polling.",
+				"summary": "Stream of observation events",
+				"description": "Returns a stream of events when areas start or stop being observed by stewards. Each event carries a beacon_id, area_type, slug, timestamp, and event_type (CONNECT/DISCONNECT). Allows consumers to close records without polling.",
 				"responses": {
 					"200": {
 						"description": "Stream of observation events",
@@ -80,10 +80,21 @@
 			"AreaObservation": {
 				"type": "object",
 				"properties": {
-					"area_id": {
+					"beacon_id": {
 						"type": "string",
-						"description": "Unique identifier for the observed area/station. Danish station identifier, not display name.",
-						"example": "STA-001"
+						"format": "uuid",
+						"description": "Beacon UUID identifying the observed area.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["TRAIN", "PLATFORM", "CONCOURSE"],
+						"description": "Type of area."
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the area.",
+						"example": "kongens-nytorv-platform-a"
 					},
 					"timestamp": {
 						"type": "string",
@@ -92,15 +103,26 @@
 						"example": "2026-09-21T10:00:00+00:00"
 					}
 				},
-				"required": ["area_id", "timestamp"]
+				"required": ["beacon_id", "area_type", "slug", "timestamp"]
 			},
 			"ObservationEvent": {
 				"type": "object",
 				"properties": {
-					"area_id": {
+					"beacon_id": {
 						"type": "string",
-						"description": "Area identifier that started or stopped being observed.",
-						"example": "STA-001"
+						"format": "uuid",
+						"description": "Beacon UUID identifying the observed area.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["TRAIN", "PLATFORM", "CONCOURSE"],
+						"description": "Type of area."
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the area.",
+						"example": "kongens-nytorv-platform-a"
 					},
 					"timestamp": {
 						"type": "string",
@@ -110,11 +132,17 @@
 					},
 					"event_type": {
 						"type": "string",
-						"enum": ["ENTER", "EXIT"],
-						"description": "ENTER when area starts being observed, EXIT when area stops being observed."
+						"enum": ["CONNECT", "DISCONNECT"],
+						"description": "CONNECT when area starts being observed, DISCONNECT when area stops being observed."
 					}
 				},
-				"required": ["area_id", "timestamp", "event_type"]
+				"required": [
+					"beacon_id",
+					"area_type",
+					"slug",
+					"timestamp",
+					"event_type"
+				]
 			},
 			"Error": {
 				"type": "object",
