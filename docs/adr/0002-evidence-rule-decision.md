@@ -1,8 +1,11 @@
 # ADR 0002. Is presence asserted by the system or confirmed by the steward?
 
 **Status.** Proposed
+
 **Date.** 2026-09-18
+
 **Deciders.** Marcus Eckstrøm, Peter Rasmussen & Tue Elhegn, team 3
+
 **Related backlog items.** MET-B-001, MET-B-004, MET-B-005, MET-B-007, MET-B-014, MET-B-024
 
 ## Context
