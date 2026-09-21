@@ -13,10 +13,66 @@
 	],
 	"paths": {
 		"/observations": {
-			"description": "Operations for current station/area observations"
+			"get": {
+				"summary": "Get current observations",
+				"description": "Returns the set of areas currently observed by the device. Each observation carries an area identifier and an observation timestamp.",
+				"responses": {
+					"200": {
+						"description": "Successful response with current observations",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/AreaObservation"
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
 		},
-		"/observations/events": {
-			"description": "Stream/notify when areas are no longer observed"
+		"/observation-events": {
+			"get": {
+				"summary": "Stream observation events",
+				"description": "Returns a stream of events when areas start or stop being observed. Allows consumers to close records without polling.",
+				"responses": {
+					"200": {
+						"description": "Stream of observation events",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ObservationEvent"
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -26,12 +82,14 @@
 				"properties": {
 					"area_id": {
 						"type": "string",
-						"description": "Unique identifier for the observed area/station"
+						"description": "Unique identifier for the observed area/station. Danish station identifier, not display name.",
+						"example": "STA-001"
 					},
 					"timestamp": {
 						"type": "string",
 						"format": "date-time",
-						"description": "When the observation was recorded"
+						"description": "When the observation was recorded. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
 					}
 				},
 				"required": ["area_id", "timestamp"]
@@ -39,11 +97,38 @@
 			"ObservationEvent": {
 				"type": "object",
 				"properties": {
-					"area_id": { "type": "string", "description": "Area identifier" },
-					"timestamp": { "type": "string", "format": "date-time" },
-					"event_type": { "type": "string", "enum": ["ENTER", "EXIT"] }
+					"area_id": {
+						"type": "string",
+						"description": "Area identifier that started or stopped being observed.",
+						"example": "STA-001"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the area observation state changed. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
+					},
+					"event_type": {
+						"type": "string",
+						"enum": ["ENTER", "EXIT"],
+						"description": "ENTER when area starts being observed, EXIT when area stops being observed."
+					}
 				},
 				"required": ["area_id", "timestamp", "event_type"]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
 			}
 		}
 	}
