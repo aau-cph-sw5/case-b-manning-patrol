@@ -1,0 +1,50 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Positioning Interface API",
+		"description": "Backend API contract for station presence positioning data. Consumed by frontend, dashboard, and reporting services.",
+		"version": "1.0.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/observations": {
+			"description": "Operations for current station/area observations"
+		},
+		"/observations/events": {
+			"description": "Stream/notify when areas are no longer observed"
+		}
+	},
+	"components": {
+		"schemas": {
+			"AreaObservation": {
+				"type": "object",
+				"properties": {
+					"area_id": {
+						"type": "string",
+						"description": "Unique identifier for the observed area/station"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the observation was recorded"
+					}
+				},
+				"required": ["area_id", "timestamp"]
+			},
+			"ObservationEvent": {
+				"type": "object",
+				"properties": {
+					"area_id": { "type": "string", "description": "Area identifier" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"event_type": { "type": "string", "enum": ["ENTER", "EXIT"] }
+				},
+				"required": ["area_id", "timestamp", "event_type"]
+			}
+		}
+	}
+}
