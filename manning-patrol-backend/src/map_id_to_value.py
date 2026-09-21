@@ -1,6 +1,7 @@
 # Make a function that takes the mapping.json file and returns a dictionary with the Id as the key and the Station or Train as the value.
 import json
 from pathlib import Path
+from models import BeaconToStation # Imports the pydantic model from models.py
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 MAPPING_PATH = BASE_DIR / "mapping.json"
@@ -10,11 +11,12 @@ def load_mapping():
     
     mapping = {}
     for item in data:
-        item_id = item['Id']
-        if 'Station' in item:
-            mapping[item_id] = item['Station']
-        elif 'Train' in item:
-            mapping[item_id] = item['Train']
+        validated_item = BeaconToStation(**item)  # Validate the item using the pydantic model
+
+        if validated_item.station:
+            mapping[validated_item.beacon_id] = validated_item.station
+        elif validated_item.train:
+            mapping[validated_item.beacon_id] = validated_item.train
     
     return mapping
 
@@ -35,8 +37,8 @@ if __name__ == '__main__':
     mapping = load_mapping()
     print(mapping)
 
-    print("Value for Id 1:", get_mapping_value('1'))  # Should return 'VAN'
-    log_mapping_value("1")
+    print("Value for Id 2:", get_mapping_value('2'))  # Should return 'VAN'
+    log_mapping_value("2")
 
     print("Value for Id 50:", get_mapping_value('50'))  # Should return 'M1-8'
     log_mapping_value("50")
