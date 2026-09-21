@@ -46,7 +46,7 @@
 		"/observation-events": {
 			"get": {
 				"summary": "Stream of observation events",
-				"description": "Returns a stream of events when areas start or stop being observed by stewards. Each event carries a beacon_id, area_type, slug, timestamp, and event_type (CONNECT/DISCONNECT). Allows consumers to close records without polling.",
+				"description": "Returns a stream of events when areas start or stop being observed by stewards. Each event carries a beacon_id, area_type, slug, timestamp, and event_type (OBSERVED/NOT_OBSERVED). Allows consumers to close records without polling.",
 				"responses": {
 					"200": {
 						"description": "Stream of observation events",
@@ -132,8 +132,8 @@
 					},
 					"event_type": {
 						"type": "string",
-						"enum": ["CONNECT", "DISCONNECT"],
-						"description": "CONNECT when area starts being observed, DISCONNECT when area stops being observed."
+						"enum": ["OBSERVED", "NOT_OBSERVED"],
+						"description": "OBSERVED when area starts being observed, NOT_OBSERVED when area stops being observed."
 					}
 				},
 				"required": [
