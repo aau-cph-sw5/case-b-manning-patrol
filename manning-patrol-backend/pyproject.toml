@@ -14,6 +14,8 @@ dependencies = [
 [project.scripts]
 manning-patrol-backend = "manning_patrol_backend:main"
 positioning-simulator = "positioning_simulator:app"
+dev = "dev_server:main"
+lint = "lint:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]
@@ -26,14 +28,9 @@ target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 
-[tool.mypy]
-python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-ignore_missing_imports = true
-
 [tool.uv]
 dev-dependencies = [
+    "pytest",
     "ruff>=0.10.0",
-    "mypy>=1.15.0",
+    "ty",
 ]

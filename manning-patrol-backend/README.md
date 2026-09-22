@@ -22,11 +22,11 @@ uv sync
 ### Main Backend
 
 ```bash
-# Development server with auto-reload
-uv run uvicorn manning_patrol_backend:app --reload
+# Development server with auto-reload (recommended)
+uv run dev
 
-# Or use the entry point
-uv run manning-patrol-backend
+# Or manually
+uv run uvicorn manning_patrol_backend:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Positioning Simulator
@@ -38,26 +38,26 @@ The simulator implements the Positioning Interface contract and replays fixture 
 uv run positioning-simulator
 ```
 
-Both servers run on `http://localhost:8000` (simulator will need a different port if running alongside main backend).
+Both servers run on `http://localhost:8000` by default. Run only one at a time or use different ports.
 
 ## Development
 
-### Linting
+### Lint + Type Check (one command)
 
 ```bash
+uv run lint
+```
+
+This runs `ruff check src/ && ty check src/`
+
+### Individual commands
+
+```bash
+# Lint only
 uv run ruff check src/
-```
 
-### Type checking
-
-```bash
-uv run mypy src/
-```
-
-### Run both
-
-```bash
-uv run ruff check src/ && uv run mypy src/
+# Type check only
+uv run ty check src/
 ```
 
 ## Project Structure
@@ -92,4 +92,4 @@ Fixtures used:
 
 - **uv**: Package management
 - **ruff**: Linter (E/F/I/N/W/UP rules, line-length 88)
-- **mypy**: Type checker (Python 3.13, strict mode)
+- **ty**: Type checker (from Astral)

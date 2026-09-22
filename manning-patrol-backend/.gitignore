@@ -4,8 +4,8 @@
 # Ruff
 .ruff_cache/
 
-# mypy
-.mypy_cache/
+# ty
+.ty_cache/
 
 # Python
 __pycache__/
