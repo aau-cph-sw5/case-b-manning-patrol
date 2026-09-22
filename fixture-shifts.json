@@ -1,0 +1,17 @@
+[
+    {"date": "2026-05-30T03:08:13.000Z", "stewardId": 1, "beaconId":2, "connected": true},
+    {"date": "2026-05-30T03:08:50.000Z", "stewardId": 1, "beaconId":50, "connected": true},
+    {"date": "2026-05-30T03:09:46.000Z", "stewardId": 1, "beaconId":2, "connected": false},
+    {"date": "2026-05-30T03:10:13.000Z", "stewardId": 1, "beaconId":3, "connected": true},
+    {"date": "2026-05-30T03:10:27.000Z", "stewardId": 1, "beaconId":3, "connected": false},
+    {"date": "2026-05-30T03:11:00.000Z", "stewardId": 1, "beaconId":4, "connected": true},
+    {"date": "2026-05-30T03:11:15.000Z", "stewardId": 1, "beaconId":50, "connected": false},
+    {"date": "2026-05-30T03:12:00.000Z", "stewardId": 1, "beaconId":4, "connected": false},
+    {"date": "2026-05-30T03:13:00.000Z", "stewardId": 1, "beaconId":4, "connected": true},
+    {"date": "2026-05-30T03:20:46.000Z", "stewardId": 1, "beaconId":4, "connected": false},
+    {"date": "2026-05-30T03:59:59.000Z", "stewardId": 1, "beaconId":4, "connected": true},
+    {"date": "2026-05-30T04:10:40.000Z", "stewardId": 1, "beaconId":60, "connected": true},
+    {"date": "2026-05-30T04:20:40.000Z", "stewardId": 1, "beaconId":3, "connected": true},
+    {"date": "2026-05-30T04:25:40.000Z", "stewardId": 1, "beaconId":60, "connected": false}
+
+]
