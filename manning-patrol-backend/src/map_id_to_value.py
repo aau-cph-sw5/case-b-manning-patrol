@@ -3,8 +3,8 @@ import json
 from pathlib import Path
 from models import BeaconToStation # Imports the pydantic model from models.py
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-MAPPING_PATH = BASE_DIR / "mapping.json"
+BASE_DIR = Path(__file__).resolve().parent.parent
+MAPPING_PATH = BASE_DIR / "fixtures" / "mapping.json"
 def load_mapping():
     with MAPPING_PATH.open("r", encoding="utf-8") as f:
         data = json.load(f)
@@ -28,7 +28,7 @@ def get_mapping_value(item_id):
 # Make a function that takes get_mapping_value and logs it into a file called mapping.log
 def log_mapping_value(item_id):
     value = get_mapping_value(item_id)
-    with (BASE_DIR / "mapping.log").open("a", encoding="utf-8") as f:
+    with (BASE_DIR / "fixtures" / "mapping.log").open("a", encoding="utf-8") as f:
         f.write(f'Id: {item_id}, Value: {value}\n')
 
 if __name__ == '__main__':
