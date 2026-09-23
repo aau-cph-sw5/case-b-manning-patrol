@@ -2,8 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from map_id_to_value import load_mapping
-from models import BeaconToStation
-
+from models import BeaconToStation 
 
 def test_pydantic_model_structure():
     # Test that the BeaconToStation model has the correct fields and types

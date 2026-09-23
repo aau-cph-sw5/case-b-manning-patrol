@@ -5,8 +5,6 @@ A simulator implementation of the Positioning Interface contract.
 Serves fixture data directly - assumes fixtures are already aligned with contract.
 """
 import asyncio
-import json
-from pathlib import Path
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
