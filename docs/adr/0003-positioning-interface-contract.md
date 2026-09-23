@@ -1,6 +1,6 @@
 # ADR POSITIONING INTERFACE CONTRACT.
 
-**Status.** Proposed | Accepted | Superseded by ADR {NNNN} | Deprecated
+**Status.** Proposed
 
 **Date.** 2026-9-23
 
@@ -16,14 +16,9 @@ The PBI demandeded in the acceptance criteria that we created an observation bas
 WebSockets introduces a layer of complexity and security measures in the implementation, but it reduces the network traffic, as we dont have to poll constantly for data via. HTTP, as the acceptance criteria demanded.
 
 When we use the server as a source of truth, we have to rely on regular connection from the android client, which might not be guaranteed by the environment of the Metro stations or tunnels. E.g, if the client does not have connection to the server, it can not tell the server, if it's left a station, and the servers "truth" will be false. This might require workarounds where we handle the offline state, trying to reconnect.
-## Alternatives considered
-**{Alternative}.** Why it was rejected, specifically. "Too complex" is not a
-reason; "it would require every client to hold an open connection through a tunnel
-where the network drops for minutes at a time" is.
 
-**{Alternative}.** As above.
+## Alternatives considered
+**Using client as source of truth.** We considered the android client creating timestamps and tracking connection/shift time. This was rejected because the user would be able to manipulate time locally and thereby the evidence of their time of presence.
 
 ## Notes
-
-Anything a successor would want: a link to the discussion, the measurement that
-settled it, the Metro answer that constrained it, the date it should be revisited.
+We assume that the stewards will have a working phone, and that it will not run out of power. 
