@@ -1,9 +1,0 @@
-[
-  {"Id": "2", "Station": "VAN"},
-  {"Id": "3", "Station": "FL"},
-  {"Id": "4", "Station": "FB"},
-  {"Id": "50", "Train": "M1-8"},
-  {"Id": "51", "Train": "M2-10"},
-  {"Id": "60", "Train": "M3-22"}  
-
-]
