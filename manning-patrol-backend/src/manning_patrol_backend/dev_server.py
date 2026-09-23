@@ -5,7 +5,7 @@ import uvicorn
 def main():
     """Run uvicorn with reload."""
     uvicorn.run(
-        "manning_patrol_backend:app",
+        "manning_patrol_backend.positioning_simulator:app",
         host="0.0.0.0",
         port=8000,
         reload=True,
