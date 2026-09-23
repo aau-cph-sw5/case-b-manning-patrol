@@ -18,7 +18,7 @@ The PBI demandeded in the acceptance criteria that we created an observation bas
 ## Consequences
 WebSockets introduces a layer of complexity and security measures in the implementation, but it reduces the network traffic, as we dont have to poll constantly for data via. HTTP, as the acceptance criteria demanded.
 
-When we use the server as a source of truth, we have to rely on regular connection from the android client, which might not be guaranteed by the environment of the Metro stations or tunnels. E.g, if the client does not have connection to the server, it can not tell the server, if it's left a station, and the servers "truth" will be false. This might require workarounds where we handle the offline state, trying to reconnect.
+When we use the server as a source of truth, we have to rely on regular connection from the android client, which might not be guaranteed by the environment of the Metro stations or tunnels. E.g, if the client does not have connection to the server, it can not tell the server, if it's left a station, and the servers "truth" will be false. This might require workarounds where we handle the offline state, trying to reconnect. This would maybe also introduce a hearbeat signal, where we ensure the client is still online.
 
 ## Alternatives considered
 **Using client as source of truth.** We considered the android client creating timestamps and tracking connection/shift time. This was rejected because the user would be able to manipulate time locally and thereby the evidence of their time of presence.
