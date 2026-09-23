@@ -10,6 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from .services.positioning_service import observed_events, load_fixture
 
 app = FastAPI(title="Positioning Simulator")
 
@@ -21,44 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Load fixtures directly - no transformation, assume correct format
-def load_fixture(filename: str):
-    """Load JSON fixture file from fixtures directory."""
-    fixtures_dir = Path(__file__).parent.parent.parent / "fixtures"
-    fixture_path = fixtures_dir / filename
-    if not fixture_path.exists():
-        return []
-    with open(fixture_path) as f:
-        return json.load(f)
-
-
 # Load fixture data
 shift_data = load_fixture("fixture-shifts-v1.json")
 observation_data = load_fixture("fixture-observations-v1.json") ## use this for now
 
 #func takes obs_data, sorts it and if user inputs 'as_of' then remove events up untill as_of timestamp
 #returns the list of events that are OBSERVED to showcase that a steward is there(assuming no beacon connec error)
-
-def get_timestamp(e):
-    return e["timestamp"]
-
-def observed_events(events: list[dict], as_of: str | None = None) -> list[dict]:
-    sorted_events = sorted(events, key=get_timestamp)
-
-    if as_of is not None:
-        sorted_events = [e for e in sorted_events if e["timestamp"] <= as_of]
-
-    observed_connections: dict[str, dict] = {}
-    for event in sorted_events:
-        key = event["beacon_id"]
-        if event["event_type"] == "OBSERVED":
-            observed_connections[key] = event
-        elif event["event_type"] == "NOT_OBSERVED":
-            observed_connections.pop(key, None)
-
-    return list(observed_connections.values())
-
 
 @app.get("/observations")
 async def get_observations(as_of: str | None = None):
