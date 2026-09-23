@@ -1,12 +1,12 @@
-# ADR 0001: Should architectural decisions be documented using ADRs?
+# ADR 0001. Should architectural decisions be documented using ADRs?
 
-**Status:** Proposed
+**Status.** Proposed
 
-**Date:** 2026-09-18
+**Date.** 2026-09-18
 
-**Deciders:** Marcus Eckstrøm, Peter Rasmussen & Tue Elhegn, Team 3
+**Deciders.** Marcus Eckstrøm, Peter Rasmussen & Tue Elhegn, Team 3
 
-**Related backlog items:** None
+**Related backlog items.** None
 
 ## Context
 
