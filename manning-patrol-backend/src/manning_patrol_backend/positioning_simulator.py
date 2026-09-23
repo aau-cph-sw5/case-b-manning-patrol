@@ -34,8 +34,8 @@ def load_fixture(filename: str):
 
 
 # Load fixture data
-shift_data = load_fixture("fixture-shifts.json")
-observation_data = load_fixture("fixture-observations.json") ## use this for now
+shift_data = load_fixture("fixture-shifts-v1.json")
+observation_data = load_fixture("fixture-observations-v1.json") ## use this for now
 
 #func takes obs_data, sorts it and if user inputs 'as_of' then remove events up untill as_of timestamp
 #returns the list of events that are OBSERVED to showcase that a steward is there(assuming no beacon connec error)

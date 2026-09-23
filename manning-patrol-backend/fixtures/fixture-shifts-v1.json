@@ -1,0 +1,82 @@
+[
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000002",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000050",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000002",
+"status": "DISCONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000002",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000002",
+"status": "DISCONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000003",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000003",
+"status": "DISCONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000004",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000050",
+"status": "DISCONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000004",
+"status": "DISCONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000004",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000004",
+"status": "DISCONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000004",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000060",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000003",
+"status": "CONNECT"
+},
+{
+"android_id": "660e8400-e29b-41d4-a716-446655440001",
+"beacon_id": "550e8400-e29b-41d4-a716-000000000060",
+"status": "DISCONNECT"
+}
+]
