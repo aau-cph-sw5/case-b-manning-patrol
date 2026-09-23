@@ -6,7 +6,10 @@
 
 **Deciders.** Team 8, Jakob Michaelsen, Nichlas Christiansen, Marcus Linde, Ryan Zachariasen, Asbjørn Gosvig
 
-**Related backlog items.** MET-B-002
+**Related backlog items.**  
+B-002
+
+Blocks: B-003, B-004, B-006, B-007, B-012, B-014, B-025
 
 ## Context
 The PBI demandeded in the acceptance criteria that we created an observation based design, where we dont poll constantly for updates. Furthermore, we have to manage connectivity so the server and the dashboard client knows when android client is connected. This incentives us have to manage which component will be "source of truth" regarding timestamps beacon connectivity.
