@@ -9,9 +9,9 @@
 **Related backlog items.** MET-B-002
 
 ## Context
-The PBI gave us some boundaries described in the acceptance criteria, were it demanded that we created an observation based design, where we dont poll constantly for updates. Furthermore, we have to manage connectivity so the server and the dashboard client knows when android client is connected. This incentives us have to manage which component will be "source of truth" regarding timestamps beacon connectivity.
+The PBI demandeded in the acceptance criteria that we created an observation based design, where we dont poll constantly for updates. Furthermore, we have to manage connectivity so the server and the dashboard client knows when android client is connected. This incentives us have to manage which component will be "source of truth" regarding timestamps beacon connectivity.
 ## Decision
-> The android client will send connection events to the server, which will propagate scenario state to connected clients via a WebSocket connection. We will use the server as a source of truth regarding timestamps and beacon connectivity.
+> The android client will send connection events to the server, which > will propagate scenario state to connected clients via a WebSocket connection. We will use the server as a source of truth regarding timestamps and beacon connectivity.
 ## Consequences
 WebSockets introduces a layer of complexity and security measures in the implementation, but it reduces the network traffic, as we dont have to poll constantly for data via. HTTP, as the acceptance criteria demanded.
 
