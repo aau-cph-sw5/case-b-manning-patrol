@@ -49,15 +49,15 @@ def observed_events(events: list[dict], as_of: str | None = None) -> list[dict]:
     if as_of is not None:
         sorted_events = [e for e in sorted_events if e["timestamp"] <= as_of]
 
-    open_connections: dict[str, dict] = {}
+    observed_connections: dict[str, dict] = {}
     for event in sorted_events:
         key = event["beacon_id"]
         if event["event_type"] == "OBSERVED":
-            open_connections[key] = event
+            observed_connections[key] = event
         elif event["event_type"] == "NOT_OBSERVED":
-            open_connections.pop(key, None)
+            observed_connections.pop(key, None)
 
-    return list(open_connections.values())
+    return list(observed_connections.values())
 
 
 @app.get("/observations")
