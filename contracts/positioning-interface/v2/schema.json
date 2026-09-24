@@ -1,0 +1,318 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Positioning Interface API",
+		"description": "Backend API contract for station and train presence positioning data. Consumed by the Web UI dashboard and reporting services. Combines fetch-on-load REST resources with WebSocket push channels for live updates.",
+		"version": "2.0.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/api/v1/dashboard": {
+			"get": {
+				"summary": "Get dashboard overview",
+				"description": "Returns every station and train, each with its current manning state. Used to populate the dashboard on load.",
+				"responses": {
+					"200": {
+						"description": "Successful response with all stations and trains",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DashboardResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/stations/{stationID}": {
+			"get": {
+				"summary": "Get station by ID",
+				"description": "Returns a single station, including its areas and each area's current manning state.",
+				"parameters": [
+					{
+						"name": "stationID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						},
+						"description": "UUID of the station (Station.station_id)."
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response with the station",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/StationResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Station not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/trains/{trainID}": {
+			"get": {
+				"summary": "Get train by ID",
+				"description": "Returns a single train and its current manning state.",
+				"parameters": [
+					{
+						"name": "trainID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						},
+						"description": "UUID of the train (Train.train_id)."
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response with the train",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TrainResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Train not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/stationUpdate": {
+			"get": {
+				"summary": "Subscribe to station updates",
+				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a StationResponse to subscribers, the same payload as GET /api/v1/stations/{stationID}, whenever a connection event changes a station's manning state.",
+				"x-websocket": true,
+				"responses": {
+					"200": {
+						"description": "Message pushed to subscribers over the open WebSocket connection",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/StationResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/trainUpdate": {
+			"get": {
+				"summary": "Subscribe to train updates",
+				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a TrainResponse to subscribers, the same payload as GET /api/v1/trains/{trainID}, whenever a connection event changes a train's manning state.",
+				"x-websocket": true,
+				"responses": {
+					"200": {
+						"description": "Message pushed to subscribers over the open WebSocket connection",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TrainResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Train": {
+				"type": "object",
+				"properties": {
+					"train_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Train UUID.",
+						"example": "770e8400-e29b-41d4-a716-446655440002"
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the train.",
+						"example": "a29"
+					},
+					"total_time_secs": {
+						"type": "integer",
+						"description": "Total elapsed time, in seconds, since the train started being tracked.",
+						"example": 14400
+					},
+					"manned_time_secs": {
+						"type": "integer",
+						"description": "Total time, in seconds, the train has been manned by a steward.",
+						"example": 9600
+					},
+					"current_steward_id": {
+						"type": "string",
+						"format": "uuid",
+						"nullable": true,
+						"description": "UUID of the steward currently manning the train, or null if unmanned.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					}
+				},
+				"required": [
+					"train_id",
+					"slug",
+					"total_time_secs",
+					"manned_time_secs",
+					"current_steward_id"
+				]
+			},
+			"StationArea": {
+				"type": "object",
+				"properties": {
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID identifying the area.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the area.",
+						"example": "kongens-nytorv-platform-a M1 & M2"
+					},
+					"last_manned_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the area was last known to be manned. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
+					},
+					"current_steward_id": {
+						"type": "string",
+						"format": "uuid",
+						"nullable": true,
+						"description": "UUID of the steward currently manning this area, or null if unmanned.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					}
+				},
+				"required": ["beacon_id", "slug", "last_manned_at", "current_steward_id"]
+			},
+			"Station": {
+				"type": "object",
+				"properties": {
+					"station_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Station UUID.",
+						"example": "880e8400-e29b-41d4-a716-446655440003"
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the station.",
+						"example": "kongens-nytorv"
+					},
+					"areas": {
+						"type": "array",
+						"description": "Areas belonging to this station.",
+						"items": {
+							"$ref": "#/components/schemas/StationArea"
+						}
+					}
+				},
+				"required": ["station_id", "slug", "areas"]
+			},
+			"DashboardResponse": {
+				"type": "object",
+				"properties": {
+					"stations": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Station"
+						}
+					},
+					"trains": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Train"
+						}
+					}
+				},
+				"required": ["stations", "trains"]
+			},
+			"StationResponse": {
+				"$ref": "#/components/schemas/Station"
+			},
+			"TrainResponse": {
+				"$ref": "#/components/schemas/Train"
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}
