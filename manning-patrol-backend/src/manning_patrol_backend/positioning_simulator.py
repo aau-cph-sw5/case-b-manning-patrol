@@ -8,7 +8,7 @@ import asyncio
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from .services.positioning_service import observed_events, load_fixture
+from .services.positioning_service import simulate_event_stream, observed_events, load_fixture
 
 app = FastAPI(title="Positioning Simulator")
 
@@ -34,17 +34,16 @@ async def get_observations(as_of: str | None = None):
 
 @app.get("/observation-events")
 async def get_observation_events():
-    """Returns fixture shift data as events."""
-    return shift_data
+    """Returns fixture observation data as events."""
+    return observation_data
 
 
 @app.websocket("/ws/observation-events")
 async def websocket_events(websocket: WebSocket):
     """WebSocket stream of fixture shift data."""
     await websocket.accept()
-    for event in shift_data:
-        await websocket.send_json(event)
-        await asyncio.sleep(0.1)
+
+    await simulate_event_stream(observation_data, websocket)
 
 
 @app.get("/health")
