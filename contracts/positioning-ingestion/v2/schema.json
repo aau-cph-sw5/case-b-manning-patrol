@@ -193,9 +193,15 @@
 						"format": "uuid",
 						"description": "Beacon UUID the device connected to or disconnected from.",
 						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the connection or disconnection occurred on the device. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
 					}
 				},
-				"required": ["android_id", "beacon_id"]
+				"required": ["android_id", "beacon_id", "timestamp"]
 			},
 			"ShiftEvent": {
 				"type": "object",
