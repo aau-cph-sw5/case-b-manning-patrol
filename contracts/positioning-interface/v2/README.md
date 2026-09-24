@@ -6,11 +6,11 @@ Backend API contract for station and train presence positioning data. Consumed b
 
 ```mermaid
 graph TD
-    WebUI[Web UI\nReact] -->|GET api/v1/dashboard| RestAPI
-    WebUI -->|GET api/v1/stations/{stationID}| RestAPI
-    WebUI -->|GET api/v1/trains/{trainID}| RestAPI
-    WebUI -->|WS /stationUpdate| RestAPI
-    WebUI -->|WS /trainUpdate| RestAPI
+    WebUI[Web UI\nReact] -->|"GET api/v1/dashboard"| RestAPI
+    WebUI -->|"GET api/v1/stations/{stationID}"| RestAPI
+    WebUI -->|"GET api/v1/trains/{trainID}"| RestAPI
+    WebUI -.->|"WS /stationUpdate"| RestAPI
+    WebUI -.->|"WS /trainUpdate"| RestAPI
     RestAPI[RestAPI] --> Backend[Backend\npython]
 ```
 
