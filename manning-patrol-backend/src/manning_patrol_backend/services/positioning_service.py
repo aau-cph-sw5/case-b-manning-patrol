@@ -30,6 +30,42 @@ async def simulate_event_stream(events, websocket):
     # Send the last event
     await websocket.send_json(events[len(events)-1])
 
+def check_short_disconnects(previous_event, current_event):
+    """Check if the signal is just lost between two events based on their timestamps"""
+    previous_time = datetime.fromisoformat(previous_event["timestamp"])
+    current_time = datetime.fromisoformat(current_event["timestamp"])
+
+    time_difference = (current_time - previous_time).total_seconds()
+    
+    if time_difference < 8:  # Assuming a signal is considered lost if an event is disconnected and then connected again in less than 8 seconds
+        previous_beacon_id = previous_event["beacon_id"]
+        current_beacon_id = current_event["beacon_id"]
+        if previous_beacon_id == current_beacon_id:
+            if previous_event["event_type"] == "NOT_OBSERVED" and current_event["event_type"] == "OBSERVED":
+                # prints the short disconnects to the console for debugging purposes
+                """print(
+                        f"short disconnect: {previous_event['beacon_id']} "
+                        f"{previous_time} -> {current_time}"
+                )"""
+                return True
+    return False
+
+
+def filter_short_disconnects(events):
+    """Filter out short disconnects from the event stream"""
+    filtered_events = []
+    i = 0
+    while i < len(events) - 1:
+        if check_short_disconnects(events[i], events[i + 1]):
+            i += 2  # Skip the next 2 events if it's a short disconnect
+        else:
+            filtered_events.append(events[i]) # keep the event
+            i += 1 # move to the next event
+    # Add the last event if it's not part of a short disconnect
+    if i == len(events) - 1:
+        filtered_events.append(events[i])
+    return filtered_events
+
 
 def observed_events(events: list[dict], as_of: str | None = None) -> list[dict]:
     sorted_events = sorted(events, key=get_timestamp)
