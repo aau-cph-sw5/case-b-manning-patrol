@@ -6,6 +6,33 @@
 |------|----------|
 | `fixture-events-v1.json` | Merged event timeline for steward 1: one entry per event with `debugging_number`, `event` (`CONNECTED`/`DISCONNECTED`), `android_id`, `beacon_id`, `timestamp`. |
 
+## Setup and running
+
+Prerequisites: Python 3.13 and [uv](https://github.com/astral-shal/uv) (Astral package manager).
+
+```bash
+# Install dependencies (from the manning-patrol-backend root)
+uv sync
+
+# Start the server
+uv run dev
+```
+
+The server runs on `http://localhost:8000`. Open the website, then open the
+browser's developer tools console and paste:
+
+```js
+const ws = new WebSocket("ws://localhost:8000/ws/observation-events");
+ws.onopen = () => console.log("CONNECTED");
+ws.onmessage = (event) => console.log("EVENT:", event.data);
+ws.onerror = (error) => console.log("ERROR:", error);
+ws.onclose = () => console.log("CLOSED");
+```
+
+The stream of fixture events will then be played back with the original
+delays in between, so the console shows `EVENT:` lines arriving in
+real time, in chronological order.
+
 ## Beacon naming
 
 For simplification, beacon IDs `50` and over are trains; everything below is a station.
