@@ -1,6 +1,6 @@
 # ADR 0002. Is presence asserted by the system or confirmed by the steward?
 
-**Status.** Proposed
+**Status.** Accepted
 
 **Date.** 2026-09-18
 
