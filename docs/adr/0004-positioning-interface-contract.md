@@ -16,7 +16,7 @@ The PBI demanded in the acceptance criteria that we create an observation-based 
 
 ## Decision
 
-> The model is not divided into stations and trains, but areas defined by beacons: train, concourse, and platform.
+> The main design is that areas are defined by beacons: trains, concourse and platforms which can then be connected to specific stations and trains
 
 > The Android client will send connection events to the server, which will propagate scenario state to connected clients via a WebSocket connection.
 
