@@ -1,0 +1,41 @@
+name: CI Backend
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: manning-patrol-backend
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv 
+      uses: astral-sh/setup-uv@v5
+
+    - name: Setup Python
+      run: uv python install 
+
+    - name: Install dependencies
+      run: uv sync --locked
+
+    - name: Ruff lint 
+      run: uv run ruff check . 
+
+    - name: Typecheck
+      run: uv run ty check 
+
+    - name: Ruff formatting check 
+      run: uv run ruff format --check 
+
+    - name: Tests 
+      run: uv run pytest
+
+
+
