@@ -32,21 +32,24 @@ The exact relationship between `StationResponse`/`TrainResponse` and the underly
 
 ### Train
 - `train_id`: UUID
+- `beacon_id`: UUID
 - `slug`: string
 - `total_time_secs`: integer
 - `manned_time_secs`: integer
-- `current_steward_id`: UUID | null
+- `current_steward_id`: steward_id[]
 
 ### Station
 - `station_id`: UUID
 - `slug`: string
 - `areas`: StationArea[]
+- `station_name`: string
 
 ### StationArea
 - `beacon_id`: UUID
 - `slug`: string
 - `last_manned_at`: Date
-- `current_steward_id`: UUID | null
+- `current_steward_id`: steward_id[]
+- `area_type`: enum `"platform"` | `"concourse"`
 
 ### DashboardResponse
 - `stations`: Station[]

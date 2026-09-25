@@ -43,7 +43,7 @@
 		"/api/v1/stations/{stationID}": {
 			"get": {
 				"summary": "Get station by ID",
-				"description": "Returns a single station, including its areas and each area's current manning state.",
+				"description": "Returns a single station, including its areas and each area's current manning state in order to only update the relevant parts of the UI.",
 				"parameters": [
 					{
 						"name": "stationID",
@@ -93,7 +93,7 @@
 		"/api/v1/trains/{trainID}": {
 			"get": {
 				"summary": "Get train by ID",
-				"description": "Returns a single train and its current manning state.",
+				"description": "Returns a single train and its current manning state used to only update the relevant parts of the UI.",
 				"parameters": [
 					{
 						"name": "trainID",
@@ -190,14 +190,20 @@
 						"description": "Train UUID.",
 						"example": "770e8400-e29b-41d4-a716-446655440002"
 					},
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID identifying the train.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
 					"slug": {
 						"type": "string",
 						"description": "Human-readable identifier for the train.",
-						"example": "a29"
+						"example": "29"
 					},
 					"total_time_secs": {
 						"type": "integer",
-						"description": "Total elapsed time, in seconds, since the train started being tracked.",
+						"description": "Total elapsed time, in seconds, since the night shift started or the train was put into service during the shift.",
 						"example": 14400
 					},
 					"manned_time_secs": {
@@ -206,15 +212,16 @@
 						"example": 9600
 					},
 					"current_steward_id": {
-						"type": "string",
-						"format": "uuid",
-						"nullable": true,
-						"description": "UUID of the steward currently manning the train, or null if unmanned.",
-						"example": "660e8400-e29b-41d4-a716-446655440001"
+						"type": "array",
+						"description": "UUID(s) of the steward(s) currently manning the train, or empty array if unmanned.",
+						"items": {
+							"$ref": "#/components/schemas/StationArea"
+						}
 					}
 				},
 				"required": [
 					"train_id",
+					"beacon_id",
 					"slug",
 					"total_time_secs",
 					"manned_time_secs",
@@ -233,7 +240,7 @@
 					"slug": {
 						"type": "string",
 						"description": "Human-readable identifier for the area.",
-						"example": "kongens-nytorv-platform-a M1 & M2"
+						"example": "ksg-plt-a-M1-M2"
 					},
 					"last_manned_at": {
 						"type": "string",
@@ -242,14 +249,20 @@
 						"example": "2026-09-21T10:00:00+00:00"
 					},
 					"current_steward_id": {
-						"type": "string",
-						"format": "uuid",
-						"nullable": true,
-						"description": "UUID of the steward currently manning this area, or null if unmanned.",
-						"example": "660e8400-e29b-41d4-a716-446655440001"
+						"type": "array",
+						"description": "UUIDs of the steward(s) currently manning the train, or empty array if unmanned.",
+						"items": {
+							"$ref": "#/components/schemas/StationArea"
+						}
+					},
+					"area_type": {
+					"type": "string",
+					"enum": ["platform", "concourse"],
+					"description": "Type of station area meaning is it a concourse or platform.",
+					"example": "platform"
 					}
 				},
-				"required": ["beacon_id", "slug", "last_manned_at", "current_steward_id"]
+				"required": ["beacon_id", "slug", "last_manned_at", "current_steward_id", "area_type"]
 			},
 			"Station": {
 				"type": "object",
@@ -262,18 +275,23 @@
 					},
 					"slug": {
 						"type": "string",
-						"description": "Human-readable identifier for the station.",
-						"example": "kongens-nytorv"
+						"description": "Human-readable sortend identifier for the station.",
+						"example": "ksg-M1-M2"
 					},
 					"areas": {
 						"type": "array",
-						"description": "Areas belonging to this station.",
+						"description": "Areas belonging to this station meaning platforms and concourses. Station area objects beloning to the station are returned in this array.",
 						"items": {
 							"$ref": "#/components/schemas/StationArea"
 						}
+					},
+					"station_name": {
+						"type": "string",
+						"description": "Full Human-readable identifier/name for the station.",
+						"example": "kongens nytorv"
 					}
 				},
-				"required": ["station_id", "slug", "areas"]
+				"required": ["station_id", "slug", "areas", "station_name"]
 			},
 			"DashboardResponse": {
 				"type": "object",

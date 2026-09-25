@@ -6,19 +6,19 @@ Backend API contract for Android client to ingest connection and shift events fo
 
 ```mermaid
 graph TD
-    MobileUI[Mobile UI\nReact NATIVE] -->|POST /connection/connect| RestAPI
-    MobileUI -->|POST /connection/disconnect| RestAPI
-    MobileUI -->|POST /shift/start| RestAPI
-    MobileUI -->|POST /shift/stop| RestAPI
+    MobileUI[Mobile UI\nReact NATIVE] -->|POST api/v1/connection/connect| RestAPI
+    MobileUI -->|POST api/v1/connection/disconnect| RestAPI
+    MobileUI -->|POST api/v1/shift/start| RestAPI
+    MobileUI -->|POST api/v1/shift/stop| RestAPI
     RestAPI[RestAPI] --> Backend[Backend\npython]
 ```
 
 ## Endpoints
 
-- `POST /connection/connect` - Report connection established ([ConnectionEvent])
-- `POST /connection/disconnect` - Report connection lost ([ConnectionEvent])
-- `POST /shift/start` - Report shift started ([ShiftEvent])
-- `POST /shift/stop` - Report shift stopped ([ShiftEvent])
+- `POST api/v1/connection/connect` - Report connection established ([ConnectionEvent])
+- `POST api/v1/connection/disconnect` - Report connection lost ([ConnectionEvent])
+- `POST api/v1/shift/start` - Report shift started ([ShiftEvent])
+- `POST api/v1/shift/stop` - Report shift stopped ([ShiftEvent])
 
 ## Implementation Notes
 
