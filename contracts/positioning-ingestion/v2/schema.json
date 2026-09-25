@@ -1,0 +1,234 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Positioning Ingestion API",
+		"description": "Backend API contract for Android client to ingest connection and shift events for positioning data.",
+		"version": "2.0.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"api/v1/connection/connect": {
+			"post": {
+				"summary": "Report connection established",
+				"description": "Sent when Android connects to a beacon.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ConnectionEvent"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Event recorded successfully"
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"api/v1/connection/disconnect": {
+			"post": {
+				"summary": "Report connection lost",
+				"description": "Sent when Android disconnects from a beacon.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ConnectionEvent"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Event recorded successfully"
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"api/v1/shift/start": {
+			"post": {
+				"summary": "Report shift started",
+				"description": "Sent when user clicks a button in order start shift on the Android device.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShiftEvent"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Event recorded successfully"
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"api/v1/shift/stop": {
+			"post": {
+				"summary": "Report shift stopped",
+				"description": "Sent when user clicks a button in order to stop shift on the Android device.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShiftEvent"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Event recorded successfully"
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ConnectionEvent": {
+				"type": "object",
+				"properties": {
+					"android_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Android device UUID.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					},
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID the beacon device connected to or disconnected from.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the connection or disconnection occurred on the device. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
+					}
+				},
+				"required": ["android_id", "beacon_id", "timestamp"]
+			},
+			"ShiftEvent": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Android device UUID.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					}
+				},
+				"required": ["id"]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}

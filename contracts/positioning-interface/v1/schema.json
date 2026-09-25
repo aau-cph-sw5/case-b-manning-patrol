@@ -1,0 +1,163 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Positioning Interface API",
+		"description": "Backend API contract for station presence positioning data. Consumed by frontend, dashboard, and reporting services.",
+		"version": "1.0.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/observations": {
+			"get": {
+				"summary": "Get current observed areas",
+				"description": "Returns the set of areas currently observed by all stewards. Each observation carries a beacon_id, area_type, slug, and timestamp.",
+				"responses": {
+					"200": {
+						"description": "Successful response with currently observed areas",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/AreaObservation"
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/observation-events": {
+			"get": {
+				"summary": "Stream of observation events",
+				"description": "Returns a stream of events when areas start or stop being observed by stewards. Each event carries a beacon_id, area_type, slug, timestamp, and event_type (OBSERVED/NOT_OBSERVED). Allows consumers to close records without polling.",
+				"responses": {
+					"200": {
+						"description": "Stream of observation events",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ObservationEvent"
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AreaObservation": {
+				"type": "object",
+				"properties": {
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID identifying the observed area.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["TRAIN", "PLATFORM", "CONCOURSE"],
+						"description": "Type of area."
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the area.",
+						"example": "kongens-nytorv-platform-a"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the observation was recorded. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
+					}
+				},
+				"required": ["beacon_id", "area_type", "slug", "timestamp"]
+			},
+			"ObservationEvent": {
+				"type": "object",
+				"properties": {
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID identifying the observed area.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["TRAIN", "PLATFORM", "CONCOURSE"],
+						"description": "Type of area."
+					},
+					"slug": {
+						"type": "string",
+						"description": "Human-readable identifier for the area.",
+						"example": "kongens-nytorv-platform-a"
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the area observation state changed. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
+					},
+					"event_type": {
+						"type": "string",
+						"enum": ["OBSERVED", "NOT_OBSERVED"],
+						"description": "OBSERVED when area starts being observed, NOT_OBSERVED when area stops being observed."
+					}
+				},
+				"required": [
+					"beacon_id",
+					"area_type",
+					"slug",
+					"timestamp",
+					"event_type"
+				]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}

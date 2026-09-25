@@ -1,0 +1,156 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Positioning Ingestion API",
+		"description": "Backend API contract for Android client to ingest connection and shift events for positioning data.",
+		"version": "1.0.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/connection-event": {
+			"post": {
+				"summary": "Report connection event",
+				"description": "Sent when Android connects to or disconnects from a beacon.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ConnectionEvent"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Event recorded successfully"
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/shift-event": {
+			"post": {
+				"summary": "Report shift event",
+				"description": "Sent when Android starts or stops a shift.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShiftEvent"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Event recorded successfully"
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ConnectionEvent": {
+				"type": "object",
+				"properties": {
+					"android_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Android device UUID.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					},
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID the device connected to or disconnected from.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["CONNECT", "DISCONNECT"],
+						"description": "Connection status."
+					}
+				},
+				"required": ["android_id", "beacon_id", "status"]
+			},
+			"ShiftEvent": {
+				"type": "object",
+				"properties": {
+					"android_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Android device UUID.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["START", "STOP"],
+						"description": "Shift status."
+					}
+				},
+				"required": ["android_id", "status"]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}
