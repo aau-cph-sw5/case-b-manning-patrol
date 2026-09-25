@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         workdir: [manning-patrol-android-frontend, manning-patrol-desktop-frontend]
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
 
     defaults:
       run:
