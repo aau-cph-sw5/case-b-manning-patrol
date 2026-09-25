@@ -1,95 +1,111 @@
 [
   {
+    "debugging_number": 1,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
     "timestamp": "2026-05-30T03:08:13.000Z"
   },
   {
+    "debugging_number": 2,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000050",
     "timestamp": "2026-05-30T03:08:50.000Z"
   },
   {
+    "debugging_number": 3,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
     "timestamp": "2026-05-30T03:09:20.000Z"
   },
   {
+    "debugging_number": 4,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
     "timestamp": "2026-05-30T03:09:24.000Z"
   },
   {
+    "debugging_number": 5,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
     "timestamp": "2026-05-30T03:09:46.000Z"
   },
   {
+    "debugging_number": 6,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000003",
     "timestamp": "2026-05-30T03:10:13.000Z"
   },
   {
+    "debugging_number": 7,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000003",
     "timestamp": "2026-05-30T03:10:27.000Z"
   },
   {
+    "debugging_number": 8,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000004",
     "timestamp": "2026-05-30T03:11:00.000Z"
   },
   {
+    "debugging_number": 9,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000050",
     "timestamp": "2026-05-30T03:11:15.000Z"
   },
   {
+    "debugging_number": 10,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000004",
     "timestamp": "2026-05-30T03:12:00.000Z"
   },
   {
+    "debugging_number": 11,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000004",
     "timestamp": "2026-05-30T03:12:07.000Z"
   },
   {
+    "debugging_number": 12,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000004",
     "timestamp": "2026-05-30T03:20:46.000Z"
   },
   {
+    "debugging_number": 13,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000004",
     "timestamp": "2026-05-30T04:25:59.000Z"
   },
   {
+    "debugging_number": 14,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000060",
     "timestamp": "2026-05-30T04:35:40.000Z"
   },
   {
+    "debugging_number": 15,
     "event": "CONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000003",
     "timestamp": "2026-05-30T04:45:40.000Z"
   },
   {
+    "debugging_number": 16,
     "event": "DISCONNECTED",
     "android_id": "660e8400-e29b-41d4-a716-446655440001",
     "beacon_id": "550e8400-e29b-41d4-a716-000000000060",
