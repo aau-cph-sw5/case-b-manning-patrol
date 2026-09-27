@@ -37,3 +37,5 @@ As with any early decision, this commits us in the long run and can provide cost
 
 ## Notes
 1. Screenshot from CLAAUDIA support in commit history. Also https://hpc.aau.dk/ outlining the different access privileges of CLAAUDIA services.
+<img width="980" height="910" alt="image" src="https://github.com/user-attachments/assets/8d74e59e-cc81-430a-841c-0ae2b74eb686" />
+
