@@ -15,16 +15,17 @@ def get_event_delay(previous_event, current_event):
     previous_time = datetime.fromisoformat(previous_timestamp)
     current_time = datetime.fromisoformat(current_timestamp)
 
-    # SPEED is used to speed up the simulation, 
+    # SPEED is used to speed up the simulation,
     # so we divide the actual delay by SPEED
-    delay = ((current_time - previous_time) / SPEED).total_seconds() 
+    delay = ((current_time - previous_time) / SPEED).total_seconds()
     return delay
 
 async def simulate_event_stream(events, websocket):
     """Simulate a stream of events over a WebSocket connection"""
-    #-1 because we are comparing the current event with the next event to calculate the delay, 
-    # and if we reach the last event, there is no next event to compare with
-    for i in range(len(events)-1): 
+    # -1 because we are comparing the current event with the next event
+    # to calculate the delay, and if we reach the last event,
+    # there is no next event to compare with
+    for i in range(len(events)-1):
         await websocket.send_json(events[i])
         delay = get_event_delay(events[i], events[i + 1])
         await asyncio.sleep(delay)

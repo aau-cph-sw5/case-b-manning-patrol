@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # Load fixture events for WebSocket streaming
-events = load_fixture("fixture-events-v1.json") 
+events = load_fixture("fixture-events-v1.json")
 
 
 
