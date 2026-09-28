@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
+    "pydantic>=2.13.5",
     "pytest>=9.1.1",
     "ruff>=0.16.8",
 ]
@@ -37,8 +38,8 @@ select = [
     "B",   # flake8-bugbear
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest",
     "ruff>=0.10.0",
     "ty",
