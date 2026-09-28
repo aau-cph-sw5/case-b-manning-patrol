@@ -20,8 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load fixture data
-events = load_fixture("fixture-events-v1.json")  # Load fixture events for WebSocket streaming
+# Load fixture events for WebSocket streaming
+events = load_fixture("fixture-events-v1.json") 
 
 
 
