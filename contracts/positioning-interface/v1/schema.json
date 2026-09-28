@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Interface API",
 		"description": "Backend API contract for station and train presence positioning data. Consumed by the Web UI dashboard and reporting services. Combines fetch-on-load REST resources with WebSocket push channels for live updates.",
-		"version": "2.0.0"
+		"version": "1.0.0"
 	},
 	"servers": [
 		{
