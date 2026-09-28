@@ -24,7 +24,6 @@ app.add_middleware(
 events = load_fixture("fixture-events-v1.json")
 
 
-
 @app.websocket("/ws/observation-events")
 async def websocket_events(websocket: WebSocket):
     """WebSocket stream of fixture shift data."""

@@ -1,4 +1,5 @@
 """Run linting: ruff + ty."""
+
 import subprocess
 import sys
 

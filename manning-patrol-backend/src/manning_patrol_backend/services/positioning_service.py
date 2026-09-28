@@ -6,7 +6,6 @@ from pathlib import Path
 SPEED = 100  # 100x faster than real time
 
 
-
 def get_event_delay(previous_event, current_event):
     """Calculate the delay between two events based on their timestamps"""
     previous_timestamp = previous_event["timestamp"]
@@ -20,17 +19,18 @@ def get_event_delay(previous_event, current_event):
     delay = ((current_time - previous_time) / SPEED).total_seconds()
     return delay
 
+
 async def simulate_event_stream(events, websocket):
     """Simulate a stream of events over a WebSocket connection"""
     # -1 because we are comparing the current event with the next event
     # to calculate the delay, and if we reach the last event,
     # there is no next event to compare with
-    for i in range(len(events)-1):
+    for i in range(len(events) - 1):
         await websocket.send_json(events[i])
         delay = get_event_delay(events[i], events[i + 1])
         await asyncio.sleep(delay)
     # Send the last event
-    await websocket.send_json(events[len(events)-1])
+    await websocket.send_json(events[len(events) - 1])
 
 
 # Load fixtures directly - no transformation, assume correct format
