@@ -50,6 +50,14 @@ uv run lint
 
 This runs `ruff check src/ && ty check src/`
 
+### Full CI check (run before pushing)
+
+```bash
+uv run check
+```
+
+This runs the same steps as CI: `uv sync --locked`, `ruff check`, `ty check`, `ruff format --check`, and `pytest`.
+
 ### Individual commands
 
 ```bash
