@@ -4,11 +4,11 @@ Positioning Simulator
 A simulator implementation of the Positioning Interface contract.
 Serves fixture data directly - assumes fixtures are already aligned with contract.
 """
-import asyncio
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from .services.positioning_service import simulate_event_stream, load_fixture
+
+from .services.positioning_service import load_fixture, simulate_event_stream
 
 app = FastAPI(title="Positioning Simulator")
 
