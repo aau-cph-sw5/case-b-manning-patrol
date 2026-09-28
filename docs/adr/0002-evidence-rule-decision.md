@@ -1,8 +1,11 @@
 # ADR 0002. Is presence asserted by the system or confirmed by the steward?
 
-**Status.** Proposed
+**Status.** Accepted
+
 **Date.** 2026-09-18
+
 **Deciders.** Marcus Eckstrøm, Peter Rasmussen & Tue Elhegn, team 3
+
 **Related backlog items.** MET-B-001, MET-B-004, MET-B-005, MET-B-007, MET-B-014, MET-B-024
 
 ## Context
@@ -14,7 +17,10 @@ Metroselskabet rejected the manual assertion based on the method not providing c
 
 ## Decision
 
-Presence will be asserted automatically by the system using Bluetooth beacons.
+The presence of the stewards will be asserted and logged automatically by the system using Bluetooth beacons, as per request from Metro Service A/S.
+
+Furthermore, this implies that if a steward is not connected to a Bluetooth beacon, they are not considered to be manning the station.
+
 Platform checks may only require stewards to leave the train briefly during its 15–40 second stop. Requiring manual registration would add unnecessary work and reduce the time available for operational duties. Beacon-based detection provides automatic evidence of presence without requiring steward interaction.
 
 ## Consequences
