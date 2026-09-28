@@ -4,7 +4,7 @@
 
 | File | Contents |
 |------|----------|
-| `fixture-events-v1.json` | Merged event timeline for steward 1: one entry per event with `debugging_number`, `event` (`CONNECTED`/`DISCONNECTED`), `android_id`, `beacon_id`, `timestamp`. |
+| `fixture-events-v1.json` | Merged event timeline for steward 1 (with android_id ...0001): one entry per event with `debugging_number`, `event` (`CONNECTED`/`DISCONNECTED`), `android_id`, `beacon_id`, `timestamp`. |
 
 ## Setup and running
 
