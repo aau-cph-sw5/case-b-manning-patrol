@@ -1,6 +1,6 @@
 # ADR POSITIONING INTERFACE CONTRACT.
 
-**Status.** Proposed
+**Status.** Accepted
 
 **Date.** 2026-9-23
 
@@ -38,4 +38,4 @@ When we use the server as a source of truth, we avoid doing business logic in th
 
 ## Notes
 We assume that the stewards will have a working phone, and that it will not run out of power. 
-An open question is we do not know the procudere of ownership for the andriod devices.
+An open question is we do not know the procedure of ownership for the Android devices.
