@@ -1,0 +1,72 @@
+# Workflow for auditing all project dependencies for vulnerabilities.
+#
+# Covers both package ecosystems in this repo:
+#   - npm  (manning-patrol-android-frontend, manning-patrol-desktop-frontend)
+#   - uv   (manning-patrol-backend)
+#
+# Runs on every push and pull request, plus a weekly schedule so that newly
+# disclosed advisories are caught even when no code has changed.
+
+name: Dependency Audit
+
+on:
+  push:
+    branches: ["main", "release-*"]
+  pull_request:
+    branches: ["main, release-*"]
+  schedule:
+    - cron: '0 6 * * 1' # Every Monday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    name: npm audit (${{ matrix.workdir }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        workdir: [manning-patrol-android-frontend, manning-patrol-desktop-frontend]
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.workdir }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: ${{ matrix.workdir }}/package-lock.json
+
+    - name: Audit dependencies
+      run: npm audit --audit-level=high
+
+  uv:
+    name: uv audit
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: manning-patrol-backend
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Setup Python
+      run: uv python install
+
+    - name: Export locked dependencies
+      run: uv export --locked --no-dev --no-emit-project --format requirements-txt -o requirements.txt
+
+    - name: Audit dependencies
+      run: uvx pip-audit -r requirements.txt
