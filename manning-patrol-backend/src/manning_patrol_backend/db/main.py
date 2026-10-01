@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from manning_patrol_backend import models
+from manning_patrol_backend import models  # noqa: F401  registers table metadata
 
 from .config import settings
 
@@ -13,7 +13,7 @@ engine: AsyncEngine = create_async_engine(
 )
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     async with AsyncSession(engine) as session:
         yield session
 

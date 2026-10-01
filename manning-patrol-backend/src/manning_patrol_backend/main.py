@@ -11,11 +11,10 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
-app = FastAPI(
-    title="Manning Patrol Backend",
-    lifespan=lifespan
-    )
+
+app = FastAPI(title="Manning Patrol Backend", lifespan=lifespan)
+
 
 @app.get("/ping")
 async def ping():
-    return{"message": "up"}
+    return {"message": "up"}
