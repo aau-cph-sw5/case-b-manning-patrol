@@ -7,7 +7,7 @@ Main FastAPI application.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.routers import positioning_simulator
+from src.routers import events, positioning_simulator
 
 app = FastAPI(title="Manning Patrol Backend")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(positioning_simulator.router)
+app.include_router(events.router)
 
 
 @app.get("/health")
