@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
-class AreaKind(str, Enum):
+
+class AreaKind(StrEnum):
     CONCOURSE = "concourse"
     PLATFORM = "platform"
 
