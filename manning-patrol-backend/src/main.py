@@ -28,6 +28,12 @@ async def health_check():
     return {"status": "ok", "message": "Manning Patrol Backend running"}
 
 
+@app.get("/")
+async def hello():
+    """Stub endpoint for root path"""
+    return {"message": "Hello"}
+
+
 def dev():
     """Run development server with reload."""
     import uvicorn
