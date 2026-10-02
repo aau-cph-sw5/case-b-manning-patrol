@@ -9,12 +9,14 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
-    "pytest>=9.1.1",
-    "ruff>=0.16.8",
+    "pydantic>=2.13.5",
 ]
 
 [project.scripts]
-manning-patrol-backend = "manning_patrol_backend:main"
+dev = "manning_patrol_backend.dev_server:main"
+positioning-simulator = "manning_patrol_backend.positioning_simulator:app"
+lint = "manning_patrol_backend.lint:main"
+check = "manning_patrol_backend.check:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]
@@ -27,8 +29,17 @@ target-version = "py313"
 [tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
     "F",   # pyflakes
     "I",   # isort
+    "N",   # pep8-naming
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff>=0.10.0",
+    "ty",
 ]

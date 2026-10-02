@@ -1,0 +1,38 @@
+"""
+Positioning Simulator
+
+A simulator implementation of the Positioning Interface contract.
+Serves fixture data directly - assumes fixtures are already aligned with contract.
+"""
+
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+
+from .services.positioning_service import load_fixture, simulate_event_stream
+
+app = FastAPI(title="Positioning Simulator")
+
+# CORS for frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Load fixture events for WebSocket streaming
+events = load_fixture("fixture-events-v1.json")
+
+
+@app.websocket("/ws/observation-events")
+async def websocket_events(websocket: WebSocket):
+    """WebSocket stream of fixture shift data."""
+    await websocket.accept()
+
+    await simulate_event_stream(events, websocket)
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "ok", "message": "Positioning Simulator running"}
