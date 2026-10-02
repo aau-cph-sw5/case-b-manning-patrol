@@ -7,7 +7,9 @@ Main FastAPI application.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.routers import positioning_simulator
+from src.api.v1.routers import health, positioning_simulator
+
+API_V1_PREFIX = "/api/v1"
 
 app = FastAPI(title="Manning Patrol Backend")
 
@@ -19,13 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(positioning_simulator.router)
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "Manning Patrol Backend running"}
+app.include_router(health.router, prefix=API_V1_PREFIX)
+app.include_router(positioning_simulator.router, prefix=API_V1_PREFIX)
 
 
 @app.get("/")

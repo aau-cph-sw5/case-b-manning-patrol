@@ -65,8 +65,10 @@ manning-patrol-backend/
 ├── src/
 │   ├── main.py                  # FastAPI app definition
 │   ├── models.py
-│   ├── routers/
-│   │   └── positioning_simulator.py # Positioning Interface simulator
+│   ├── api/
+│   │   └── v1/
+│   │       └── routers/
+│   │           └── positioning_simulator.py # Positioning Interface simulator
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py
@@ -84,9 +86,7 @@ manning-patrol-backend/
 
 Implements the Positioning Interface contract (`contracts/positioning-interface/v1/`):
 
-- `GET /observations` - Returns currently active area observations
-- `GET /observation-events` - Returns all observation events
-- `GET /ws/observation-events` - WebSocket stream of events
+- `WS /api/v1/ws/observation-events` - WebSocket stream of events
 
 Fixtures used:
 - `fixtures/fixture-shifts.json` - Raw shift/ping data

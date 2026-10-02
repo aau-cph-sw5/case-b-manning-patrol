@@ -1,17 +1,19 @@
-import pytest
+from fastapi.testclient import TestClient
 
-from src.main import health_check, hello
+from src.main import API_V1_PREFIX, app
+
+client = TestClient(app)
 
 
-@pytest.mark.asyncio
-async def test_health_check():
+def test_health_check():
     expected_response = {"status": "ok", "message": "Manning Patrol Backend running"}
-    actual_response = await health_check()
-    assert actual_response == expected_response
+    response = client.get(f"{API_V1_PREFIX}/health")
+    assert response.status_code == 200
+    assert response.json() == expected_response
 
 
-@pytest.mark.asyncio
-async def test_root():
+def test_root():
     expected_response = {"message": "Hello"}
-    actual_response = await hello()
-    assert actual_response == expected_response
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == expected_response
