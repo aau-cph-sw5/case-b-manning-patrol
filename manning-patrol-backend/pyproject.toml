@@ -10,17 +10,21 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
     "pydantic>=2.13.5",
+    "pytest-asyncio>=1.4.0",
 ]
 
 [project.scripts]
-dev = "manning_patrol_backend.dev_server:main"
-positioning-simulator = "manning_patrol_backend.positioning_simulator:app"
-lint = "manning_patrol_backend.lint:main"
-check = "manning_patrol_backend.check:main"
+dev = "src.main:dev"
+lint = "src.scripts.lint:main"
+check = "src.scripts.check:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "src"
+module-root = ""
 
 [tool.ruff]
 line-length = 88
@@ -42,4 +46,5 @@ dev = [
     "pytest",
     "ruff>=0.10.0",
     "ty",
+	"pytest-asyncio>=1.4.0"
 ]
