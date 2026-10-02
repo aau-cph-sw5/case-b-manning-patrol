@@ -19,26 +19,16 @@ uv sync
 
 ## Running
 
-### Main Backend
-
 ```bash
 # Development server with auto-reload (recommended)
 uv run dev
 
 # Or manually
-uv run uvicorn manning_patrol_backend:app --reload --host 0.0.0.0 --port 8000
+uv run fastapi dev src/main.py
 ```
 
-### Positioning Simulator
-
-The simulator implements the Positioning Interface contract and replays fixture data.
-
-```bash
-# Run the simulator
-uv run positioning-simulator
-```
-
-Both servers run on `http://localhost:8000` by default. Run only one at a time or use different ports.
+The server runs on `http://localhost:8000`. The positioning simulator is
+included in the main app (see below), so there is no separate server to start.
 
 ## Development
 
@@ -72,16 +62,22 @@ uv run ty check src/
 
 ```
 manning-patrol-backend/
+├── src/
+│   ├── main.py                  # FastAPI app definition
+│   ├── models.py
+│   ├── routers/
+│   │   └── positioning_simulator.py # Positioning Interface simulator
+│   ├── scripts/                 # `uv run lint` / `uv run check` entry points
+│   └── services/
+│       ├── positioning_service.py
+│       └── db/                  # Database access layer (planned, empty)
 ├── fixtures/
-│   ├── fixture-shifts.json   # Shift data for simulator
-│   └── mapping.json          # Beacon to station/train mapping
+│   └── fixture-events-v1.json   # Event timeline replayed by the simulator
+├── tests/
+├── docker-compose.yml # Local PostgreSQL database (planned, not yet defined)
 ├── pyproject.toml    # Dependencies and tool config
 ├── uv.lock           # Locked dependency versions
-├── .python-version   # Python version (3.13)
-└── src/
-    ├── manning_patrol_backend/
-    │   └── __init__.py
-    └── positioning_simulator.py  # Positioning Interface simulator
+└── .python-version   # Python version (3.13)
 ```
 
 ## Positioning Simulator
@@ -95,6 +91,23 @@ Implements the Positioning Interface contract (`contracts/positioning-interface/
 Fixtures used:
 - `fixtures/fixture-shifts.json` - Raw shift/ping data
 - `fixtures/mapping.json` - Beacon ID to station/train mapping
+
+## Database
+
+> **Status:** planned — not yet implemented.
+
+The backend will use PostgreSQL, run locally via Docker Compose:
+
+- `docker-compose.yml` — will define the PostgreSQL service. It is currently
+  a placeholder with no services, so `docker compose up` does nothing yet.
+- `src/services/db/` — will hold the database access layer (connection
+  setup, queries). Currently empty.
+
+Once the database service is defined, start it with:
+
+```bash
+docker compose up -d
+```
 
 ## Tool Configuration
 
