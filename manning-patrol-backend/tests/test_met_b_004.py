@@ -6,6 +6,7 @@ No hardware or external dependencies required.
 """
 import pytest
 from datetime import datetime, timedelta
+from typing import Optional
 
 from manning_patrol_backend.models.patrol_models import BeaconEvent, PatrolConfig, PatrolRecord, PatrolSession
 from manning_patrol_backend.services.patrol_service import PatrolService
@@ -67,7 +68,11 @@ class TestSessionManagement:
     
     def test_beacon_event_outside_session_creates_nothing(self, patrol_service: PatrolService):
         """A beacon connection outside a session creates nothing."""
-        event = mock_beacon_event(beacon_id="station_1", connected=True)
+        event = BeaconEvent(
+            beacon_id="station_1",
+            connected=True,
+            timestamp=datetime.utcnow()
+        )
         result = patrol_service.handle_beacon_event(event)
         
         assert result is None

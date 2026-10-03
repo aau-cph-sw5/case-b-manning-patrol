@@ -22,8 +22,10 @@ class PatrolService:
         self.active_session: Optional[PatrolSession] = None
         self.sessions: Dict[str, PatrolSession] = {}
         self.all_records: Dict[str, PatrolRecord] = {}
-        # Track active connections per beacon for gap detection
-        self.active_connections: Dict[str, datetime] = {}
+        # Track connection start times per beacon for duration calculation
+        self.connection_start_times: Dict[str, datetime] = {}
+        # Track disconnected beacons with their disconnect time for gap detection
+        self.disconnected_beacons: Dict[str, datetime] = {}
     
     def start_patrol_session(self, steward_id: Optional[str] = None) -> PatrolSession:
         """
@@ -80,24 +82,45 @@ class PatrolService:
         timestamp = event.timestamp
         
         if event.connected:
+            # Check if this beacon is in disconnected_beacons (reconnection within gap)
+            if beacon_id in self.disconnected_beacons:
+                disconnect_time = self.disconnected_beacons[beacon_id]
+                gap = (timestamp - disconnect_time).total_seconds()
+                if gap <= self.config.tolerated_gap_seconds:
+                    # Within tolerance: continue same record, remove from disconnected
+                    del self.disconnected_beacons[beacon_id]
+                    self.connection_start_times[beacon_id] = timestamp
+                    return None
+                # Outside tolerance: treat as new connection
+                del self.disconnected_beacons[beacon_id]
+            
+            # Check if beacon already has an active connection (shouldn't happen, but safety)
+            if beacon_id in self.connection_start_times:
+                # This could happen if we get duplicate connect events
+                # For now, just update the timestamp
+                self.connection_start_times[beacon_id] = timestamp
+                return None
+            
             # New connection - initiate record
-            if beacon_id not in self.active_connections:
-                record = PatrolRecord(
-                    record_id=str(uuid.uuid4()),
-                    area_id=beacon_id,
-                    start_time=timestamp,
-                    steward_id=session.steward_id,
-                    session_id=session.session_id
-                )
-                session.add_record(record)
-                self.all_records[record.record_id] = record
-                self.active_connections[beacon_id] = timestamp
-                return record
+            record = PatrolRecord(
+                record_id=str(uuid.uuid4()),
+                area_id=beacon_id,
+                start_time=timestamp,
+                steward_id=session.steward_id,
+                session_id=session.session_id
+            )
+            session.add_record(record)
+            self.all_records[record.record_id] = record
+            self.connection_start_times[beacon_id] = timestamp
+            return record
         else:
-            # Connection lost - check duration
-            if beacon_id in self.active_connections:
-                start_time = self.active_connections[beacon_id]
+            # Connection lost - move to disconnected tracking
+            if beacon_id in self.connection_start_times:
+                start_time = self.connection_start_times[beacon_id]
                 duration = (timestamp - start_time).total_seconds()
+                
+                # Remove from connection tracking
+                del self.connection_start_times[beacon_id]
                 
                 if duration >= self.config.x_seconds_threshold:
                     # Record is complete - find and close it
@@ -105,11 +128,12 @@ class PatrolService:
                         if record.area_id == beacon_id and record.end_time is None:
                             record.end_time = timestamp
                             record.is_complete = True
-                            del self.active_connections[beacon_id]
                             return record
-                else:
-                    # Connection was too short - discard
-                    del self.active_connections[beacon_id]
+                # Else: Connection was too short - still track as disconnected
+                # for potential reconnection within gap tolerance
+                
+                # Track disconnection for gap tolerance check
+                self.disconnected_beacons[beacon_id] = timestamp
         
         return None
     
@@ -151,22 +175,45 @@ class PatrolService:
         
         Acceptance Criterion: A record closes when its connection has been lost 
         for longer than the tolerated gap, and its end time is the last confirmed connection.
+        
+        Handles two cases:
+        1. Beacons that were disconnected (we received disconnect event)
+        2. Beacons still in connection_start_times (connection lost without disconnect event)
         """
         stale_beacons = []
-        for beacon_id, last_time in list(self.active_connections.items()):
-            gap = (current_time - last_time).total_seconds()
+        
+        # Case 1: Beacons that were explicitly disconnected
+        for beacon_id, disconnect_time in list(self.disconnected_beacons.items()):
+            gap = (current_time - disconnect_time).total_seconds()
             if gap > self.config.tolerated_gap_seconds:
                 # Close the record for this beacon
                 if self.active_session:
                     for record in self.active_session.open_records:
                         if record.area_id == beacon_id and record.end_time is None:
-                            record.end_time = last_time  # Last confirmed connection
+                            record.end_time = disconnect_time  # Last confirmed connection
                             record.is_complete = True
                             stale_beacons.append(beacon_id)
                             break
+                # Remove from disconnected tracking
+                del self.disconnected_beacons[beacon_id]
         
-        # Remove stale connections
-        for beacon_id in stale_beacons:
-            del self.active_connections[beacon_id]
+        # Case 2: Beacons still in connection_start_times (no disconnect event received)
+        # This can happen if connection drops without notification
+        # Close records that have been connected for longer than the gap tolerance
+        # (assuming the connection was lost but we never got the disconnect event)
+        for beacon_id, start_time in list(self.connection_start_times.items()):
+            duration = (current_time - start_time).total_seconds()
+            if duration > self.config.tolerated_gap_seconds:
+                # Connection has been active for longer than gap tolerance without disconnect
+                # Assume connection was lost and close the record
+                if self.active_session:
+                    for record in self.active_session.open_records:
+                        if record.area_id == beacon_id and record.end_time is None:
+                            record.end_time = current_time
+                            record.is_complete = True
+                            stale_beacons.append(beacon_id)
+                            break
+                # Remove from connection tracking
+                del self.connection_start_times[beacon_id]
         
         return stale_beacons
