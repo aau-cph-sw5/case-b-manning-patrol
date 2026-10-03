@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.v1.routers import health, positioning_simulator
 
-API_V1_PREFIX = "/api/v1"
+API_PREFIX = "/api/v1"
 
 app = FastAPI(title="Manning Patrol Backend")
 
@@ -26,7 +26,7 @@ app.include_router(positioning_simulator.router, prefix=API_V1_PREFIX)
 
 
 @app.get("/")
-async def hello():
+def hello():
     """Stub endpoint for root path"""
     return {"message": "Hello"}
 
