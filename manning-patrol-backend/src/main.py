@@ -21,8 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router, prefix=API_V1_PREFIX)
-app.include_router(positioning_simulator.router, prefix=API_V1_PREFIX)
+app.include_router(health.router, prefix=API_PREFIX)
+app.include_router(positioning_simulator.router, prefix=API_PREFIX)
 
 
 @app.get("/")
