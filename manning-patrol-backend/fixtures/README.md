@@ -22,7 +22,7 @@ The server runs on `http://localhost:8000`. Open the website, then open the
 browser's developer tools console and paste:
 
 ```js
-const ws = new WebSocket("ws://localhost:8000/ws/observation-events");
+const ws = new WebSocket("ws://localhost:8000/api/v1/ws/observation-events");
 ws.onopen = () => console.log("CONNECTED");
 ws.onmessage = (event) => console.log("EVENT:", event.data);
 ws.onerror = (error) => console.log("ERROR:", error);
