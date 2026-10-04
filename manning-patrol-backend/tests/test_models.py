@@ -1,4 +1,4 @@
-from manning_patrol_backend.models import BeaconToStation
+from src.models import BeaconToStation
 
 
 def test_beacon_to_station_parses_aliases():

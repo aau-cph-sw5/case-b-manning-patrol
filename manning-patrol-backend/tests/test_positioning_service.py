@@ -1,4 +1,4 @@
-from manning_patrol_backend.services.positioning_service import (
+from src.services.positioning_service import (
     get_event_delay,
     load_fixture,
 )
