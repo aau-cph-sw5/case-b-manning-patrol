@@ -9,14 +9,23 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
+    "httpx2>=2.13.1",
+    "pydantic>=2.13.5",
+    "pytest-asyncio>=1.4.0",
 ]
 
 [project.scripts]
-manning-patrol-backend = "manning_patrol_backend:main"
+dev = "src.main:dev"
+lint = "src.scripts.lint:main"
+check = "src.scripts.check:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "src"
+module-root = ""
 
 [tool.ruff]
 line-length = 88
@@ -25,8 +34,10 @@ target-version = "py313"
 [tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
     "F",   # pyflakes
     "I",   # isort
+    "N",   # pep8-naming
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
 ]
@@ -36,4 +47,5 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.9",
     "ty>=0.0.84",
+	  "pytest-asyncio>=1.4.0"
 ]
