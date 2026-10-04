@@ -9,10 +9,10 @@ const RING_WIDTH = 6;
 
 type Direction = "left" | "right";
 
-// sf symbols on ios, material symbols on android
+// sf symbols on ios, material symbols on android and web. a platform without a name renders nothing.
 const chevrons = {
-  left: { ios: "chevron.left", android: "chevron_left" },
-  right: { ios: "chevron.right", android: "chevron_right" },
+  left: { ios: "chevron.left", android: "chevron_left", web: "chevron_left" },
+  right: { ios: "chevron.right", android: "chevron_right", web: "chevron_right" },
 } as const satisfies Record<Direction, object>;
 
 type SliderThumbProps = {
