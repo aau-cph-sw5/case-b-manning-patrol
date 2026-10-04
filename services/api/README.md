@@ -61,7 +61,7 @@ uv run ty check src/
 ## Project Structure
 
 ```
-manning-patrol-backend/
+services/api/
 ├── src/
 │   ├── main.py                  # FastAPI app definition
 │   ├── models.py
