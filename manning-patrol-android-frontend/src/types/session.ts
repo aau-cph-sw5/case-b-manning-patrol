@@ -12,3 +12,12 @@ export const initialSessionState: SessionState = {
   status: "stopped",
   error: null,
 };
+
+// things that happened to the session. only the failures carry data: the message to show.
+export type SessionAction =
+  | { type: "START_REQUESTED" }
+  | { type: "START_SUCCEEDED" }
+  | { type: "START_FAILED"; error: string }
+  | { type: "STOP_REQUESTED" }
+  | { type: "STOP_SUCCEEDED" }
+  | { type: "STOP_FAILED"; error: string };
