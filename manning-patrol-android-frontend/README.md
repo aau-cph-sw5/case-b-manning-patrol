@@ -50,7 +50,7 @@ A failed request puts the button back in the status that is still true and shows
 
 **Not connected yet.** `src/app/index.tsx` shows the button in its starting state with an empty `onPress`, because the session API is a separate ticket. Connecting it takes two steps:
 
-**1. Write the requests**, e.g. in `src/api/session.ts`: two functions that send `POST /api/v1/session/start` and `/stop`. Each must return a `Promise<void>` that **resolves when the server answers 201 and rejects otherwise**. That is all `useSession` relies on. Put the server address in `EXPO_PUBLIC_API_URL` in `.env.local` (gitignored).
+**1. Write the requests**, e.g. in `src/api/session.ts`: two functions that send `POST /api/v1/session/start` and `/stop`. Each must return a `Promise<void>` that **resolves when the server answers 201 and rejects otherwise**. That is all `useSession` relies on. Note that `fetch` only rejects when the network fails, not on a `400` or `500`, so check the status yourself: `if (response.status !== 201) throw new Error(...)`. Without that check, a rejected request shows up as a started session. Put the server address in `EXPO_PUBLIC_API_URL` in `.env.local` (gitignored).
 
 **2. Replace the placeholder in `src/app/index.tsx`:**
 
