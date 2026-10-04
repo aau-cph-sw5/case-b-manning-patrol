@@ -1,18 +1,25 @@
-import { View, StyleSheet } from "react-native";
-import { SessionButton } from "@/components/SessionButton";
+import { ScrollView, StyleSheet } from "react-native";
+import { SessionSlider } from "@/components/SessionSlider";
 
+// temporary preview of every slider state, replaced by a working demo once the slider can be dragged
 export default function Index() {
   return (
-    <View style={styles.container}>
-      <SessionButton status="stopped" onPress={() => console.log("pressed")} />
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <SessionSlider status="stopped" />
+      <SessionSlider status="starting" />
+      <SessionSlider status="active" />
+      <SessionSlider status="stopping" />
+      <SessionSlider status="stopped" error="Could not start the session. Try again." />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
+    flexGrow: 1,
     justifyContent: "center",
+    gap: 32,
+    padding: 16,
+    backgroundColor: "white",
   },
 });
