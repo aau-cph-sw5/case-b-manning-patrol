@@ -1,9 +1,9 @@
 // decides the next session state. pure: no requests, timers or other side effects.
-// the start time comes in with START_REQUESTED, so the reducer never reads the clock itself.
+// the start time comes in with START_SUCCEEDED, so the reducer never reads the clock itself.
 //
 // action           only when status is   new status   error     startedAt
-// START_REQUESTED  stopped               starting     null      from action
-// START_SUCCEEDED  starting              active       null      kept
+// START_REQUESTED  stopped               starting     null      null
+// START_SUCCEEDED  starting              active       null      from action
 // START_FAILED     starting              stopped      message   null
 // STOP_REQUESTED   active                stopping     null      kept
 // STOP_SUCCEEDED   stopping              stopped      null      null
@@ -16,11 +16,11 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
   switch (action.type) {
     case "START_REQUESTED":
       if (state.status !== "stopped") return state;
-      return { status: "starting", error: null, startedAt: action.startedAt };
+      return { status: "starting", error: null, startedAt: null };
 
     case "START_SUCCEEDED":
       if (state.status !== "starting") return state;
-      return { status: "active", error: null, startedAt: state.startedAt };
+      return { status: "active", error: null, startedAt: action.startedAt };
 
     case "START_FAILED":
       if (state.status !== "starting") return state;
