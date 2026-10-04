@@ -1,12 +1,11 @@
 # AGENTS.md
 
 Instructions for AI coding agents working in this repository. Humans: see
-[CONTRIBUTING.md](CONTRIBUTING.md) and the [semester docs hub](https://github.com/aau-cph-sw5/semester-docs).
+[CONTRIBUTING.md](CONTRIBUTING.md) and the [semester docs](https://github.com/aau-cph-sw5/semester-docs).
 
 ## Project
 
-Metro "manning/patrol" compliance system: documents that trains are manned >= 70%
-of running time and every station level is patrolled hourly.
+Metro "manning/patrol" compliance system: documents that trains are manned >= 70% of running time and every station level is patrolled hourly.
 
 ```
 contracts/                        versioned interfaces other teams build against
