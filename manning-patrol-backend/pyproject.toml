@@ -12,6 +12,7 @@ dependencies = [
     "httpx2>=2.13.1",
     "pydantic>=2.13.5",
     "pytest-asyncio>=1.4.0",
+    "sqlmodel>=0.0.47",
 ]
 
 [project.scripts]
