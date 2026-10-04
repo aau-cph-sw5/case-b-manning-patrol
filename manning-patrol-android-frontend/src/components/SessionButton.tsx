@@ -3,9 +3,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ElapsedTime } from "@/components/ElapsedTime";
 import { SessionButtonIcon, type SessionButtonIconName } from "@/components/SessionButtonIcon";
-import type { SessionStatus } from "@/types/session";
+import type { SessionState, SessionStatus } from "@/types/session";
 
-// darker than the sketch so white text stays readable (contrast of at least 4.5:1)
 const colors = {
   start: "#2e7d62",
   pending: "#6b7280",
@@ -54,13 +53,9 @@ const appearance: Record<SessionStatus, Appearance> = {
   },
 };
 
-type SessionButtonProps = {
-  status: SessionStatus;
-  // when the current session started (ms since epoch), shown as elapsed time while active
-  startedAt: number | null;
+// the session state to show (status, startedAt, error), plus what to do on a press
+type SessionButtonProps = SessionState & {
   onPress: () => void;
-  // message from the last failed request, shown under the button
-  error?: string | null;
 };
 
 export function SessionButton({ status, startedAt, onPress, error }: SessionButtonProps) {

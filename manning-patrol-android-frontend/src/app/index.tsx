@@ -2,15 +2,16 @@ import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SessionButton } from "@/components/SessionButton";
+import { initialSessionState } from "@/types/session";
 
-// not connected yet: wiring the button to sessionReducer and the session api is a separate ticket.
-// see the frontend README for how to connect it.
+// not connected yet: the session api is a separate ticket. once it exists, replace the two lines
+// below with useSession (see the frontend README).
 function handleSessionPress() {}
 
 export default function Index() {
   return (
     <SafeAreaView style={styles.screen} edges={["bottom"]}>
-      <SessionButton status="stopped" startedAt={null} onPress={handleSessionPress} />
+      <SessionButton {...initialSessionState} onPress={handleSessionPress} />
     </SafeAreaView>
   );
 }

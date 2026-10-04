@@ -41,32 +41,23 @@ A failed request puts the button back in the status that is still true and shows
 
 | File | Job |
 |---|---|
-| `src/components/SessionButton.tsx` | The button. UI only: shows the status it's given and calls `onPress`. |
+| `src/components/SessionButton.tsx` | The button. UI only: shows the session state it's given and calls `onPress`. |
+| `src/hooks/useSession.ts` | Connects the button to the reducer and to the start/stop requests it is given. |
 | `src/state/sessionReducer.ts` | Decides the next status. The transition table is at the top of the file. |
 | `src/types/session.ts` | `SessionStatus`, `SessionState`, `SessionAction` |
 
-**Not connected yet.** `src/app/index.tsx` shows the button in the `stopped` state with an empty `onPress`. Connecting it to the reducer and the session API belongs to a separate ticket. It looks like this:
+### Connecting the API
+
+**Not connected yet.** `src/app/index.tsx` shows the button in its starting state with an empty `onPress`, because the session API is a separate ticket. Connecting it takes two steps:
+
+**1. Write the requests**, e.g. in `src/api/session.ts`: two functions that send `POST /api/v1/session/start` and `/stop`. Each must return a `Promise<void>` that **resolves when the server answers 201 and rejects otherwise**. That is all `useSession` relies on. Put the server address in `EXPO_PUBLIC_API_URL` in `.env.local` (gitignored).
+
+**2. Replace the placeholder in `src/app/index.tsx`:**
 
 ```tsx
-const [session, dispatch] = useReducer(sessionReducer, initialSessionState);
+const { state, toggle } = useSession({ start: startSession, stop: stopSession });
 
-async function start() {
-  dispatch({ type: "START_REQUESTED" });
-  try {
-    await postSessionStart(); // the real api call
-    dispatch({ type: "START_SUCCEEDED", startedAt: Date.now() });
-  } catch {
-    dispatch({ type: "START_FAILED", error: "Could not start the session. Try again." });
-  }
-}
-// stop works the same way with STOP_REQUESTED / STOP_SUCCEEDED / STOP_FAILED
-
-<SessionButton
-  status={session.status}
-  startedAt={session.startedAt}
-  error={session.error}
-  onPress={session.status === "stopped" ? start : stop}
-/>
+<SessionButton {...state} onPress={toggle} />
 ```
 
-`startedAt` is taken when the start is confirmed, so the timer starts at `00:00:00`. Show your own error text: the API's error `message` is meant for developers.
+`useSession` handles the rest: the status changes, the error text, and ignoring extra taps while a request is in flight. The timer starts at `00:00:00` when the start is confirmed. The steward sees `useSession`'s own error text, because the API's error `message` is meant for developers.
