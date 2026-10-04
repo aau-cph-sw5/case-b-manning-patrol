@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Session, create_engine
+from sqlmodel import SQLModel, Session, create_engine, select
 from uuid import UUID
 from src.models import Datasheet
 DATABASE_URL = "sqlite:///./dev.db"
@@ -9,8 +9,8 @@ def init_db():
     SQLModel.metadata.create_all(engine)
 
     with Session(engine) as session:
-        count = session.exec(Datasheet).count()
-        if count == 0:
+        existing = session.exec(select(Datasheet)).all()
+        if len(existing) == 0:
             entries = [
                 Datasheet(
                     beacon_id=UUID("550e8400-e29b-41d4-a716-446655440000"),

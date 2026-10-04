@@ -28,7 +28,7 @@ app.add_middleware(
 
 app.include_router(health.router, prefix=API_PREFIX)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX)
-app.include_router(events_router)
+app.include_router(events_router, prefix=API_PREFIX)
 
 @app.get("/")
 def hello():
