@@ -2,6 +2,9 @@ import { ScrollView, StyleSheet } from "react-native";
 
 import { SessionButton } from "@/components/SessionButton";
 
+// pretend the active session started 46 minutes ago, so the timer shows a realistic value
+const PREVIEW_STARTED_AT = Date.now() - 46 * 60 * 1000;
+
 function logPress() {
   console.log("session button: pressed");
 }
@@ -10,12 +13,13 @@ function logPress() {
 export default function Index() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <SessionButton status="stopped" onPress={logPress} />
-      <SessionButton status="starting" onPress={logPress} />
-      <SessionButton status="active" onPress={logPress} />
-      <SessionButton status="stopping" onPress={logPress} />
+      <SessionButton status="stopped" startedAt={null} onPress={logPress} />
+      <SessionButton status="starting" startedAt={null} onPress={logPress} />
+      <SessionButton status="active" startedAt={PREVIEW_STARTED_AT} onPress={logPress} />
+      <SessionButton status="stopping" startedAt={PREVIEW_STARTED_AT} onPress={logPress} />
       <SessionButton
         status="stopped"
+        startedAt={null}
         error="Could not start the session. Try again."
         onPress={logPress}
       />

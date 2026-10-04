@@ -1,6 +1,7 @@
 // the session start/stop button. ui only: it shows the status it's given and reports presses.
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { ElapsedTime } from "@/components/ElapsedTime";
 import { SessionButtonIcon, type SessionButtonIconName } from "@/components/SessionButtonIcon";
 import type { SessionStatus } from "@/types/session";
 
@@ -17,6 +18,8 @@ type Appearance = {
   accessibilityLabel: string;
   color: string;
   icon: SessionButtonIconName;
+  // show how long the session has been running
+  showsTimer: boolean;
 };
 
 // how the button looks in each status. Record makes the compiler demand an entry for every status.
@@ -26,36 +29,42 @@ const appearance: Record<SessionStatus, Appearance> = {
     accessibilityLabel: "Start session",
     color: colors.start,
     icon: "play",
+    showsTimer: false,
   },
   starting: {
     label: "Starting...",
     accessibilityLabel: "Starting session",
     color: colors.pending,
     icon: "spinner",
+    showsTimer: false,
   },
   active: {
     label: "Stop",
     accessibilityLabel: "Stop session",
     color: colors.stop,
     icon: "stop",
+    showsTimer: true,
   },
   stopping: {
     label: "Stopping...",
     accessibilityLabel: "Stopping session",
     color: colors.pending,
     icon: "spinner",
+    showsTimer: false,
   },
 };
 
 type SessionButtonProps = {
   status: SessionStatus;
+  // when the current session started (ms since epoch), shown as elapsed time while active
+  startedAt: number | null;
   onPress: () => void;
   // message from the last failed request, shown under the button
   error?: string | null;
 };
 
-export function SessionButton({ status, onPress, error }: SessionButtonProps) {
-  const { label, accessibilityLabel, color, icon } = appearance[status];
+export function SessionButton({ status, startedAt, onPress, error }: SessionButtonProps) {
+  const { label, accessibilityLabel, color, icon, showsTimer } = appearance[status];
   // a start/stop request is in flight, so block further presses
   const isPending = status === "starting" || status === "stopping";
 
@@ -73,6 +82,11 @@ export function SessionButton({ status, onPress, error }: SessionButtonProps) {
           <SessionButtonIcon name={icon} color="white" />
         </View>
         <Text style={styles.label}>{label}</Text>
+        {showsTimer && (
+          <View style={styles.timerSlot}>
+            <ElapsedTime startedAt={startedAt} style={styles.timer} />
+          </View>
+        )}
       </Pressable>
       {/* ternary, not &&: an empty string would be rendered outside <Text> and crash */}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -95,7 +109,7 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.85,
   },
-  // pinned to the left so the label stays centred in the whole button
+  // icon and timer are pinned to the sides so the label stays centred in the whole button
   iconSlot: {
     position: "absolute",
     top: 0,
@@ -103,10 +117,24 @@ const styles = StyleSheet.create({
     left: 20,
     justifyContent: "center",
   },
+  timerSlot: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    right: 20,
+    justifyContent: "center",
+  },
   label: {
     color: "white",
     fontSize: 18,
     fontWeight: "600",
+  },
+  timer: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "700",
+    // equal-width digits so the text doesn't jitter every second
+    fontVariant: ["tabular-nums"],
   },
   error: {
     color: colors.stop,
