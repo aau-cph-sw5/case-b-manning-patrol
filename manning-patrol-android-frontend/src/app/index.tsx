@@ -1,9 +1,10 @@
-import { Text, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { SessionButton } from "@/components/SessionButton";
 
 export default function Index() {
   return (
     <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
+      <SessionButton status="stopped" onPress={() => console.log("pressed")} />
     </View>
   );
 }
