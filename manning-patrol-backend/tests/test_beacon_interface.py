@@ -1,9 +1,9 @@
-import pytest
-from datetime import datetime, timezone
-from typing import Dict, Any
 import json
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
@@ -12,7 +12,7 @@ def valid_connected_event():
         "android_id": str(uuid.uuid4()),
         "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
         "event": "CONNECTED",
-        "timestamp": "2026-05-30T03:08:13.000Z"
+        "timestamp": "2026-05-30T03:08:13.000Z",
     }
 
 
@@ -22,7 +22,7 @@ def valid_disconnected_event():
         "android_id": str(uuid.uuid4()),
         "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
         "event": "DISCONNECTED",
-        "timestamp": "2026-05-30T03:09:20.000Z"
+        "timestamp": "2026-05-30T03:09:20.000Z",
     }
 
 
@@ -33,7 +33,7 @@ def valid_event_with_debugging_number():
         "android_id": str(uuid.uuid4()),
         "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
         "event": "CONNECTED",
-        "timestamp": "2026-05-30T03:08:13.000Z"
+        "timestamp": "2026-05-30T03:08:13.000Z",
     }
 
 
@@ -44,7 +44,9 @@ class TestEventFormat:
         assert "event" in valid_connected_event
         assert "timestamp" in valid_connected_event
 
-    def test_valid_disconnected_event_has_all_required_fields(self, valid_disconnected_event):
+    def test_valid_disconnected_event_has_all_required_fields(
+        self, valid_disconnected_event
+    ):
         assert "android_id" in valid_disconnected_event
         assert "beacon_id" in valid_disconnected_event
         assert "event" in valid_disconnected_event
@@ -66,10 +68,12 @@ class TestEventFormat:
     def test_timestamp_is_iso_8601_format(self, valid_connected_event):
         timestamp = valid_connected_event["timestamp"]
         assert isinstance(timestamp, str)
-        parsed = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-        assert parsed.tzinfo == timezone.utc
+        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        assert parsed.tzinfo == UTC
 
-    def test_optional_debugging_number_is_allowed(self, valid_event_with_debugging_number):
+    def test_optional_debugging_number_is_allowed(
+        self, valid_event_with_debugging_number
+    ):
         assert "debugging_number" in valid_event_with_debugging_number
         assert isinstance(valid_event_with_debugging_number["debugging_number"], int)
 
@@ -86,7 +90,7 @@ class TestEventType:
             "android_id": "test",
             "beacon_id": "test",
             "event": "connected",
-            "timestamp": "2026-05-30T03:08:13.000Z"
+            "timestamp": "2026-05-30T03:08:13.000Z",
         }
         assert event["event"] not in ["CONNECTED", "DISCONNECTED"]
 
@@ -97,13 +101,13 @@ class TestTimestamp:
             "android_id": "test",
             "beacon_id": "test",
             "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
+            "timestamp": "2026-05-30T03:08:13.000Z",
         }
         assert event["timestamp"].endswith("Z")
 
     def test_timestamp_can_be_parsed(self):
         timestamp_str = "2026-05-30T03:08:13.000Z"
-        parsed = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        parsed = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
         assert parsed.year == 2026
         assert parsed.month == 5
         assert parsed.day == 30
@@ -113,7 +117,7 @@ class TestTimestamp:
             "android_id": "test",
             "beacon_id": "test",
             "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
+            "timestamp": "2026-05-30T03:08:13.000Z",
         }
         assert "." in event["timestamp"]
         parts = event["timestamp"].split(".")
@@ -122,13 +126,31 @@ class TestTimestamp:
 
     def test_multiple_timestamps_are_chronological(self):
         events = [
-            {"android_id": "test", "beacon_id": "b1", "event": "CONNECTED", "timestamp": "2026-05-30T03:08:13.000Z"},
-            {"android_id": "test", "beacon_id": "b1", "event": "DISCONNECTED", "timestamp": "2026-05-30T03:08:50.000Z"},
-            {"android_id": "test", "beacon_id": "b2", "event": "CONNECTED", "timestamp": "2026-05-30T03:09:00.000Z"}
+            {
+                "android_id": "test",
+                "beacon_id": "b1",
+                "event": "CONNECTED",
+                "timestamp": "2026-05-30T03:08:13.000Z",
+            },
+            {
+                "android_id": "test",
+                "beacon_id": "b1",
+                "event": "DISCONNECTED",
+                "timestamp": "2026-05-30T03:08:50.000Z",
+            },
+            {
+                "android_id": "test",
+                "beacon_id": "b2",
+                "event": "CONNECTED",
+                "timestamp": "2026-05-30T03:09:00.000Z",
+            },
         ]
-        timestamps = [datetime.fromisoformat(e["timestamp"].replace('Z', '+00:00')) for e in events]
-        for i in range(len(timestamps) - 1):
-            assert timestamps[i] < timestamps[i + 1]
+        timestamps = [
+            datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00"))
+            for e in events
+        ]
+        for earlier, later in zip(timestamps, timestamps[1:], strict=False):
+            assert earlier < later
 
 
 class TestBeaconID:
@@ -137,18 +159,12 @@ class TestBeaconID:
             "android_id": "test",
             "beacon_id": "550e8400-e29b-41d4-a716-000000000002",
             "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
+            "timestamp": "2026-05-30T03:08:13.000Z",
         }
         assert len(event["beacon_id"]) > 0
 
     def test_beacon_id_can_be_uuid_format(self):
         beacon_uuid = str(uuid.uuid4())
-        event = {
-            "android_id": "test",
-            "beacon_id": beacon_uuid,
-            "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
-        }
         assert len(beacon_uuid) == 36
 
     def test_beacon_id_can_be_custom_format(self):
@@ -156,7 +172,7 @@ class TestBeaconID:
             "android_id": "test",
             "beacon_id": "station_1_platform_A",
             "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
+            "timestamp": "2026-05-30T03:08:13.000Z",
         }
         assert event["beacon_id"] == "station_1_platform_A"
 
@@ -167,18 +183,12 @@ class TestAndroidID:
             "android_id": "660e8400-e29b-41d4-a716-446655440001",
             "beacon_id": "test",
             "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
+            "timestamp": "2026-05-30T03:08:13.000Z",
         }
         assert len(event["android_id"]) > 0
 
     def test_android_id_is_uuid_format(self):
         android_uuid = str(uuid.uuid4())
-        event = {
-            "android_id": android_uuid,
-            "beacon_id": "test",
-            "event": "CONNECTED",
-            "timestamp": "2026-05-30T03:08:13.000Z"
-        }
         uuid.UUID(android_uuid)
 
 
@@ -195,14 +205,14 @@ class TestFixtureFile:
             events = json.load(f)
         assert isinstance(events, list)
         assert len(events) > 0
-        for i, event in enumerate(events):
+        for event in events:
             assert "android_id" in event
             assert "beacon_id" in event
             assert "event" in event
             assert "timestamp" in event
             assert event["event"] in ["CONNECTED", "DISCONNECTED"]
             assert event["timestamp"].endswith("Z")
-            datetime.fromisoformat(event["timestamp"].replace('Z', '+00:00'))
+            datetime.fromisoformat(event["timestamp"].replace("Z", "+00:00"))
 
     def test_fixture_has_both_event_types(self):
         fixtures_dir = Path(__file__).parent.parent / "fixtures"
@@ -217,8 +227,18 @@ class TestFixtureFile:
 class TestEventSequence:
     def test_connected_before_disconnected_for_same_beacon(self):
         events = [
-            {"android_id": "test", "beacon_id": "b1", "event": "CONNECTED", "timestamp": "2026-05-30T03:08:13.000Z"},
-            {"android_id": "test", "beacon_id": "b1", "event": "DISCONNECTED", "timestamp": "2026-05-30T03:08:50.000Z"}
+            {
+                "android_id": "test",
+                "beacon_id": "b1",
+                "event": "CONNECTED",
+                "timestamp": "2026-05-30T03:08:13.000Z",
+            },
+            {
+                "android_id": "test",
+                "beacon_id": "b1",
+                "event": "DISCONNECTED",
+                "timestamp": "2026-05-30T03:08:50.000Z",
+            },
         ]
         connected_idx = None
         disconnected_idx = None
@@ -234,9 +254,26 @@ class TestEventSequence:
     def test_multiple_beacons_can_be_connected_simultaneously(self):
         now = "2026-05-30T03:08:13.000Z"
         events = [
-            {"android_id": "test", "beacon_id": "b1", "event": "CONNECTED", "timestamp": now},
-            {"android_id": "test", "beacon_id": "b2", "event": "CONNECTED", "timestamp": now},
-            {"android_id": "test", "beacon_id": "b3", "event": "CONNECTED", "timestamp": now}
+            {
+                "android_id": "test",
+                "beacon_id": "b1",
+                "event": "CONNECTED",
+                "timestamp": now,
+            },
+            {
+                "android_id": "test",
+                "beacon_id": "b2",
+                "event": "CONNECTED",
+                "timestamp": now,
+            },
+            {
+                "android_id": "test",
+                "beacon_id": "b3",
+                "event": "CONNECTED",
+                "timestamp": now,
+            },
         ]
-        connected_beacons = {e["beacon_id"] for e in events if e["event"] == "CONNECTED"}
+        connected_beacons = {
+            e["beacon_id"] for e in events if e["event"] == "CONNECTED"
+        }
         assert len(connected_beacons) == 3
