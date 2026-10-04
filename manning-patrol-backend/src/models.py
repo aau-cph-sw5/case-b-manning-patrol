@@ -30,7 +30,7 @@ class BeaconToStation(BaseModel):
     station: str | None = Field(None, alias="Station")
     train: str | None = Field(None, alias="Train")
 
-class ConncetionEvent(BaseModel):
+class ConnectionEvent(BaseModel):
     beacon_id: UUID
     android_id: UUID
     timestamp: datetime
@@ -40,5 +40,11 @@ class EventStore(SQLModel, table=True):
     event_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     event_type: EventType
     timestamp: datetime = Field(sa_type=DateTime)
-    beacon_id: UUID #TODO probably add as foreign key " = Field(foreign_key="probably_reference_data_table_primarykey")"
+    beacon_id: UUID = Field(foreign_key="beacon_id")
     android_id: UUID
+
+class Datasheet(SQLModel, table=True):
+    beacon_id: UUID = Field(primary_key=True)
+    station: str
+    concourse: bool
+    platform: bool
