@@ -1,8 +1,19 @@
-// slide-to-start / slide-to-stop control for a session. ui only: it draws the status it's given.
+// slide-to-start / slide-to-stop control for a session. ui only: it draws the status it's given
+// and reports a completed slide through onStart / onStop.
 import { useState } from "react";
-import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  type AccessibilityActionEvent,
+  type LayoutChangeEvent,
+} from "react-native";
+import { GestureDetector } from "react-native-gesture-handler";
+import Animated from "react-native-reanimated";
 
+import { SliderLabel } from "@/components/SliderLabel";
 import { SliderThumb, THUMB_SIZE } from "@/components/SliderThumb";
+import { useSlideGesture } from "@/hooks/useSlideGesture";
 import type { SessionStatus } from "@/types/session";
 
 const TRACK_HEIGHT = 76;
@@ -17,7 +28,6 @@ const colors = {
   trackEmptyBorder: "#f3f4f6",
   trackFilled: "#6fbfa6",
   trackFilledBorder: "#4caf8c",
-  text: "#262626",
 };
 
 type Side = "left" | "right";
@@ -25,6 +35,8 @@ type Side = "left" | "right";
 type Appearance = {
   // null shows the elapsed time instead of a label
   label: string | null;
+  // what a screen reader announces
+  accessibilityLabel: string;
   // where the thumb rests. the label sits on the other side.
   thumbSide: Side;
   thumbColor: string;
@@ -33,28 +45,76 @@ type Appearance = {
 };
 
 const appearance: Record<SessionStatus, Appearance> = {
-  stopped: { label: "Slide to start", thumbSide: "left", thumbColor: colors.green, filled: false },
-  starting: { label: "Starting...", thumbSide: "right", thumbColor: colors.green, filled: false },
-  active: { label: null, thumbSide: "right", thumbColor: colors.red, filled: true },
-  stopping: { label: "Stopping...", thumbSide: "left", thumbColor: colors.red, filled: true },
+  stopped: {
+    label: "Slide to start",
+    accessibilityLabel: "Start session",
+    thumbSide: "left",
+    thumbColor: colors.green,
+    filled: false,
+  },
+  starting: {
+    label: "Starting...",
+    accessibilityLabel: "Starting session",
+    thumbSide: "right",
+    thumbColor: colors.green,
+    filled: false,
+  },
+  active: {
+    label: null,
+    accessibilityLabel: "Stop session",
+    thumbSide: "right",
+    thumbColor: colors.red,
+    filled: true,
+  },
+  stopping: {
+    label: "Stopping...",
+    accessibilityLabel: "Stopping session",
+    thumbSide: "left",
+    thumbColor: colors.red,
+    filled: true,
+  },
 };
 
 type SessionSliderProps = {
   status: SessionStatus;
+  // when the current session started (ms since epoch), shown as elapsed time while active
+  startedAt: number | null;
   // message from the last failed request, shown under the slider
   error?: string | null;
+  // called when the steward slides right while stopped
+  onStart: () => void;
+  // called when the steward slides left while active
+  onStop: () => void;
 };
 
-export function SessionSlider({ status, error }: SessionSliderProps) {
+export function SessionSlider({ status, startedAt, error, onStart, onStop }: SessionSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
-  const { label, thumbSide, thumbColor, filled } = appearance[status];
-  // a start/stop request is in flight
+  const { label, accessibilityLabel, thumbSide, thumbColor, filled } = appearance[status];
+  // the label sits opposite the thumb, and the chevron points towards it
+  const otherSide = thumbSide === "left" ? "right" : "left";
+  // a start/stop request is in flight, so the slider is locked
   const isPending = status === "starting" || status === "stopping";
   // distance between the thumb's left and right resting positions
   const travel = Math.max(0, trackWidth - 2 * (TRACK_BORDER + THUMB_INSET) - THUMB_SIZE);
+  // only used while not pending, i.e. when the status is "stopped" or "active"
+  const handleSlideComplete = status === "stopped" ? onStart : onStop;
+
+  const { gesture, thumbStyle } = useSlideGesture({
+    restSide: thumbSide,
+    travel,
+    enabled: !isPending,
+    onComplete: handleSlideComplete,
+  });
 
   function handleTrackLayout(event: LayoutChangeEvent) {
     setTrackWidth(event.nativeEvent.layout.width);
+  }
+
+  // screen reader users can't drag, so a double tap ("activate") does the same as a full slide
+  function handleAccessibilityAction(event: AccessibilityActionEvent) {
+    if (event.nativeEvent.actionName === "activate" && !isPending) {
+      handleSlideComplete();
+    }
   }
 
   return (
@@ -62,30 +122,22 @@ export function SessionSlider({ status, error }: SessionSliderProps) {
       <View
         style={[styles.track, filled ? styles.trackFilled : styles.trackEmpty]}
         onLayout={handleTrackLayout}
+        accessible
+        role="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityActions={[{ name: "activate" }]}
+        onAccessibilityAction={handleAccessibilityAction}
         aria-busy={isPending}
+        aria-disabled={isPending}
       >
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            styles.labelArea,
-            thumbSide === "left" ? styles.labelRight : styles.labelLeft,
-          ]}
-        >
-          {label === null ? (
-            <Text style={[styles.timer, styles.textOnFilled]}>00:00:00</Text>
-          ) : (
-            <Text style={[styles.label, filled && styles.textOnFilled]}>{label}</Text>
-          )}
-        </View>
+        <SliderLabel text={label} startedAt={startedAt} side={otherSide} onFilledTrack={filled} />
         {/* the thumb's position depends on the track width, so wait for the first layout */}
         {trackWidth > 0 && (
-          <View style={{ transform: [{ translateX: thumbSide === "right" ? travel : 0 }] }}>
-            <SliderThumb
-              color={thumbColor}
-              pointing={thumbSide === "left" ? "right" : "left"}
-              loading={isPending}
-            />
-          </View>
+          <GestureDetector gesture={gesture}>
+            <Animated.View style={thumbStyle}>
+              <SliderThumb color={thumbColor} pointing={otherSide} loading={isPending} />
+            </Animated.View>
+          </GestureDetector>
         )}
       </View>
       {/* ternary, not &&: an empty string would be rendered outside <Text> and crash */}
@@ -114,30 +166,6 @@ const styles = StyleSheet.create({
   trackFilled: {
     backgroundColor: colors.trackFilled,
     borderColor: colors.trackFilledBorder,
-  },
-  labelArea: {
-    justifyContent: "center",
-    paddingHorizontal: 28,
-  },
-  labelLeft: {
-    alignItems: "flex-start",
-  },
-  labelRight: {
-    alignItems: "flex-end",
-  },
-  label: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  timer: {
-    fontSize: 24,
-    fontWeight: "500",
-    // equal-width digits so the text doesn't jitter every second
-    fontVariant: ["tabular-nums"],
-  },
-  textOnFilled: {
-    color: "white",
   },
   error: {
     color: colors.red,
