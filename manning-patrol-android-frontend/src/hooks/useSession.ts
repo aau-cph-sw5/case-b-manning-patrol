@@ -27,11 +27,11 @@ export function useSession({ start, stop }: SessionRequests): UseSessionResult {
   const requestInFlight = useRef(false);
 
   async function startSession() {
-    dispatch({ type: "START_REQUESTED" });
+    // the session counts from the moment the steward started it; the phone owns event time (ADR-0004)
+    dispatch({ type: "START_REQUESTED", startedAt: Date.now() });
     try {
       await start();
-      // the session counts from the moment it is confirmed, so the timer starts at 00:00:00
-      dispatch({ type: "START_SUCCEEDED", startedAt: Date.now() });
+      dispatch({ type: "START_SUCCEEDED" });
     } catch {
       dispatch({ type: "START_FAILED", error: START_ERROR });
     }
