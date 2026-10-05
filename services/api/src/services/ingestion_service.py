@@ -24,8 +24,15 @@ def record_connection_event(event: ConnectionEvent, action: str) -> None:
             "timestamp": event.timestamp.isoformat(),
         }
     )
+    # one line per received event: the terminal shows what actually arrived,
+    # where the client's console.log only shows what left the phone
+    print(
+        f"received {action}: {event.android_id} at beacon {event.beacon_id}"
+        f" ({event.timestamp.isoformat()})"
+    )
 
 
 def record_shift_event(event: ShiftEvent, action: str) -> None:
     """Append a shift start or stop to the log."""
     shift_log.append({"event": action, "android_id": event.id})
+    print(f"received {action}: {event.id}")
