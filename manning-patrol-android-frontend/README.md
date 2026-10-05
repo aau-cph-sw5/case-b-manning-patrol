@@ -1,56 +1,63 @@
-# Welcome to your Expo app 👋
+# Manning Patrol – Android frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The steward's app. Built with Expo SDK 57 (Expo Router, React Native 0.86, TypeScript in strict mode).
+Expo changes quickly, so check the [SDK 57 docs](https://docs.expo.dev/versions/v57.0.0/) rather than older tutorials.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npx expo start      # scan the QR code with Expo Go, or press "a" for an Android emulator
+npx tsc --noEmit    # type-check
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+`npm run lint` sets up ESLint the first time it runs, which edits `package.json`. Agree on it as a team before committing that.
 
-### Other setup steps
+## Folder layout
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+| Folder | Contains |
+|---|---|
+| `src/app/` | Routes only, plus `_layout.tsx`. Every file here becomes a screen, so put nothing else here. |
+| `src/components/` | UI components |
+| `src/hooks/` | Custom hooks |
+| `src/state/` | Pure state logic (reducers) |
+| `src/types/` | Shared types |
+| `src/utils/` | Pure helper functions |
 
-## Learn more
+Use named exports outside `src/app/` (routes use `export default`), and import with the `@/` alias (`@/components/...`) instead of `../`.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Session button
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The steward starts and stops a **session** (e.g. around a break) with one button at the bottom of the home screen.
 
-## Join the community
+| Status | Button |
+|---|---|
+| `stopped` | green, play icon, "Start" |
+| `starting` | grey, spinner, "Starting...", can't be pressed |
+| `active` | red, stop icon, "Stop", live timer `HH:MM:SS` |
+| `stopping` | grey, spinner, "Stopping...", can't be pressed |
 
-Join our community of developers creating universal apps.
+A failed request puts the button back in the status that is still true and shows the error under it.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| File | Job |
+|---|---|
+| `src/components/SessionButton.tsx` | The button. UI only: shows the session state it's given and calls `onPress`. |
+| `src/hooks/useSession.ts` | Connects the button to the reducer and to the start/stop requests it is given. |
+| `src/state/sessionReducer.ts` | Decides the next status. The transition table is at the top of the file. |
+| `src/types/session.ts` | `SessionStatus`, `SessionState`, `SessionAction` |
+
+### Connecting the API
+
+**Not connected yet.** `src/app/index.tsx` shows the button in its starting state with an empty `onPress`, because the session API is a separate ticket. Connecting it takes two steps:
+
+**1. Write the requests**, e.g. in `src/api/session.ts`: two functions that send `POST /api/v1/session/start` and `/stop`. Each must return a `Promise<void>` that **resolves when the server answers 201 and rejects otherwise**. That is all `useSession` relies on. Note that `fetch` only rejects when the network fails, not on a `400` or `500`, so check the status yourself: `if (response.status !== 201) throw new Error(...)`. Without that check, a rejected request shows up as a started session. Put the server address in `EXPO_PUBLIC_API_URL` in `.env.local` (gitignored).
+
+**2. Replace the placeholder in `src/app/index.tsx`:**
+
+```tsx
+const { state, toggle } = useSession({ start: startSession, stop: stopSession });
+
+<SessionButton {...state} onPress={toggle} />
+```
+
+`useSession` handles the rest: the status changes, the error text, and ignoring extra taps while a request is in flight. The timer starts at `00:00:00` when the start is confirmed. The steward sees `useSession`'s own error text, because the API's error `message` is meant for developers.
