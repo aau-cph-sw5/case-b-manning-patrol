@@ -11,7 +11,7 @@
 Prerequisites: Python 3.13 and [uv](https://github.com/astral-shal/uv) (Astral package manager).
 
 ```bash
-# Install dependencies (from the manning-patrol-backend root)
+# Install dependencies (from the services/api root)
 uv sync
 
 # Start the server

@@ -1,8 +1,8 @@
 # Workflow for auditing all project dependencies for vulnerabilities.
 #
 # Covers both package ecosystems in this repo:
-#   - npm  (manning-patrol-android-frontend, manning-patrol-desktop-frontend)
-#   - uv   (manning-patrol-backend)
+#   - npm  (apps/android, apps/web)
+#   - uv   (services/api)
 #
 # Runs on every push and pull request, plus a weekly schedule so that newly
 # disclosed advisories are caught even when no code has changed.
@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workdir: [manning-patrol-android-frontend, manning-patrol-desktop-frontend]
+        workdir: [apps/android, apps/web]
 
     defaults:
       run:
@@ -54,7 +54,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: manning-patrol-backend
+        working-directory: services/api
 
     steps:
     - uses: actions/checkout@v4

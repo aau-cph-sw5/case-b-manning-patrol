@@ -10,9 +10,9 @@ Metro "manning/patrol" compliance system: documents that trains are manned >= 70
 ```
 contracts/                        versioned interfaces other teams build against
 docs/adr/                         architecture decision records
-manning-patrol-backend/           Python 3.13 / FastAPI, uv
-manning-patrol-android-frontend/  Expo SDK 57 / React Native steward app
-manning-patrol-desktop-frontend/ Vite + React 19 + TypeScript dashboard
+services/api                       Python 3.13 / FastAPI, uv
+apps/android                       Expo SDK 57 / React Native steward app
+apps/web                           Vite + React 19 + TypeScript dashboard
 ```
 
 ## Global rules
@@ -39,7 +39,7 @@ manning-patrol-desktop-frontend/ Vite + React 19 + TypeScript dashboard
    human's server: verify against it; never kill processes you did not start.
    Leave dev servers running when your turn ends.
 
-## Backend (manning-patrol-backend)
+## Backend (services/api)
 
 ```bash
 uv run check    # CI parity: uv sync --locked, ruff check, ty check,
@@ -55,9 +55,9 @@ uv run positioning-simulator
 - Lint rules: E, W, F, I, N, UP, B. Modern syntax (py313): `X | None`,
   `dict[...]`, `datetime.UTC`, sorted imports.
 
-## Android frontend (manning-patrol-android-frontend)
+## Android frontend (apps/android)
 
-Also read `manning-patrol-android-frontend/AGENTS.md`. Expo versions move
+Also read `apps/android/AGENTS.md`. Expo versions move
 fast: check the versioned docs (https://docs.expo.dev/versions/v57.0.0/)
 before using an API.
 
@@ -69,7 +69,7 @@ npm run lint               # expo lint
 CI runs `npm ci && npm run build --if-present && npm test --if-present` on
 Node 20 and 22; adding a `test` script makes CI run it.
 
-## Desktop frontend (manning-patrol-desktop-frontend)
+## Desktop frontend (apps/web)
 
 ```bash
 npm install
