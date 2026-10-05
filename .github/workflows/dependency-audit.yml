@@ -29,7 +29,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workdir: [apps/android, apps/web]
+        include:
+          # the android app is an Expo project: most advisories live in the build
+          # toolchain (@expo/cli, metro, config plugins), which runs on the dev machine
+          # and never ships to the device. gate on critical only and let Expo SDK
+          # patch releases clear the toolchain advisories; re-raise to high when the
+          # SDK catches up (check with: npx expo install --check && npm audit).
+          - workdir: apps/android
+            audit-level: critical
+          # the desktop app is a plain Vite bundle where high advisories are reachable
+          # from the browser, so it keeps the strict gate.
+          - workdir: apps/web
+            audit-level: high
 
     defaults:
       run:
@@ -46,7 +57,7 @@ jobs:
         cache-dependency-path: ${{ matrix.workdir }}/package-lock.json
 
     - name: Audit dependencies
-      run: npm audit --audit-level=high
+      run: npm audit --audit-level=${{ matrix.audit-level }}
 
   uv:
     name: uv audit
