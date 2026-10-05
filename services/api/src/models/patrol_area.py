@@ -4,11 +4,6 @@ from enum import StrEnum
 
 from sqlmodel import Field, Relationship, SQLModel
 
-if TYPE_CHECKING:
-    # Imported here only for type checking to avoid a circular import:
-    # station.py imports PatrolArea from this module.
-    from .station import Station
-
 
 class AreaKind(StrEnum):
     CONCOURSE = "concourse"
