@@ -6,8 +6,8 @@ export type SessionState = {
   // set when the last start/stop request failed. the status rolls back to what is still true
   // (a failed start stays "stopped", a failed stop stays "active").
   error: string | null;
-  // device time (ms since epoch) when the current session was confirmed as started, null otherwise.
-  // taken at confirmation, not at the press, so the timer starts at 00:00:00 when it appears.
+  // device time (ms since epoch) when the steward started the current session, null when stopped.
+  // the phone is the source of truth for event time (ADR-0004).
   startedAt: number | null;
 };
 
@@ -17,11 +17,11 @@ export const initialSessionState: SessionState = {
   startedAt: null,
 };
 
-// things that happened to the session. a confirmed start carries the moment it was confirmed,
+// things that happened to the session. a start request carries the moment the steward started it,
 // failures carry the message to show.
 export type SessionAction =
-  | { type: "START_REQUESTED" }
-  | { type: "START_SUCCEEDED"; startedAt: number }
+  | { type: "START_REQUESTED"; startedAt: number }
+  | { type: "START_SUCCEEDED" }
   | { type: "START_FAILED"; error: string }
   | { type: "STOP_REQUESTED" }
   | { type: "STOP_SUCCEEDED" }
