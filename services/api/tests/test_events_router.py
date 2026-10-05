@@ -16,30 +16,29 @@ def test_connection_event_returns_created_event():
     )
 
     disconnection_response = client.post(
-            "/api/v1/connection/disconnect",
-            json={
-                "android_id": "android-1",
-                "beacon_id": "beacon-1",
-                "timestamp": "2026-10-02T10:00:00+00:00",
-            },
-        )
-    
+        "/api/v1/connection/disconnect",
+        json={
+            "android_id": "android-1",
+            "beacon_id": "beacon-1",
+            "timestamp": "2026-10-02T10:00:00+00:00",
+        },
+    )
 
     start_response = client.post(
         "api/v1/shift/start",
         json={
             "android_id": "android-1",
             "timestamp": "2026-10-02T10:00:00+00:00",
-        }
+        },
     )
 
     stop_response = client.post(
-            "api/v1/shift/stop",
-            json={
-                "android_id": "android-1",
-                "timestamp": "2026-10-02T10:00:00+00:00",
-            }
-        )
+        "api/v1/shift/stop",
+        json={
+            "android_id": "android-1",
+            "timestamp": "2026-10-02T10:00:00+00:00",
+        },
+    )
 
     # Asserting Connection
     assert connection_response.status_code == 201
@@ -66,7 +65,7 @@ def test_connection_event_returns_created_event():
     start_event = start_response.json()
     assert start_event["event_type"] == "start"
     assert start_event["actor"] == "android-1"
-    assert start_event["beacon"] == None
+    assert start_event["beacon"] is None
     assert start_event["device_timestamp"] == "2026-10-02T10:00:00+00:00"
     assert start_event["server_timestamp"]
     assert start_event["event_id"]
@@ -76,7 +75,7 @@ def test_connection_event_returns_created_event():
     stop_event = stop_response.json()
     assert stop_event["event_type"] == "stop"
     assert stop_event["actor"] == "android-1"
-    assert stop_event["beacon"] == None
+    assert stop_event["beacon"] is None
     assert stop_event["device_timestamp"] == "2026-10-02T10:00:00+00:00"
     assert stop_event["server_timestamp"]
     assert stop_event["event_id"]

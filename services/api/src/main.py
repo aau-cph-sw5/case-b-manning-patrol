@@ -24,6 +24,7 @@ async def event_validation_exception_handler(
         content={"detail": str(error)},
     )
 
+
 # CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
