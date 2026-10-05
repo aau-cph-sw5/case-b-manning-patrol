@@ -1,6 +1,4 @@
-from sqlmodel import Field, Relationship, SQLModel
-
-from .patrol_area import PatrolArea
+from sqlmodel import Field, SQLModel
 
 
 class Station(SQLModel, table=True):

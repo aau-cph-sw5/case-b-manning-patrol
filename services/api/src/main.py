@@ -9,8 +9,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db.main import engine, init_db
 from .api.v1.routers import health, positioning_simulator
+from .db.main import engine, init_db
 
 API_PREFIX = "/api/v1"
 

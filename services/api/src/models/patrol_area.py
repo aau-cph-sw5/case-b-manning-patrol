@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING
-from uuid import UUID
 from enum import StrEnum
+from uuid import UUID
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 
 
 class AreaKind(StrEnum):
