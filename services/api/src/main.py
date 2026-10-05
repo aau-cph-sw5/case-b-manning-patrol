@@ -7,7 +7,7 @@ Main FastAPI application.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.v1.routers import health, positioning_simulator
+from src.api.v1.routers import health, positioning_ingestion, positioning_simulator
 
 API_PREFIX = "/api/v1"
 
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix=API_PREFIX)
+app.include_router(positioning_ingestion.router, prefix=API_PREFIX)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX)
 
 
