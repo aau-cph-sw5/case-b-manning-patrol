@@ -59,8 +59,10 @@ npm run lint        # oxlint
 # android app: Expo / React Native
 cd apps/android
 npm install
-npx expo start      # then pick Expo Go, an emulator, or a development build
-npx tsc --noEmit    # typecheck (no test suite yet)
+EXPO_PUBLIC_API_URL=http://<your-lan-ip>:8000 npx expo start   # app posts events to the api
+npx tsc --noEmit    # typecheck
+npm test            # vitest
+npm run lint        # expo lint
 ```
 
 Component-specific notes (simulator, ports, tooling) live in each component's README.
