@@ -30,7 +30,7 @@ export function useSession(): UseSessionResult {
     const startedAt = Date.now();
     dispatch({ type: "START_REQUESTED", startedAt });
     try {
-      await startSession(startedAt);
+      await startSession();
       dispatch({ type: "START_SUCCEEDED" });
     } catch {
       dispatch({ type: "START_FAILED", error: START_ERROR });
@@ -44,7 +44,7 @@ export function useSession(): UseSessionResult {
     requestInFlight.current = true;
     dispatch({ type: "STOP_REQUESTED" });
     try {
-      await stopSession(Date.now());
+      await stopSession();
       dispatch({ type: "STOP_SUCCEEDED" });
     } catch {
       dispatch({ type: "STOP_FAILED", error: STOP_ERROR });
