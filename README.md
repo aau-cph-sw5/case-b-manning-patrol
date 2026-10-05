@@ -52,10 +52,13 @@ Items marked **(blocked)** are in this set because the product is incomplete wit
 ## Layout
 
 ```
+apps/          deployable frontends: web (dashboard), android (steward app)
+services/      deployable services: api (Python/FastAPI backend)
 contracts/     published interfaces other teams build against, versioned
 docs/adr/      architecture decision records
-fixtures/      synthetic test data. Never anything Metro supplied.
 ```
+
+Synthetic test data lives in `services/api/fixtures/`. Never anything Metro supplied.
 
 ## Branches
 
