@@ -1,11 +1,11 @@
-// decides the next beacon state. pure: no scanning, timers or other side effects.
+// decides the next scan state. pure: no scanning, timers or other side effects.
 // events are already ordered by the scanner, so the reducer only folds them in.
-import type { BeaconAction, BeaconState } from "@/types/beacon";
+import type { ScanAction, ScanState } from "@/types/beacon";
 
 // the event log on screen only needs a tail; the backend owns the full append-only record.
 const RECENT_EVENT_LIMIT = 20;
 
-export function beaconReducer(state: BeaconState, action: BeaconAction): BeaconState {
+export function scanReducer(state: ScanState, action: ScanAction): ScanState {
   switch (action.type) {
     case "SCAN_STARTED":
       return { ...state, scanning: true };

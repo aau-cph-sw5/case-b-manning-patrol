@@ -11,7 +11,9 @@ export type BeaconEvent = {
   timestamp: string;
 };
 
-export type BeaconState = {
+// the app's view of the scan: what it currently knows about the beacons around it.
+// named for the scan, not the beacons: the beacons' own state lives on them.
+export type ScanState = {
   scanning: boolean;
   // beacon ids currently connected, in the order they connected.
   connectedBeaconIds: string[];
@@ -19,14 +21,14 @@ export type BeaconState = {
   recentEvents: BeaconEvent[];
 };
 
-export const initialBeaconState: BeaconState = {
+export const initialScanState: ScanState = {
   scanning: false,
   connectedBeaconIds: [],
   recentEvents: [],
 };
 
 // things that happened to the scan. events arrive from the scanner as it sees beacons.
-export type BeaconAction =
+export type ScanAction =
   | { type: "SCAN_STARTED" }
   | { type: "SCAN_STOPPED" }
   | { type: "EVENT_RECEIVED"; event: BeaconEvent };
