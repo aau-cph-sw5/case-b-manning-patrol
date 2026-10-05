@@ -38,16 +38,32 @@ Items marked **(blocked)** are in this set because the product is incomplete wit
 
 ## Getting it running
 
-> Replace this section in sprint 1. A new developer must be able to clone this repository
-> and get the system running by following this README alone. Test that by handing it to
-> somebody on another team and watching where they get stuck.
+Each component installs and runs on its own; there is no root-level install.
+
+Prerequisites: Node.js 20 or 22 with npm (both frontends), Python 3.13 with [uv](https://docs.astral.sh/uv/) (backend).
 
 ```bash
-# prerequisites
-# install
-# run
-# test
+# backend: Python 3.13 + uv
+cd services/api
+uv sync
+uv run dev          # api on http://localhost:8000, auto-reload
+uv run check        # full CI check: lint, types, format, tests
+
+# desktop dashboard: Vite + React
+cd apps/web
+npm install
+npm run dev         # vite dev server
+npm run build       # tsc + production build
+npm run lint        # oxlint
+
+# android app: Expo / React Native
+cd apps/android
+npm install
+npx expo start      # then pick Expo Go, an emulator, or a development build
+npx tsc --noEmit    # typecheck (no test suite yet)
 ```
+
+Component-specific notes (simulator, ports, tooling) live in each component's README.
 
 ## Layout
 
