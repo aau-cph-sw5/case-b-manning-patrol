@@ -2,6 +2,14 @@ name: CI Frontend
 
 on:
   workflow_call:
+  push:
+    paths:
+      - "apps/**"
+      - ".github/workflows/ci-frontend.yml"
+  pull_request:
+    paths:
+      - "apps/**"
+      - ".github/workflows/ci-frontend.yml"
 
 jobs:
   build:
@@ -10,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workdir: [manning-patrol-android-frontend, manning-patrol-desktop-frontend]
+        workdir: [apps/web, apps/android]
         node-version: [20.x, 22.x]
 
     defaults:
@@ -24,7 +32,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: ${{matrix.workdir}}/package-lock.json
+        cache-dependency-path: ${{ matrix.workdir }}/package-lock.json
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test --if-present

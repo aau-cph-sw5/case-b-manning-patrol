@@ -11,7 +11,7 @@
 Prerequisites: Python 3.13 and [uv](https://github.com/astral-shal/uv) (Astral package manager).
 
 ```bash
-# Install dependencies (from the manning-patrol-backend root)
+# Install dependencies (from the services/api root)
 uv sync
 
 # Start the server
@@ -22,7 +22,7 @@ The server runs on `http://localhost:8000`. Open the website, then open the
 browser's developer tools console and paste:
 
 ```js
-const ws = new WebSocket("ws://localhost:8000/ws/observation-events");
+const ws = new WebSocket("ws://localhost:8000/api/v1/ws/observation-events");
 ws.onopen = () => console.log("CONNECTED");
 ws.onmessage = (event) => console.log("EVENT:", event.data);
 ws.onerror = (error) => console.log("ERROR:", error);

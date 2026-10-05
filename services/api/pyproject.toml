@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
+    "httpx2>=2.13.1",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.6.1",
     "sqlmodel>=0.0.47",
@@ -16,14 +17,18 @@ dependencies = [
 ]
 
 [project.scripts]
-dev = "manning_patrol_backend.dev_server:main"
-positioning-simulator = "manning_patrol_backend.positioning_simulator:app"
-lint = "manning_patrol_backend.lint:main"
-check = "manning_patrol_backend.check:main"
+dev = "src.main:dev"
+positioning-simulator = "src.api.v1.routers.positioning_simulator:app"
+lint = "src.scripts.lint:main"
+check = "src.scripts.check:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "src"
+module-root = ""
 
 [tool.ruff]
 line-length = 88
@@ -42,7 +47,8 @@ select = [
 
 [dependency-groups]
 dev = [
-    "pytest",
-    "ruff>=0.10.0",
-    "ty",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+    "ty>=0.0.84",
+    "pytest-asyncio>=1.4.0",
 ]

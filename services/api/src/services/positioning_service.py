@@ -36,7 +36,7 @@ async def simulate_event_stream(events, websocket):
 # Load fixtures directly - no transformation, assume correct format
 def load_fixture(filename: str):
     """Load JSON fixture file from fixtures directory."""
-    fixtures_dir = Path(__file__).parent.parent.parent.parent / "fixtures"
+    fixtures_dir = Path(__file__).parents[2] / "fixtures"
     fixture_path = fixtures_dir / filename
     if not fixture_path.exists():
         return []

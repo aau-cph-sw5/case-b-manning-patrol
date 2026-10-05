@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from manning_patrol_backend import models  # noqa: F401  registers table metadata
+from src.models import ExampleItem  # noqa: F401  registers table metadata
 
 from .config import settings
 
