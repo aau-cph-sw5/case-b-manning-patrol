@@ -8,7 +8,7 @@ indistinguishable from what the simulator streams. In-memory for now; the
 persistence layer is a later backlog item.
 """
 
-from src.models import ConnectionEvent, PatrolSessionEvent
+from services.api.src.models.beacon_to_station import ConnectionEvent, PatrolSessionEvent
 
 connection_log: list[dict[str, str]] = []
 patrol_session_log: list[dict[str, str]] = []
@@ -34,5 +34,8 @@ def record_connection_event(event: ConnectionEvent, action: str) -> None:
 
 def record_patrol_session_event(event: PatrolSessionEvent, action: str) -> None:
     """Append a patrol session start or stop to the log."""
-    patrol_session_log.append({"event": action, "android_id": event.id})
+    patrol_session_log.append({
+        "event": action, 
+         "android_id": event.id,
+        "timestamp": event.timestamp.isoformat()})
     print(f"received {action}: {event.id}")

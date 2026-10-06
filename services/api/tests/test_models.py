@@ -1,4 +1,4 @@
-from src.models import BeaconToStation
+from services.api.src.models.beacon_to_station import BeaconToStation
 
 
 def test_beacon_to_station_parses_aliases():
