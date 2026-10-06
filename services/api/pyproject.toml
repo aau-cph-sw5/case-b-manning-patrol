@@ -17,6 +17,7 @@ dependencies = [
     "aiosqlite>=0.20.0",
     "dotenv>=0.9.9",
     "psycopg[binary]>=3.3.6",
+    "docker>=7.2.0",
 ]
 
 [project.scripts]
