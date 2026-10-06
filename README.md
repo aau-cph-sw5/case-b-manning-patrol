@@ -40,7 +40,10 @@ Items marked **(blocked)** are in this set because the product is incomplete wit
 
 Each component installs and runs on its own; there is no root-level install.
 
-Prerequisites: Node.js 20 or 22 with npm (both frontends), Python 3.13 with [uv](https://docs.astral.sh/uv/) (backend).
+Prerequisites: 
+- Node = 20 or 22
+- Npm >= 11.4.2
+- Python >=3.13 with [uv](https://docs.astral.sh/uv/) (backend).
 
 ```bash
 # backend: Python 3.13 + uv
