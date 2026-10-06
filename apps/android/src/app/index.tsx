@@ -8,7 +8,7 @@ import { ScrollView, StyleSheet, Text } from "react-native";
 import { SessionSlider } from "@/components/SessionSlider";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 import { useBeaconScanner } from "@/hooks/useBeaconScanner";
-import { usePatrolSession } from "@/hooks/useSession";
+import { usePatrolSession } from "@/hooks/usePatrolSession";
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 
 export default function Index() {

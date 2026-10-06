@@ -1,7 +1,7 @@
 // the record-capture rules of MET-B-004 ("edge cases - business logic"). the spec is the
 // skipped tests in recordCapture.test.ts: implement until each passes, unskipping one
 // test at a time. pure on the event stream, so the rules can be checked without a phone.
-import type { BeaconEvent } from "@/types/beacon";
+import type { BeaconConnectionEvent } from "@/types/beacon";
 
 export type PatrolRecord = {
   beacon_id: string;
@@ -28,7 +28,7 @@ export type RecordCaptureOptions = {
 };
 
 export function computeRecords(
-  events: readonly BeaconEvent[],
+  events: readonly BeaconConnectionEvent[],
   options: RecordCaptureOptions,
 ): PatrolRecord[] {
   // TODO(MET-B-004 "edge cases - business logic"): implement per the skipped tests in

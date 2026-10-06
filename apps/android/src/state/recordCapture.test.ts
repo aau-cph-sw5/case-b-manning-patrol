@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computeRecords, type RecordCaptureOptions } from "@/state/recordCapture";
-import type { BeaconEvent, BeaconEventKind } from "@/types/beacon";
+import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
 
 const T0 = "2026-05-30T03:08:00.000Z";
 const at = (ms: number) => new Date(Date.parse(T0) + ms).toISOString();
@@ -13,7 +13,7 @@ const event = (
   kind: BeaconEventKind,
   beacon_id: string,
   timestamp: string,
-): BeaconEvent => ({ event: kind, beacon_id, android_id: "steward-1", timestamp });
+): BeaconConnectionEvent => ({ event: kind, beacon_id, android_id: "steward-1", timestamp });
 
 const options = (overrides: Partial<RecordCaptureOptions> = {}): RecordCaptureOptions => ({
   holdMs: 10_000,

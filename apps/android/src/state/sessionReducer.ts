@@ -10,9 +10,9 @@
 // STOP_FAILED      stopping              active       message   kept
 //
 // any other combination (double-taps, late responses) is ignored and returns the same state.
-import type { SessionAction, SessionState } from "@/types/session";
+import type { PatrolSessionAction, PatrolSessionState } from "@/types/patrol_session/patrolSession";
 
-export function sessionReducer(state: SessionState, action: SessionAction): SessionState {
+export function sessionReducer(state: PatrolSessionState, action: PatrolSessionAction): PatrolSessionState {
   switch (action.type) {
     case "START_REQUESTED":
       if (state.status !== "stopped") return state;

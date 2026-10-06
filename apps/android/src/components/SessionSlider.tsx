@@ -14,7 +14,7 @@ import Animated from "react-native-reanimated";
 import { SliderLabel } from "@/components/SliderLabel";
 import { SliderThumb, THUMB_SIZE } from "@/components/SliderThumb";
 import { useSlideGesture } from "@/hooks/useSlideGesture";
-import type { SessionStatus } from "@/types/session";
+import type { PatrolSessionStatus } from "@/types/patrol_session/patrolSession";
 
 const TRACK_HEIGHT = 76;
 const TRACK_BORDER = 4;
@@ -44,7 +44,7 @@ type Appearance = {
   filled: boolean;
 };
 
-const appearance: Record<SessionStatus, Appearance> = {
+const appearance: Record<PatrolSessionStatus, Appearance> = {
   stopped: {
     label: "Slide to start",
     accessibilityLabel: "Start session",
@@ -76,7 +76,7 @@ const appearance: Record<SessionStatus, Appearance> = {
 };
 
 type SessionSliderProps = {
-  status: SessionStatus;
+  status: PatrolSessionStatus;
   // when the current session started (ms since epoch), shown as elapsed time while active
   startedAt: number | null;
   // message from the last failed request, shown under the slider

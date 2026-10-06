@@ -4,13 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 import { MOCK_BEACON_IDS, MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
-import type { BeaconEvent } from "@/types/beacon";
+import type { BeaconConnectionEvent } from "@/types/beacon";
 
 // min and max are equal, so every cycle takes exactly this long
 const HOLD_MS = 5_000;
 const WALK_MS = 2_000;
 
-function createScanner(events: BeaconEvent[]) {
+function createScanner(events: BeaconConnectionEvent[]) {
   const scanner = createMockBeaconScanner({
     android_id: MOCK_ANDROID_ID,
     holdRangeMs: [HOLD_MS, HOLD_MS],
@@ -30,7 +30,7 @@ afterEach(() => {
 
 describe("createMockBeaconScanner", () => {
   it("connects at once, holds, disconnects, then reaches the next beacon", () => {
-    const events: BeaconEvent[] = [];
+    const events: BeaconConnectionEvent[] = [];
     createScanner(events);
 
     // the first beacon is in range the moment the scan starts
@@ -55,7 +55,7 @@ describe("createMockBeaconScanner", () => {
   });
 
   it("walks through the beacon ids in order", () => {
-    const events: BeaconEvent[] = [];
+    const events: BeaconConnectionEvent[] = [];
     createScanner(events);
 
     // one beacon per hold + walk cycle; the last connects one cycle before the end
@@ -68,7 +68,7 @@ describe("createMockBeaconScanner", () => {
   });
 
   it("stamps every event with the android id and an ISO timestamp", () => {
-    const events: BeaconEvent[] = [];
+    const events: BeaconConnectionEvent[] = [];
     createScanner(events);
 
     expect(events[0]!.android_id).toBe(MOCK_ANDROID_ID);
@@ -76,7 +76,7 @@ describe("createMockBeaconScanner", () => {
   });
 
   it("reports no events after stop", () => {
-    const events: BeaconEvent[] = [];
+    const events: BeaconConnectionEvent[] = [];
     const scanner = createScanner(events);
 
     scanner.stop();

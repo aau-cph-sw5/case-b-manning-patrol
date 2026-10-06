@@ -1,8 +1,8 @@
 // "starting" and "stopping" mean a request is in flight; the slider is locked.
-export type SessionStatus = "stopped" | "starting" | "active" | "stopping";
+export type PatrolSessionStatus = "stopped" | "starting" | "active" | "stopping";
 
-export type SessionState = {
-  status: SessionStatus;
+export type PatrolSessionState = {
+  status: PatrolSessionStatus;
   // set when the last start/stop request failed. the status rolls back to what is still true
   // (a failed start stays "stopped", a failed stop stays "active").
   error: string | null;
@@ -11,7 +11,7 @@ export type SessionState = {
   startedAt: number | null;
 };
 
-export const initialSessionState: SessionState = {
+export const initialSessionState: PatrolSessionState = {
   status: "stopped",
   error: null,
   startedAt: null,
@@ -19,7 +19,7 @@ export const initialSessionState: SessionState = {
 
 // things that happened to the session. a start request carries the moment the steward started it,
 // failures carry the message to show.
-export type SessionAction =
+export type PatrolSessionAction =
   | { type: "START_REQUESTED"; startedAt: number }
   | { type: "START_SUCCEEDED" }
   | { type: "START_FAILED"; error: string }

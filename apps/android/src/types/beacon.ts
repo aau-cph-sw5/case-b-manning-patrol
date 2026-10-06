@@ -2,10 +2,9 @@
 // backend expects from POST /api/v2/connection/connect and /api/v2/connection/disconnect.
 export type BeaconEventKind = "CONNECTED" | "DISCONNECTED";
 
-export type BeaconEvent = {
+export type BeaconConnectionEvent = {
   event: BeaconEventKind;
   beacon_id: string;
-  android_id: string;
   // device time as ISO 8601 UTC with milliseconds, e.g. "2026-05-30T03:08:13.000Z".
   // the phone is the source of truth for event time (ADR-0004).
   timestamp: string;
@@ -18,7 +17,7 @@ export type ScanState = {
   // beacon ids currently connected, in the order they connected.
   connectedBeaconIds: string[];
   // the most recent events, newest first.
-  recentEvents: BeaconEvent[];
+  recentEvents: BeaconConnectionEvent[];
 };
 
 export const initialScanState: ScanState = {
@@ -31,4 +30,4 @@ export const initialScanState: ScanState = {
 export type ScanAction =
   | { type: "SCAN_STARTED" }
   | { type: "SCAN_STOPPED" }
-  | { type: "EVENT_RECEIVED"; event: BeaconEvent };
+  | { type: "EVENT_RECEIVED"; event: BeaconConnectionEvent };

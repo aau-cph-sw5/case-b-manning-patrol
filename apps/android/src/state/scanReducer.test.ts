@@ -2,9 +2,9 @@
 import { describe, expect, it } from "vitest";
 
 import { scanReducer } from "@/state/scanReducer";
-import { initialScanState, type BeaconEvent } from "@/types/beacon";
+import { initialScanState, type BeaconConnectionEvent } from "@/types/beacon";
 
-const event = (partial: Partial<BeaconEvent>): BeaconEvent => ({
+const event = (partial: Partial<BeaconConnectionEvent>): BeaconConnectionEvent => ({
   event: "CONNECTED",
   beacon_id: "beacon-1",
   android_id: "steward-1",

@@ -2,7 +2,7 @@
 // to one, holding it for a while, losing it, then reaching the next. no Bluetooth is
 // involved, so it runs in Expo Go and on the emulator; the real scanner can be dropped in
 // behind the same BeaconScanner interface.
-import type { BeaconEvent, BeaconEventKind } from "@/types/beacon";
+import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
 import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import type { BeaconScanner } from "@/services/beacon/scanner";
 
@@ -33,7 +33,7 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
   } = options;
 
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let listener: ((event: BeaconEvent) => void) | null = null;
+  let listener: ((event: BeaconConnectionEvent) => void) | null = null;
   let nextBeaconIndex = 0;
 
   function emit(event: BeaconEventKind, beacon_id: string) {

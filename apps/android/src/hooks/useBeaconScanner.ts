@@ -21,9 +21,9 @@
 // no Bluetooth code and works unchanged with the real BLE scanner later.
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
-import { postConnectionEvent } from "@/api/connection";
+import { postConnectionEvent } from "@/api/postConnectionEvent";
 import { scanReducer } from "@/state/scanReducer";
-import { initialScanState, type BeaconEvent } from "@/types/beacon";
+import { initialScanState, type BeaconConnectionEvent } from "@/types/beacon";
 import type { BeaconScanner } from "@/services/beacon/scanner";
 
 export type UseBeaconScannerResult = {
@@ -44,7 +44,7 @@ export function useBeaconScanner(scanner: BeaconScanner): UseBeaconScannerResult
     scannerRef.current = scanner;
   }, [scanner]);
 
-  const onEvent = useCallback((event: BeaconEvent) => {
+  const onEvent = useCallback((event: BeaconConnectionEvent) => {
     dispatch({ type: "EVENT_RECEIVED", event });
     // fire and forget: a rejected send must not stop the scan, but it should be visible
     // in the terminal while the backend connection is still flaky in development

@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 
 import { sessionReducer } from "@/state/sessionReducer";
-import { initialSessionState } from "@/types/session";
+import { initialSessionState } from "@/types/patrol_session/patrolSession";
 
 const startedAt = 1760000000000;
 
