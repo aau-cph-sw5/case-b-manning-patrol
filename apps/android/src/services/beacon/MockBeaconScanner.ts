@@ -4,7 +4,7 @@
 // behind the same BeaconScanner interface.
 import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
 import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
-import type { BeaconScanner } from "@/services/beacon/BeaconScanner";
+import type { BeaconScanner } from "@/types/BeaconScanner";
 
 export type MockBeaconScannerOptions = {
   // the device this phone claims to be.
@@ -32,12 +32,12 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
   } = options;
 
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let listener: ((event: BeaconConnectionEvent) => void) | null = null;
+  let currentListener: ((event: BeaconConnectionEvent) => void) | null = null;
   let nextBeaconIndex = 0;
 
   function emit(event: BeaconEventKind, beacon_id: string) {
-    if (listener!== null) {
-      listener({ event, beacon_id, timestamp: new Date().toISOString() });
+    if (currentListener!== null) {
+      currentListener({ event, beacon_id, timestamp: new Date().toISOString() });
     }
   }
 
@@ -45,7 +45,7 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
     // the steward reaches the next beacon on the route
     const beaconId = beacon_ids[nextBeaconIndex % beacon_ids.length]!;
     nextBeaconIndex += 1;
-    
+
     emit("CONNECTED", beaconId);
     // the connection holds for a while before the steward walks out of range
     timer = setTimeout(() => {
@@ -54,18 +54,21 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
     }, randomDelay(holdRangeMs));
   }
 
-  const scanner: BeaconScanner = {
-    start(nextListener) {
+
+  function startFunction(nextListener: (event: BeaconConnectionEvent) => void) {
       stopTimer();
-      listener = nextListener;
-      // the steward is already next to a beacon when the scan begins: connect at once,
-      // instead of making the demo wait for something to happen
+      currentListener = nextListener;
       connectNext();
-    },
-    stop() {
-      stopTimer();
-      listener = null;
-    },
+  }
+
+  function stopFunction() {
+     stopTimer();
+      currentListener = null;
+  }
+
+  const scanner: BeaconScanner = {
+    start: startFunction,
+    stop: stopFunction
   };
   return scanner;
 
