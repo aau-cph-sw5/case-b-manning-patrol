@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Ingestion API",
 		"description": "Backend API contract for Android client to ingest connection and patrol session events for positioning data.",
-		"version": "1.0.0"
+		"version": "2.0.0"
 	},
 	"servers": [
 		{
