@@ -23,6 +23,21 @@ class EventModel(BaseModel):
     # source: api/simulator/import
 
 
+class CorrectedFact(BaseModel):
+    fact_type: EventType
+    beacon_id: str
+    occurred_at: datetime
+
+
+class AdjustmentModel(BaseModel):
+    adjustment_id: str
+    actor: str
+    corrected_fact: CorrectedFact
+    reason: str
+    author: str
+    server_timestamp: str
+
+
 class MainProducer:
     @staticmethod
     async def append_event(
@@ -43,13 +58,40 @@ class MainProducer:
             server_timestamp=_now_utc_iso(),
         )
 
-        await _send_model_tester(event_model)
+        await _send_event_model_tester(event_model)
         return event_model
 
+    @staticmethod
+    async def append_adjustment(
+        actor: str,
+        corrected_fact: CorrectedFact,
+        reason: str,
+        author: str,
+    ) -> AdjustmentModel:
 
-async def _send_model_tester(event_model: EventModel) -> EventModel:
+        adjustment_model = AdjustmentModel(
+            adjustment_id=str(uuid.uuid4()),
+            actor=actor,
+            corrected_fact=corrected_fact,
+            reason=reason,
+            author=author,
+            server_timestamp=_now_utc_iso(),
+        )
+
+        await _send_adjustment_model_tester(adjustment_model)
+        return adjustment_model
+
+
+async def _send_event_model_tester(event_model: EventModel) -> EventModel:
     print(event_model)
     return event_model
+
+
+async def _send_adjustment_model_tester(
+    adjustment_model: AdjustmentModel,
+) -> AdjustmentModel:
+    print(adjustment_model)
+    return adjustment_model
 
 
 def _now_utc_iso() -> str:

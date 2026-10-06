@@ -12,13 +12,13 @@ dashboards and in reports without modifying or deleting any recorded history.
 
 ```mermaid
 graph TD
-    WebUI[Web UI Admin Dashboard\\nReact] -->|POST /api/v1/adjustments| RestAPI
+    WebUI[Web UI Admin Dashboard\\nReact] -->|POST /api/v1/adjustment| RestAPI
     RestAPI[RestAPI] --> Store[Append-only event store]
 ```
 
 ## Endpoints
 
-- `POST /api/v1/adjustments` - Append an [AdjustmentEvent] to the event store
+- `POST /api/v1/adjustment` - Append an [AdjustmentEvent] to the event store
 
 ## Implementation Notes
 

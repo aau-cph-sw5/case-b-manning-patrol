@@ -40,6 +40,20 @@ def test_connection_event_returns_created_event():
         },
     )
 
+    adjustment_response = client.post(
+        app.url_path_for("adjustment_event"),
+        json={
+            "android_id": "android-1",
+            "corrected_fact": {
+                "fact_type": "connection",
+                "beacon_id": "12345",
+                "occurred_at": "2026-10-02T10:00:00+00:00",
+            },
+            "reason": "Adjusted something",
+            "author": "Controller-1",
+        },
+    )
+
     # Asserting Connection
     assert connection_response.status_code == 201
     connection_event = connection_response.json()
@@ -79,3 +93,17 @@ def test_connection_event_returns_created_event():
     assert stop_event["device_timestamp"] == "2026-10-02T10:00:00+00:00"
     assert stop_event["server_timestamp"]
     assert stop_event["event_id"]
+
+    # Asserting Adjustment
+    assert adjustment_response.status_code == 201
+    adjustment_event = adjustment_response.json()
+    assert adjustment_event["actor"] == "android-1"
+    assert adjustment_event["corrected_fact"] == {
+        "fact_type": "connection",
+        "beacon_id": "12345",
+        "occurred_at": "2026-10-02T10:00:00Z",
+    }
+    assert adjustment_event["reason"] == "Adjusted something"
+    assert adjustment_event["server_timestamp"]
+    assert adjustment_event["adjustment_id"]
+    assert adjustment_event["author"] == "Controller-1"

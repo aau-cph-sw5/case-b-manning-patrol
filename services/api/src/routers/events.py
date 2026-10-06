@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 from pydantic import BaseModel
 
-from src.services.producer import EventType, MainProducer
+from src.services.producer import CorrectedFact, EventType, MainProducer
 
 router = APIRouter(tags=["events handler"])
 API_VERSION = "v2"
@@ -17,6 +17,13 @@ class ConnectionEvent(BaseModel):
 class ShiftEvent(BaseModel):
     android_id: str
     timestamp: str
+
+
+class AdjustmentEvent(BaseModel):
+    android_id: str
+    corrected_fact: CorrectedFact
+    reason: str
+    author: str
 
 
 # TODO: Connection needs to return Area
@@ -60,3 +67,14 @@ async def shift_stop_event(shift_event: ShiftEvent):
         device_timestamp=shift_event.timestamp,
     )
     return event_model
+
+
+@router.post(f"{API_PREFIX}/adjustment", status_code=status.HTTP_201_CREATED)
+async def adjustment_event(adjustment_event: AdjustmentEvent):
+    adjustment_model = await MainProducer.append_adjustment(
+        actor=adjustment_event.android_id,
+        corrected_fact=adjustment_event.corrected_fact,
+        reason=adjustment_event.reason,
+        author=adjustment_event.author,
+    )
+    return adjustment_model
