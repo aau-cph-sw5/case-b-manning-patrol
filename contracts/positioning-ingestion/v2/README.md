@@ -1,0 +1,38 @@
+# Positioning Ingestion API
+
+Backend API contract for Android client to ingest connection and patrol session events for positioning data.
+
+## Architecture
+
+```mermaid
+graph TD
+    MobileUI[Mobile UI\nReact NATIVE] -->|POST api/v1/connection/connect| RestAPI
+    MobileUI -->|POST api/v1/connection/disconnect| RestAPI
+    MobileUI -->|POST api/v1/patrolSession/start| RestAPI
+    MobileUI -->|POST api/v1/patrolSession/stop| RestAPI
+    RestAPI[RestAPI] --> Backend[Backend\npython]
+```
+
+## Endpoints
+
+- `POST api/v1/connection/connect` - Report connection established ([ConnectionEvent])
+- `POST api/v1/connection/disconnect` - Report connection lost ([ConnectionEvent])
+- `POST api/v1/patrolSession/start` - Report patrol session started ([PatrolSessionEvent])
+- `POST api/v1/patrolSession/stop` - Report patrol session stopped ([PatrolSessionEvent])
+
+## Implementation Notes
+
+All endpoints use POST to maintain an append-only event log. Stewards press "start" and "stop" when taking breaks; during "stop" periods they cannot be tracked by beacons, so explicit logging is required.
+
+Each endpoint corresponds to exactly one action, so event payloads no longer carry a `status` field — the action is implied by which endpoint was called (this replaces v1's combined `/connectionEvent` and `/patrolSessionEvent` endpoints).
+
+## Data Models
+
+### ConnectionEvent
+- `android_id`: UUID
+- `beacon_id`: UUID
+- `timestamp`: Date — when the connection or disconnection occurred on the device
+
+### PatrolSessionEvent
+- `id`: UUID (android)
+- `timestamp`: Date — when the connection or disconnection occurred on the device
