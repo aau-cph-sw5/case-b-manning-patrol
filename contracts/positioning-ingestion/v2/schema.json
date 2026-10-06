@@ -12,7 +12,7 @@
 		}
 	],
 	"paths": {
-		"api/v1/connection/connect": {
+		"api/v2/connection/connect": {
 			"post": {
 				"summary": "Report connection established",
 				"description": "Sent when Android connects to a beacon.",
@@ -53,7 +53,7 @@
 				}
 			}
 		},
-		"api/v1/connection/disconnect": {
+		"api/v2/connection/disconnect": {
 			"post": {
 				"summary": "Report connection lost",
 				"description": "Sent when Android disconnects from a beacon.",
@@ -94,7 +94,7 @@
 				}
 			}
 		},
-		"api/v1/patrolSession/start": {
+		"api/v2/patrolSession/start": {
 			"post": {
 				"summary": "Report patrol session started",
 				"description": "Sent when user clicks a button in order start patrol session on the Android device.",
@@ -135,7 +135,7 @@
 				}
 			}
 		},
-		"api/v1/patrolSession/stop": {
+		"api/v2/patrolSession/stop": {
 			"post": {
 				"summary": "Report patrol session stopped",
 				"description": "Sent when user clicks a button in order to stop patrol session on the Android device.",
