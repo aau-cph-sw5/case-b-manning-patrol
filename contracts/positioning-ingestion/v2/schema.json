@@ -94,7 +94,7 @@
 				}
 			}
 		},
-		"api/v2/patrolSession/start": {
+		"api/v2/patrol-session/start": {
 			"post": {
 				"summary": "Report patrol session started",
 				"description": "Sent when user clicks a button in order start patrol session on the Android device.",
@@ -135,7 +135,7 @@
 				}
 			}
 		},
-		"api/v2/patrolSession/stop": {
+		"api/v2/patrol-session/stop": {
 			"post": {
 				"summary": "Report patrol session stopped",
 				"description": "Sent when user clicks a button in order to stop patrol session on the Android device.",
