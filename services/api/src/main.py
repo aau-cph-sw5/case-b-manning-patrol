@@ -8,8 +8,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .api.v1.routers import health, positioning_simulator
+from .db.ingest import load_stations
 from .db.main import engine, init_db
 
 API_PREFIX = "/api/v1"
@@ -18,6 +20,8 @@ API_PREFIX = "/api/v1"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    async with AsyncSession(engine) as session:
+        await load_stations(session)
     yield
     await engine.dispose()
 
