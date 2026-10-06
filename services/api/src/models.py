@@ -19,8 +19,8 @@ class ConnectionEvent(BaseModel):
     timestamp: datetime
 
 
-class ShiftEvent(BaseModel):
-    """Ingestion payload for POST /shift/start and /shift/stop
+class PatrolSessionEvent(BaseModel):
+    """Ingestion payload for POST /patrolSession/start and /patrolSession/stop
     (contracts/positioning-ingestion/v1)."""
 
     id: str = Field(..., min_length=1)
