@@ -5,9 +5,9 @@ import type { BeaconConnectionEvent } from "@/types/beacon";
 
 export type RecordCaptureOptions = {
   // how long a connection must be held before a record initiates (AC 2, "x seconds").
-  holdBeforeStartingEventMs: number;
+  holdMs: number;
   // how long a connection may drop and return without breaking the record (AC 3).
-  toleratedGapDisconnectMs: number;
+  toleratedGapMs: number;
   // which area each beacon belongs to (AC 7).
   beaconAreas: Record<string, string>;
   // the session window: events outside it create nothing (AC 1). endedAt may be null for
