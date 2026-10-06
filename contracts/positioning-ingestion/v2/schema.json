@@ -219,7 +219,7 @@
 						"example": "2026-09-21T10:00:00+00:00"
 					}
 				},
-				"required": ["id", "timestamp"]
+				"required": ["android_id", "timestamp"]
 			},
 			"Error": {
 				"type": "object",
