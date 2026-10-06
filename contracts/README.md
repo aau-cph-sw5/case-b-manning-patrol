@@ -38,6 +38,7 @@ If you want to update a schema, follow the guidelines below:
   - Add a new directory (e.g., `v2/`) and copy the latest schema from the old version.
   - Mark the old version as **deprecated** in its `README.md` and `schema.json` (using `"deprecated": true` in OpenAPI).
   - Document the **sunset date** (e.g., "Sunset: 2026-12-01") in the old version's `README.md` and `CHANGELOG.md`.
+  - Update the prefix thoughout repo, so code and endpoints mounts to the new contract.
 
 - If the change is **only an addition** (e.g., new optional fields or endpoints) and does **not break the system**, increment the **minor version** (e.g., `v1.0.0` → `v1.1.0`).
   - Update the `info.version` field in `schema.json`.
