@@ -1,5 +1,5 @@
 // sends beacon connection events to the backend, one POST per event per
-// contracts/positioning-ingestion/v1: the endpoint says what happened, so the body
+// contracts/positioning-ingestion/v2: the endpoint says what happened, so the body
 // carries no event field.
 //
 // the console.log prints exactly the body that leaves the phone: the metro terminal
@@ -16,9 +16,9 @@ export async function postConnectionEvent(event: BeaconEvent): Promise<void> {
   };
   const action = event.event === "CONNECTED" ? "connect" : "disconnect";
 
-  console.log(`POST /api/v1/connection/${action} ${JSON.stringify(body)}`);
+  console.log(`POST /api/v2/connection/${action} ${JSON.stringify(body)}`);
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/connection/${action}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v2/connection/${action}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

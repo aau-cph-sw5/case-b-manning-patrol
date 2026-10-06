@@ -16,10 +16,10 @@ async function postPatrolSessionEvent(action: "start" | "stop"): Promise<void> {
   const body = { id: MOCK_ANDROID_ID };
 
   // same as the connection events: the terminal shows what leaves the phone
-  console.log(`POST /api/v1/patrol-session/${action} ${JSON.stringify(body)}`);
+  console.log(`POST /api/v2/patrol-session/${action} ${JSON.stringify(body)}`);
 
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/patrol-session/${action}`,
+    `${API_BASE_URL}/api/v2/patrol-session/${action}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

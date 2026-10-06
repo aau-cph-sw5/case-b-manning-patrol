@@ -44,7 +44,7 @@ src/
 ## Beacon scanning
 
 The app receives beacon connect/disconnect events shaped as `ConnectionEvent` from
-`contracts/positioning-ingestion/v1` (`android_id`, `beacon_id`, `event`, `timestamp`).
+`contracts/positioning-ingestion/v2` (`android_id`, `beacon_id`, `event`, `timestamp`).
 Everything that produces these events implements the `BeaconScanner` interface
 (`src/services/beacon/scanner.ts`).
 
@@ -53,8 +53,8 @@ beacon ids from the backend fixtures: connect, hold, disconnect, next beacon. It
 no Bluetooth, so it runs in Expo Go and on the emulator. Real BLE scanning is the same
 interface on a development build on a physical device.
 
-Forwarding the events to the backend (`POST /api/v1/connection/connect` and
-`/api/v1/connection/disconnect`) is not wired up yet.
+Forwarding the events to the backend (`POST /api/v2/connection/connect` and
+`/api/v2/connection/disconnect`) is not wired up yet.
 
 ## Conventions
 

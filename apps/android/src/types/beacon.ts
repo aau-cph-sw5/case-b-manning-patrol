@@ -1,5 +1,5 @@
-// mirrors ConnectionEvent in contracts/positioning-ingestion/v1: the exact payload the
-// backend expects from POST /api/v1/connection/connect and /api/v1/connection/disconnect.
+// mirrors ConnectionEvent in contracts/positioning-ingestion/v2: the exact payload the
+// backend expects from POST /api/v2/connection/connect and /api/v2/connection/disconnect.
 export type BeaconEventKind = "CONNECTED" | "DISCONNECTED";
 
 export type BeaconEvent = {
