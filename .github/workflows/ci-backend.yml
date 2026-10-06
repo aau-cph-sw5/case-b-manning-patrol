@@ -44,3 +44,5 @@ jobs:
 
     - name: Tests
       run: uv run pytest
+      env:
+        DATABASE_URL: postgresql+asyncpg://USER:PASSWORD@HOST:6767/DATABASE_NAME
