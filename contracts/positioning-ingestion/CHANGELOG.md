@@ -12,3 +12,8 @@
 - Initial release of Positioning Ingestion API contract
 - Added ConnectionEvent and ShiftEvent schemas
 - Added POST /connection-event and POST /shift-event endpoints
+
+## v2.0.0
+
+- Updated naming of "shifts" to "patrol sessions"
+- Add timestamp to the PatrolSessionEvent
