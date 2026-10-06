@@ -17,7 +17,7 @@ events = load_fixture("fixture-events-v1.json")
 
 @router.websocket("/ws/observation-events")
 async def websocket_events(websocket: WebSocket):
-    """WebSocket stream of fixture shift data."""
+    """WebSocket stream of fixture patrol session data."""
     await websocket.accept()
 
     await simulate_event_stream(events, websocket)

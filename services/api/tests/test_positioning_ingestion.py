@@ -24,7 +24,7 @@ def post_connection(action: str, **overrides):
 @pytest.fixture(autouse=True)
 def clean_logs():
     ingestion_service.connection_log.clear()
-    ingestion_service.shift_log.clear()
+    ingestion_service.patrol_session_log.clear()
 
 
 def test_connect_returns_201_and_logs_connected():
@@ -66,12 +66,12 @@ def test_events_accumulate_in_order():
 
 
 @pytest.mark.parametrize("action", ["start", "stop"])
-def test_shift_endpoints_return_201_and_log_the_action(action):
-    response = client.post(f"{API_PREFIX}/shift/{action}", json={"id": ANDROID_ID})
+def test_patrol_session_endpoints_return_201_and_log_the_action(action):
+    response = client.post(f"{API_PREFIX}/patrol-session/{action}", json={"id": ANDROID_ID})
 
-    expected_event = "SHIFT_STARTED" if action == "start" else "SHIFT_STOPPED"
+    expected_event = "PATROL_SESSION_STARTED" if action == "start" else "PATROL_SESSION_STOPPED"
     assert response.status_code == 201
-    assert ingestion_service.shift_log == [
+    assert ingestion_service.patrol_session_log == [
         {"event": expected_event, "android_id": ANDROID_ID}
     ]
 

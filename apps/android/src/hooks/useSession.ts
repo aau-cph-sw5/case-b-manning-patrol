@@ -2,7 +2,7 @@
 // network code lives in @/api/session, so connecting the real api doesn't touch this hook.
 import { useReducer, useRef } from "react";
 
-import { startSession, stopSession } from "@/api/session";
+import { startPatrolSession, stopPatrolSession } from "@/api/session";
 import { sessionReducer } from "@/state/sessionReducer";
 import { initialSessionState, type SessionState } from "@/types/session";
 
@@ -18,7 +18,7 @@ export type UseSessionResult = {
   stop: () => Promise<void>;
 };
 
-export function useSession(): UseSessionResult {
+export function usePatrolSession(): UseSessionResult {
   const [state, dispatch] = useReducer(sessionReducer, initialSessionState);
   // a second slide can complete before the slider re-renders as locked; this stops a second request
   const requestInFlight = useRef(false);
@@ -30,7 +30,7 @@ export function useSession(): UseSessionResult {
     const startedAt = Date.now();
     dispatch({ type: "START_REQUESTED", startedAt });
     try {
-      await startSession();
+      await startPatrolSession();
       dispatch({ type: "START_SUCCEEDED" });
     } catch {
       dispatch({ type: "START_FAILED", error: START_ERROR });
@@ -44,7 +44,7 @@ export function useSession(): UseSessionResult {
     requestInFlight.current = true;
     dispatch({ type: "STOP_REQUESTED" });
     try {
-      await stopSession();
+      await stopPatrolSession();
       dispatch({ type: "STOP_SUCCEEDED" });
     } catch {
       dispatch({ type: "STOP_FAILED", error: STOP_ERROR });

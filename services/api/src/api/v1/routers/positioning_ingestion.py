@@ -8,8 +8,8 @@ the server appends to the event log and answers 201.
 
 from fastapi import APIRouter, status
 
-from src.models import ConnectionEvent, ShiftEvent
-from src.services.ingestion_service import record_connection_event, record_shift_event
+from src.models import ConnectionEvent, PatrolSessionEvent
+from src.services.ingestion_service import record_connection_event, record_patrol_session_event
 
 router = APIRouter(tags=["positioning-ingestion"])
 
@@ -26,13 +26,13 @@ def report_connection_disconnect(event: ConnectionEvent) -> None:
     record_connection_event(event, action="DISCONNECTED")
 
 
-@router.post("/shift/start", status_code=status.HTTP_201_CREATED)
-def report_shift_start(event: ShiftEvent) -> None:
-    """Report that a steward started their shift."""
-    record_shift_event(event, action="SHIFT_STARTED")
+@router.post("/patrol-session/start", status_code=status.HTTP_201_CREATED)
+def report_patrol_session_start(event: PatrolSessionEvent) -> None:
+    """Report that a steward started their patrol session."""
+    record_patrol_session_event(event, action="PATROL_SESSION_STARTED")
 
 
-@router.post("/shift/stop", status_code=status.HTTP_201_CREATED)
-def report_shift_stop(event: ShiftEvent) -> None:
-    """Report that a steward stopped their shift."""
-    record_shift_event(event, action="SHIFT_STOPPED")
+@router.post("/patrol-session/stop", status_code=status.HTTP_201_CREATED)
+def report_patrol_session_stop(event: PatrolSessionEvent) -> None:
+    """Report that a steward stopped their patrol session."""
+    record_patrol_session_event(event, action="PATROL_SESSION_STOPPED")

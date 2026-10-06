@@ -89,7 +89,7 @@ Implements the Positioning Interface contract (`contracts/positioning-interface/
 - `WS /api/v1/ws/observation-events` - WebSocket stream of events
 
 Fixtures used:
-- `fixtures/fixture-shifts.json` - Raw shift/ping data
+- `fixtures/fixture-shifts.json` - Raw patrol session ping data
 - `fixtures/mapping.json` - Beacon ID to station/train mapping
 
 ## Database

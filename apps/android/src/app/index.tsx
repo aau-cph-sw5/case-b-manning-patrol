@@ -1,5 +1,5 @@
 // the steward's patrol screen. the session slider drives everything below it: swiping
-// start opens the shift and starts the mock beacon scan at once; swiping stop ends both.
+// start opens the patrol session and starts the mock beacon scan at once; swiping stop ends both.
 // every event the scanner produces prints in the terminal and is forwarded to the
 // backend as it arrives.
 import { useEffect, useMemo } from "react";
@@ -8,31 +8,31 @@ import { ScrollView, StyleSheet, Text } from "react-native";
 import { SessionSlider } from "@/components/SessionSlider";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 import { useBeaconScanner } from "@/hooks/useBeaconScanner";
-import { useSession } from "@/hooks/useSession";
+import { usePatrolSession } from "@/hooks/useSession";
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 
 export default function Index() {
   // one scanner for the lifetime of the screen, so start/stop always talks to the same one
   const scanner = useMemo(() => createMockBeaconScanner({ android_id: MOCK_ANDROID_ID }), []);
-  const { state: session, start, stop } = useSession();
+  const { state: patrolSession, start, stop } = usePatrolSession();
   const { state: scan, start: startScan, stop: stopScan } = useBeaconScanner(scanner);
 
-  // the scan is the session's: it runs exactly while the shift is active (AC 1). the shift
+  // the scan is the session's: it runs exactly while the patrol session is active (AC 1). the patrol session
   // is only active once the backend accepted the start, so a rejected start scans nothing.
   useEffect(() => {
-    if (session.status === "active") {
+    if (patrolSession.status === "active") {
       startScan();
     } else {
       stopScan();
     }
-  }, [session.status, startScan, stopScan]);
+  }, [patrolSession.status, startScan, stopScan]);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <SessionSlider
-        status={session.status}
-        startedAt={session.startedAt}
-        error={session.error}
+        status={patrolSession.status}
+        startedAt={patrolSession.startedAt}
+        error={patrolSession.error}
         onStart={start}
         onStop={stop}
       />
