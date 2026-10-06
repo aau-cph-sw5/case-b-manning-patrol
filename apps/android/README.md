@@ -1,7 +1,7 @@
 # Manning Patrol Android Frontend
 
 Steward-facing Android app for the Manning Patrol system: shows and drives the steward's
-session, and receives the beacon signals that document presence. Built with Expo SDK 57,
+patrol session, and receives the beacon signals that document presence. Built with Expo SDK 57,
 React Native, expo-router and strict TypeScript.
 
 ## Setup
@@ -31,11 +31,11 @@ npx tsc --noEmit   # typecheck, what CI effectively checks (no test suite yet)
 ```
 src/
 ├── app/        expo-router file-based routes
-│   ├── index.tsx   session slider demo (useSession drives it)
+│   ├── index.tsx   patrol session slider demo 
 │   └── beacon.tsx  mock beacon scanner demo
-├── components/ ui building blocks (SessionSlider, ElapsedTime, ...)
-├── hooks/      connect side effects to state (useSession, useBeaconScanner)
-├── state/      pure reducers (sessionReducer, beaconReducer)
+├── components/ ui building blocks
+├── hooks/      connect side effects to state 
+├── state/      pure reducers
 ├── types/      domain types and initial states
 ├── services/   the outside world: beacon scanning lives here
 └── utils/
@@ -58,7 +58,7 @@ Forwarding the events to the backend (`POST /api/v1/connection/connect` and
 
 ## Conventions
 
-- Hooks take their side effects as parameters: `useSession` receives the start/stop
+- Hooks take their side effects as parameters: `usePatrolSession` receives the start/stop
   requests, `useBeaconScanner` receives the scanner. Swap the implementation, not the hook.
 - Reducers are pure; no requests, timers or other side effects inside.
 - The phone is the source of truth for event time (ADR-0004).
