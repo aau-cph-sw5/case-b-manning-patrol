@@ -1,5 +1,6 @@
 # uv
 .venv/
+.env
 
 # Ruff
 .ruff_cache/
