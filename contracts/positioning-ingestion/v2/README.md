@@ -9,7 +9,7 @@ graph TD
     MobileUI[Mobile UI\nReact NATIVE] -->|POST api/v2/connection/connect| RestAPI
     MobileUI -->|POST api/v2/connection/disconnect| RestAPI
     MobileUI -->|POST api/v2/patrolSession/start| RestAPI
-    MobileUI -->|POST api/v2/patrolSession/stop| RestAPI
+    MobileUI -->|POST api/v2/patrol-session/stop| RestAPI
     RestAPI[RestAPI] --> Backend[Backend\npython]
 ```
 
