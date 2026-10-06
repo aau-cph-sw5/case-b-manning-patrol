@@ -3,7 +3,6 @@
 // involved, so it runs in Expo Go and on the emulator; the real scanner can be dropped in
 // behind the same BeaconScanner interface.
 import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
-import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import type { BeaconScanner } from "@/types/BeaconScanner";
 
 export function createBeaconScanner(): BeaconScanner {
@@ -14,6 +13,7 @@ export function createBeaconScanner(): BeaconScanner {
         listener({ event, beacon_id, timestamp: new Date().toISOString() });
       }
     }
+    
 
     function startFunction(l: (event: BeaconConnectionEvent) => void) {
         // bluetooth logic:

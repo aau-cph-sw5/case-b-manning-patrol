@@ -7,7 +7,6 @@ import { initialScanState, type BeaconConnectionEvent } from "@/types/beacon";
 const event = (partial: Partial<BeaconConnectionEvent>): BeaconConnectionEvent => ({
   event: "CONNECTED",
   beacon_id: "beacon-1",
-  android_id: "steward-1",
   timestamp: "2026-05-30T03:08:13.000Z",
   ...partial,
 });
