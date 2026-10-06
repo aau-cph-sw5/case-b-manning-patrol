@@ -206,7 +206,7 @@
 			"PatrolSessionEvent": {
 				"type": "object",
 				"properties": {
-					"id": {
+					"android_id": {
 						"type": "string",
 						"format": "uuid",
 						"description": "Android device UUID.",
@@ -219,7 +219,7 @@
 						"example": "2026-09-21T10:00:00+00:00"
 					}
 				},
-				"required": ["id"]
+				"required": ["id", "timestamp"]
 			},
 			"Error": {
 				"type": "object",
