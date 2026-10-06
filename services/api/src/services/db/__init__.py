@@ -1,7 +1,8 @@
 from sqlmodel import SQLModel, Session, create_engine, select
 from uuid import UUID
 from src.models import Datasheet
-DATABASE_URL = "sqlite:///./dev.db"
+
+DATABASE_URL = "postgres+psycopg://metro:admin@localhost:5432/postgres-db"
 engine = create_engine(DATABASE_URL, echo=True)
 
 # This is a one-shot create and fill db with entries for returning payload to phone
