@@ -7,7 +7,7 @@ def test_connection_event_returns_created_event():
     client = TestClient(app)
 
     connection_response = client.post(
-        "/api/v1/connection/connect",
+        app.url_path_for("connection_event"),
         json={
             "android_id": "android-1",
             "beacon_id": "beacon-1",
@@ -16,7 +16,7 @@ def test_connection_event_returns_created_event():
     )
 
     disconnection_response = client.post(
-        "/api/v1/connection/disconnect",
+        app.url_path_for("disconnection_event"),
         json={
             "android_id": "android-1",
             "beacon_id": "beacon-1",
@@ -25,7 +25,7 @@ def test_connection_event_returns_created_event():
     )
 
     start_response = client.post(
-        "api/v1/shift/start",
+        app.url_path_for("shift_start_event"),
         json={
             "android_id": "android-1",
             "timestamp": "2026-10-02T10:00:00+00:00",
@@ -33,7 +33,7 @@ def test_connection_event_returns_created_event():
     )
 
     stop_response = client.post(
-        "api/v1/shift/stop",
+        app.url_path_for("shift_stop_event"),
         json={
             "android_id": "android-1",
             "timestamp": "2026-10-02T10:00:00+00:00",
