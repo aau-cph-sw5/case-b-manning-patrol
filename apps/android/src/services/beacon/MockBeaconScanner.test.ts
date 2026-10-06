@@ -17,6 +17,7 @@ function createScanner(events: BeaconConnectionEvent[]) {
     walkRangeMs: [WALK_MS, WALK_MS],
   });
   scanner.start((event) => events.push(event));
+  
   return scanner;
 }
 
@@ -71,7 +72,6 @@ describe("createMockBeaconScanner", () => {
     const events: BeaconConnectionEvent[] = [];
     createScanner(events);
 
-    expect(events[0]!.android_id).toBe(MOCK_ANDROID_ID);
     expect(events[0]!.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
   });
 

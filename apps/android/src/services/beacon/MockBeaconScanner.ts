@@ -4,7 +4,7 @@
 // behind the same BeaconScanner interface.
 import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
 import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
-import type { BeaconScanner } from "@/services/beacon/scanner";
+import type { BeaconScanner } from "@/services/beacon/BeaconScanner";
 
 export type MockBeaconScannerOptions = {
   // the device this phone claims to be.
@@ -26,7 +26,6 @@ function randomDelay(range: readonly [number, number]): number {
 
 export function createMockBeaconScanner(options: MockBeaconScannerOptions): BeaconScanner {
   const {
-    android_id,
     beacon_ids = MOCK_BEACON_IDS,
     holdRangeMs = DEFAULT_HOLD_RANGE_MS,
     walkRangeMs = DEFAULT_WALK_RANGE_MS,
@@ -37,13 +36,16 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
   let nextBeaconIndex = 0;
 
   function emit(event: BeaconEventKind, beacon_id: string) {
-    listener?.({ event, beacon_id, android_id, timestamp: new Date().toISOString() });
+    if (listener!== null) {
+      listener({ event, beacon_id, timestamp: new Date().toISOString() });
+    }
   }
 
   function connectNext() {
     // the steward reaches the next beacon on the route
     const beaconId = beacon_ids[nextBeaconIndex % beacon_ids.length]!;
     nextBeaconIndex += 1;
+    
     emit("CONNECTED", beaconId);
     // the connection holds for a while before the steward walks out of range
     timer = setTimeout(() => {
@@ -52,7 +54,7 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
     }, randomDelay(holdRangeMs));
   }
 
-  return {
+  const scanner: BeaconScanner = {
     start(nextListener) {
       stopTimer();
       listener = nextListener;
@@ -65,6 +67,7 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
       listener = null;
     },
   };
+  return scanner;
 
   function stopTimer() {
     if (timer !== null) {

@@ -13,7 +13,7 @@ const event = (
   kind: BeaconEventKind,
   beacon_id: string,
   timestamp: string,
-): BeaconConnectionEvent => ({ event: kind, beacon_id, android_id: "steward-1", timestamp });
+): BeaconConnectionEvent => ({ event: kind, beacon_id, timestamp });
 
 const options = (overrides: Partial<RecordCaptureOptions> = {}): RecordCaptureOptions => ({
   holdMs: 10_000,

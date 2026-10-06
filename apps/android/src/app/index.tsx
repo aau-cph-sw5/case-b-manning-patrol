@@ -13,6 +13,7 @@ import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 
 export default function Index() {
   // one scanner for the lifetime of the screen, so start/stop always talks to the same one
+  
   const scanner = useMemo(() => createMockBeaconScanner({ android_id: MOCK_ANDROID_ID }), []);
   const { state: patrolSession, start, stop } = usePatrolSession();
   const { state: scan, start: startScan, stop: stopScan } = useBeaconScanner(scanner);

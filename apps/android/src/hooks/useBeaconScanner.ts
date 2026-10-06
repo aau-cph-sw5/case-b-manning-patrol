@@ -24,7 +24,7 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
 import { postConnectionEvent } from "@/api/postConnectionEvent";
 import { scanReducer } from "@/state/scanReducer";
 import { initialScanState, type BeaconConnectionEvent } from "@/types/beacon";
-import type { BeaconScanner } from "@/services/beacon/scanner";
+import type { BeaconScanner } from "@/services/beacon/BeaconScanner";
 
 export type UseBeaconScannerResult = {
   state: ReturnType<typeof scanReducer>;
