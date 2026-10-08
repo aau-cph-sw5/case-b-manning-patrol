@@ -6,7 +6,7 @@ import { useEffect, useMemo } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
 
 import { SessionSlider } from "@/components/SessionSlider";
-import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
+import { MOCK_ANDROID_ID, MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import { useBeaconScanner } from "@/hooks/useBeaconScanner";
 import { usePatrolSession } from "@/hooks/usePatrolSession";
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
@@ -14,7 +14,14 @@ import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 export default function Index() {
   // one scanner for the lifetime of the screen, so start/stop always talks to the same one
   
-  const scanner = useMemo(() => createMockBeaconScanner({ android_id: MOCK_ANDROID_ID }), []);
+  const scanner = useMemo(
+    () =>
+      createMockBeaconScanner({
+        android_id: MOCK_ANDROID_ID,
+        beacon_ids: MOCK_BEACON_IDS.slice(0, 2),
+      }),
+    [],
+  );
   const { state: patrolSession, start, stop } = usePatrolSession();
   const { state: scan, start: startScan, stop: stopScan } = useBeaconScanner(scanner);
 
