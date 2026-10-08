@@ -6,6 +6,8 @@ Backend service for the Manning Patrol positioning system.
 
 - Python 3.13
 - [uv](https://github.com/astral-sh/uv) (Astral package manager)
+- Docker for Windows/MacOS (running the VM where the database container lives)
+    - If Linux or WSL2, container can run native in the OS. Search for setup yourself.
 
 ## Setup
 
@@ -94,16 +96,17 @@ Fixtures used:
 
 ## Database
 
-> **Status:** planned — not yet implemented.
+> **Status:** Docker-Compose PostgreSQL setup
+
+Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
 
 The backend will use PostgreSQL, run locally via Docker Compose:
 
-- `docker-compose.yml` — will define the PostgreSQL service. It is currently
-  a placeholder with no services, so `docker compose up` does nothing yet.
+- `docker-compose.yml` — defines the PostgreSQL setup.
 - `src/services/db/` — will hold the database access layer (connection
   setup, queries). Currently empty.
 
-Once the database service is defined, start it with:
+Once the database service is defined, start it from '.../services/api/':
 
 ```bash
 docker compose up -d
