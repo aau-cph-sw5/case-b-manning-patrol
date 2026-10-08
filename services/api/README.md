@@ -64,13 +64,17 @@ uv run ty check src/
 services/api/
 ├── src/
 │   ├── main.py                  # FastAPI app definition
-│   ├── models.py
-│   ├── routers/
-│   │   └── positioning_simulator.py # Positioning Interface simulator
+│   ├── models/                  # Shared models (events, adjustments, beacons)
+│   ├── api/
+│   │   └── v1/
+│   │       └── routers/
+│   │           ├── events.py            # Event and adjustment ingestion routes
+│   │           ├── health.py           # Health check endpoint
+│   │           └── positioning_simulator.py # Positioning Interface simulator
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py
-│       └── db/                  # Database access layer (planned, empty)
+│       └── producer.py          # Event/adjustment producer
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline replayed by the simulator
 ├── tests/
@@ -100,8 +104,8 @@ The backend will use PostgreSQL, run locally via Docker Compose:
 
 - `docker-compose.yml` — will define the PostgreSQL service. It is currently
   a placeholder with no services, so `docker compose up` does nothing yet.
-- `src/services/db/` — will hold the database access layer (connection
-  setup, queries). Currently empty.
+- `src/db/` — will hold the database access layer (connection
+  setup, queries).
 
 Once the database service is defined, start it with:
 

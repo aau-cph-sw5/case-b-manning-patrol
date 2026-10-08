@@ -8,8 +8,6 @@ from src.models.event import EventType
 from src.services.producer import CorrectedFact, MainProducer
 
 router = APIRouter(tags=["events handler"])
-API_VERSION = "v2"
-API_PREFIX = f"/api/{API_VERSION}"
 
 
 class ConnectionEvent(BaseModel):
@@ -32,7 +30,7 @@ class AdjustmentEvent(BaseModel):
 
 
 # TODO: Connection needs to return Area
-@router.post(f"{API_PREFIX}/connection/connect", status_code=status.HTTP_201_CREATED)
+@router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
 async def connection_event(connection_event: ConnectionEvent):
     event_model = await MainProducer.append_event(
         event_type=EventType.CONNECT_EVENT,
@@ -43,7 +41,7 @@ async def connection_event(connection_event: ConnectionEvent):
     return event_model
 
 
-@router.post(f"{API_PREFIX}/connection/disconnect", status_code=status.HTTP_201_CREATED)
+@router.post("/connection/disconnect", status_code=status.HTTP_201_CREATED)
 async def disconnection_event(connection_event: ConnectionEvent):
     event_model = await MainProducer.append_event(
         event_type=EventType.DISCONNECT_EVENT,
@@ -54,7 +52,7 @@ async def disconnection_event(connection_event: ConnectionEvent):
     return event_model
 
 
-@router.post(f"{API_PREFIX}/patrol_session/start", status_code=status.HTTP_201_CREATED)
+@router.post("/patrol_session/start", status_code=status.HTTP_201_CREATED)
 async def shift_start_event(shift_event: ShiftEvent):
     event_model = await MainProducer.append_event(
         event_type=EventType.START_EVENT,
@@ -64,7 +62,7 @@ async def shift_start_event(shift_event: ShiftEvent):
     return event_model
 
 
-@router.post(f"{API_PREFIX}/patrol_session/stop", status_code=status.HTTP_201_CREATED)
+@router.post("/patrol_session/stop", status_code=status.HTTP_201_CREATED)
 async def shift_stop_event(shift_event: ShiftEvent):
     event_model = await MainProducer.append_event(
         event_type=EventType.STOP_EVENT,
@@ -74,7 +72,7 @@ async def shift_stop_event(shift_event: ShiftEvent):
     return event_model
 
 
-@router.post(f"{API_PREFIX}/adjustment", status_code=status.HTTP_201_CREATED)
+@router.post("/adjustment", status_code=status.HTTP_201_CREATED)
 async def adjustment_event(adjustment_event: AdjustmentEvent):
     adjustment_model = await MainProducer.append_adjustment(
         actor=adjustment_event.android_id,

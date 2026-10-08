@@ -8,8 +8,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.routers import events, positioning_simulator
+from src.api.v1.routers import events, health, positioning_simulator
 from src.services.producer import EventValidationError
+
+API_PREFIX = "/api/v1"
 
 app = FastAPI(title="Manning Patrol Backend")
 
@@ -33,14 +35,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(positioning_simulator.router)
-app.include_router(events.router)
+app.include_router(health.router, prefix=API_PREFIX)
+app.include_router(positioning_simulator.router, prefix=API_PREFIX)
+app.include_router(events.router, prefix=API_PREFIX)
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "Manning Patrol Backend running"}
+@app.get("/ping")
+async def ping():
+    return {"message": "up"}
+
+
+@app.get("/")
+def hello():
+    """Stub endpoint for root path"""
+    return {"message": "Hello"}
 
 
 def dev():
