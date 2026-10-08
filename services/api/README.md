@@ -99,6 +99,7 @@ Fixtures used:
 > **Status:** Docker-Compose PostgreSQL setup
 
 Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
+See '.env-example' for .env setup.
 
 The backend will use PostgreSQL, run locally via Docker Compose:
 
