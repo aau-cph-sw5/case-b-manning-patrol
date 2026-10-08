@@ -1,36 +1,37 @@
-# ADR database decision
+# ADR 0007. PostgreSQL as database
 
 **Status.** Proposed
 
-**Date.** 08-10-2026
+**Date.** 2026-10-07
 
-**Deciders.** Maya, Jakob, Sebastian, Signe, Victor, Patrick, Markus
+**Deciders.** Peter Rasmussen, Tue Elhegn, Maya Lauritsen, Markus Jørgensen, Jacob Jensen, Signe Jensen, Patrick Hallberg, Victor Zacho, team 3, team 2
 
-**Related backlog items.**  met-b-003, met-b-004
-
+**Related backlog items.** MET-B-004, MET-B-013, MET-B-018, MET-B-019, MET-B-020, MET-B-021, MET-B-023, MET-B-024
 
 ## Context
-The projects needs to store data. It needs to store static data and dynamic data. The static data is tables such as stations and patrol_area where it is used when a connection event needs to know where the steward currently is located (Platform or concourse and the station, etc). The dynamic data consist of events when the steward etiher connects of disconnects. The event is sent to the backend and then stored in the database as events in the event table. The data needs reference data to couple it to events. The control room operators must see where the connection events happen excatly in the metro network and see live status.
+
+The project uses relational data, including reference data such as stations and patrol areas, alongside dynamic data in the form of steward connection and disconnection events. The reference data is used to associate events with locations in the metro network. PostgreSQL supports these relational relationships while also providing JSON and JSONB column types, allowing event payloads to be stored as flexible documents within a relational database.
+
+The database systems course teaches PostgreSQL, giving the team existing experience with the technology. PostgreSQL also satisfies the database requirements identified by the project. Other database systems, including more specialized solutions such as EventStoreDB, were considered, but their additional technological overhead was deemed unnecessary.
+
+This ADR is related to PBI MET-B-020, which does not explicitly require implementation yet. However, the teams prioritized making the database decision now, as Sprint 2 is focused on designing the database.
 
 ## Decision
 
-We choose PostgreSQL as the database for the backend. PostgreSQL is an open-source relational database management system (RDBMS) that we already use in our database systems course, so the teams have experience with it. It also fits our two kinds of data. The static reference data (stations, patrol areas) is naturally relational. The dynamic data (steward connect/disconnect events) is append-only and its payload may evolve over time. PostgreSQL's NoSQL capabilities - the JSON/JSONB column type - let us store each event payload as a flexible document inside the relational event table. 
+PostgreSQL is selected as the database for the backend.
 
 ## Consequences
-Advantages of using postgres:
- - Cost effectiveness: Postgres is open-source and has a lower total cost of ownership compared to other databases with a proprietary license.
- - Extensibility: Postgres can be easily customized to meet specific needs. It supports a wide varity of OS, platforms, and programming languages.
- - Advanced features: Such as JSON support, and better performance for complex queries. 
 
-Drawbacks of using postgres:
- - Complexity: Postgres can be complex for new users/beginners.
- - Performance: Postgres can be slower compared to other databases, especially for write-intensive applications.
- - Documentation: Hard to navigate.
- - Scalability: Although postgres scales well, it can be challenging to manage large-scale applications.
+The decision provides developers with a defined database technology and a concrete platform to build and test against. It also allows testing to progress from unit testing towards integration testing against the selected database.
+
+Choosing PostgreSQL introduces further technical decisions regarding database drivers, ORMs, deployment, and containerization. These decisions will need to be addressed as development progresses.
+
+The choice also means that the project's append-only event requirements will be handled within PostgreSQL rather than through a specialized event-store database.
 
 ## Alternatives considered
-We did not consider any alternatives. At the first nexus scrum meeting the teams collectively decided on the database (RDBMS) to be PostgreSQL.
 
+**EventStoreDB.** A specialized database system that is well suited to the append-only event requirement. However, it was considered excessive for the project's needs, given the additional technological overhead it would introduce.
+
+**Other SQL databases.** Other relational database systems could satisfy the project's requirements. No project-specific reason strongly favored one over another. PostgreSQL was the natural choice given the team's existing experience with it through the database systems course.
 
 ## Notes
-Link to source: https://www.quest.com/learn/what-is-postgresql.aspx
