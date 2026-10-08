@@ -60,7 +60,7 @@ export default function Index() {
         ))
       )}
 
-      <Text style={styles.subsection}>Recent events</Text>
+      <Text style={styles.subsection}>Recent events (BeaconConnectionEvents)</Text>
       {scan.recentEvents.map((event) => (
         <Text key={`${event.timestamp}-${event.beacon_id}`} style={styles.event}>
           {event.event === "CONNECTED" ? "+" : "-"} {event.beacon_id} at {event.timestamp}
