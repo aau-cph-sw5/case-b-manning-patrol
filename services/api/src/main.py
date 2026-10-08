@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.services.producer import EventValidationError
-from .api.v1.routers import health, positioning_simulator, events
+
+from .api.v1.routers import events, health, positioning_simulator
 from .db.main import engine, init_db
 
 API_PREFIX = "/api/v1"
@@ -49,11 +50,6 @@ app.add_middleware(
 app.include_router(health.router, prefix=API_PREFIX)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX)
 app.include_router(events.router, prefix=API_PREFIX)
-
-
-@app.get("/ping")
-async def ping():
-    return {"message": "up"}
 
 
 @app.get("/ping")

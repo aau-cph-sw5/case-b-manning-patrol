@@ -6,8 +6,8 @@ from sqlmodel import Field, SQLModel
 
 
 class EventType(StrEnum):
-    CONNECT_EVENT = "connection"
-    DISCONNECT_EVENT = "disconnection"
+    CONNECT_EVENT = "connect"
+    DISCONNECT_EVENT = "disconnect"
     START_EVENT = "start"
     STOP_EVENT = "stop"
     ADJUSTMENT_EVENT = "adjustment"
