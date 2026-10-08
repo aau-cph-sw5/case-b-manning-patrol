@@ -18,6 +18,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "psycopg[binary]>=3.3.6",
     "docker>=7.2.0",
+    "greenlet>=3.5.6",
 ]
 
 [project.scripts]
