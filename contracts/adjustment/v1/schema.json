@@ -2,7 +2,7 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Adjustment Event API",
-		"description": "DRAFT - NOT PUBLISHED. Backend API contract for the Web dashboard to append manual adjustment events to the append-only event store. Adjustments correct the real state shown on dashboards without modifying recorded history.",
+		"description": "DRAFT - NOT PUBLISHED. Backend API contract for the Web dashboard to append manual correction events to the append-only event store. Adjustments correct the real state shown on dashboards and in reports without modifying or deleting any recorded history.",
 		"version": "0.1.0"
 	},
 	"servers": [
@@ -12,10 +12,10 @@
 		}
 	],
 	"paths": {
-		"/api/v1/adjustments": {
+		"/api/v1/adjustment": {
 			"post": {
 				"summary": "Append an adjustment event",
-				"description": "Appends a manual correction to the append-only event store. Never updates or deletes existing events.",
+				"description": "Appends a manual correction to the append-only event store. There is no update or delete path anywhere in the system: history is never rewritten, and the real state is the projection that accounts for adjustments.",
 				"requestBody": {
 					"required": true,
 					"content": {
@@ -38,7 +38,7 @@
 						}
 					},
 					"400": {
-						"description": "Invalid request, e.g. a void without target_event_id or a compensation without corrected_fact",
+						"description": "Invalid request, e.g. a corrected_fact for a connect or disconnect without a beacon_id",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -48,7 +48,7 @@
 						}
 					},
 					"404": {
-						"description": "Referenced actor, target event, or beacon not found",
+						"description": "Referenced actor, beacon, or target event not found",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -74,80 +74,21 @@
 	"components": {
 		"schemas": {
 			"AdjustmentEventCreate": {
-				"oneOf": [
-					{
-						"$ref": "#/components/schemas/VoidAdjustment"
-					},
-					{
-						"$ref": "#/components/schemas/CompensationAdjustment"
-					}
-				],
-				"discriminator": {
-					"propertyName": "adjustment_type"
-				}
-			},
-			"VoidAdjustment": {
 				"type": "object",
-				"description": "Marks one previously recorded event as erroneous. Projections skip the target event; the event itself stays in the store.",
+				"description": "The manual correction to append. The store is contractual evidence of compliance, so the justification travels with the correction.",
 				"properties": {
 					"actor": {
 						"type": "string",
 						"format": "uuid",
 						"description": "Steward (android device) the adjustment is about.",
 						"example": "660e8400-e29b-41d4-a716-446655440001"
-					},
-					"adjustment_type": {
-						"type": "string",
-						"enum": ["void"],
-						"description": "Discriminator for the adjustment semantics."
-					},
-					"target_event_id": {
-						"type": "string",
-						"format": "uuid",
-						"description": "The event being voided. May reference another adjustment.",
-						"example": "770e8400-e29b-41d4-a716-446655440002"
-					},
-					"reason": {
-						"type": "string",
-						"description": "Mandatory human-readable justification for the correction.",
-						"example": "Duplicate disconnect caused by beacon signal loss at Norreport; steward never left the platform."
-					},
-					"author": {
-						"type": "string",
-						"format": "uuid",
-						"description": "Admin who performed the adjustment, taken from the authenticated dashboard session.",
-						"example": "880e8400-e29b-41d4-a716-446655440003"
-					},
-					"source": {
-						"type": "string",
-						"enum": ["dashboard", "api", "simulator", "import"],
-						"description": "Origin of the write.",
-						"example": "dashboard"
-					}
-				},
-				"required": ["actor", "adjustment_type", "target_event_id", "reason", "author", "source"]
-			},
-			"CompensationAdjustment": {
-				"type": "object",
-				"description": "Records the fact that actually happened, replacing or supplementing wrong or missing history.",
-				"properties": {
-					"actor": {
-						"type": "string",
-						"format": "uuid",
-						"description": "Steward (android device) the adjustment is about.",
-						"example": "660e8400-e29b-41d4-a716-446655440001"
-					},
-					"adjustment_type": {
-						"type": "string",
-						"enum": ["compensate"],
-						"description": "Discriminator for the adjustment semantics."
 					},
 					"target_event_id": {
 						"type": "string",
 						"format": "uuid",
 						"nullable": true,
-						"description": "Optional link to the event this correction supersedes. Null when the adjustment has no single target. May reference another adjustment.",
-						"example": null
+						"description": "Optional link to the event this correction supersedes. May reference another adjustment, so an adjustment can itself be adjusted. Null when the adjustment has no single target.",
+						"example": "770e8400-e29b-41d4-a716-446655440002"
 					},
 					"corrected_fact": {
 						"allOf": [
@@ -166,15 +107,9 @@
 						"format": "uuid",
 						"description": "Admin who performed the adjustment, taken from the authenticated dashboard session.",
 						"example": "880e8400-e29b-41d4-a716-446655440003"
-					},
-					"source": {
-						"type": "string",
-						"enum": ["dashboard", "api", "simulator", "import"],
-						"description": "Origin of the write.",
-						"example": "dashboard"
 					}
 				},
-				"required": ["actor", "adjustment_type", "corrected_fact", "reason", "author", "source"]
+				"required": ["actor", "corrected_fact", "reason", "author"]
 			},
 			"CorrectedFact": {
 				"type": "object",

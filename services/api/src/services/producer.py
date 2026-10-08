@@ -1,41 +1,34 @@
-import uuid
 from datetime import UTC, datetime
-from enum import StrEnum
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel
 
-
-class EventType(StrEnum):
-    CONNECT_EVENT = "connection"
-    DISCONNECT_EVENT = "disconnection"
-    START_EVENT = "start"
-    STOP_EVENT = "stop"
-    ADJUSTMENT_EVENT = "adjustment"
+from src.models.event import EventType
 
 
 class EventModel(BaseModel):
-    event_id: str
+    event_id: UUID
     event_type: EventType
     actor: str
     beacon: str | None
-    device_timestamp: str
-    server_timestamp: str
-    # source: api/simulator/import
+    device_timestamp: datetime
+    server_timestamp: datetime
 
 
 class CorrectedFact(BaseModel):
     fact_type: EventType
-    beacon_id: str
+    beacon_id: str | None = None
     occurred_at: datetime
 
 
 class AdjustmentModel(BaseModel):
-    adjustment_id: str
+    adjustment_id: UUID
+    target_event_id: UUID | None = None
     actor: str
     corrected_fact: CorrectedFact
     reason: str
     author: str
-    server_timestamp: str
+    server_timestamp: datetime
 
 
 class MainProducer:
@@ -43,19 +36,19 @@ class MainProducer:
     async def append_event(
         event_type: EventType,
         actor: str,
-        device_timestamp: str,
+        device_timestamp: datetime,
         beacon: str | None = None,
     ) -> EventModel:
 
         await validate_event(actor, beacon)
 
         event_model = EventModel(
-            event_id=str(uuid.uuid4()),
+            event_id=uuid4(),
             event_type=event_type,
             actor=actor,
             beacon=beacon,
             device_timestamp=device_timestamp,
-            server_timestamp=_now_utc_iso(),
+            server_timestamp=_now_utc(),
         )
 
         await _send_event_model_tester(event_model)
@@ -67,15 +60,17 @@ class MainProducer:
         corrected_fact: CorrectedFact,
         reason: str,
         author: str,
+        target_event_id: UUID | None = None,
     ) -> AdjustmentModel:
 
         adjustment_model = AdjustmentModel(
-            adjustment_id=str(uuid.uuid4()),
+            adjustment_id=uuid4(),
+            target_event_id=target_event_id,
             actor=actor,
             corrected_fact=corrected_fact,
             reason=reason,
             author=author,
-            server_timestamp=_now_utc_iso(),
+            server_timestamp=_now_utc(),
         )
 
         await _send_adjustment_model_tester(adjustment_model)
@@ -94,8 +89,8 @@ async def _send_adjustment_model_tester(
     return adjustment_model
 
 
-def _now_utc_iso() -> str:
-    return datetime.now(UTC).isoformat()
+def _now_utc() -> datetime:
+    return datetime.now(UTC)
 
 
 class EventValidationError(Exception):

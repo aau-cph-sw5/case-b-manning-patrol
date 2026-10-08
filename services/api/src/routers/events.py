@@ -1,7 +1,11 @@
+from datetime import datetime
+from uuid import UUID
+
 from fastapi import APIRouter, status
 from pydantic import BaseModel
 
-from src.services.producer import CorrectedFact, EventType, MainProducer
+from src.models.event import EventType
+from src.services.producer import CorrectedFact, MainProducer
 
 router = APIRouter(tags=["events handler"])
 API_VERSION = "v2"
@@ -11,12 +15,12 @@ API_PREFIX = f"/api/{API_VERSION}"
 class ConnectionEvent(BaseModel):
     android_id: str
     beacon_id: str
-    timestamp: str
+    timestamp: datetime
 
 
 class ShiftEvent(BaseModel):
     android_id: str
-    timestamp: str
+    timestamp: datetime
 
 
 class AdjustmentEvent(BaseModel):
@@ -24,6 +28,7 @@ class AdjustmentEvent(BaseModel):
     corrected_fact: CorrectedFact
     reason: str
     author: str
+    target_event_id: UUID | None = None
 
 
 # TODO: Connection needs to return Area
@@ -76,5 +81,6 @@ async def adjustment_event(adjustment_event: AdjustmentEvent):
         corrected_fact=adjustment_event.corrected_fact,
         reason=adjustment_event.reason,
         author=adjustment_event.author,
+        target_event_id=adjustment_event.target_event_id,
     )
     return adjustment_model

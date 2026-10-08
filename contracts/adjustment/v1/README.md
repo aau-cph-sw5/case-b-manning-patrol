@@ -28,12 +28,7 @@ Ingestion contract). There is no update or delete path anywhere in the system:
 history is never rewritten, and the "real state" is defined as the projection
 that accounts for adjustments.
 
-**Chained adjustments.** `target_event_id` may reference another adjustment:
-if an adjustment is itself wrong, it is corrected by appending a new
-adjustment, never by editing the previous one.
-
-**Audit criteria.** Every write to the store carries `actor`, `author`,
-`source`, and a server-generated `server_timestamp`. `reason` is mandatory:
+**Audit criteria.** Every write to the store carries `actor`, `author`, and a server-generated `server_timestamp`. `reason` is mandatory:
 this store is contractual evidence of compliance (see ADR 0002), so the
 justification travels with the correction.
 
@@ -47,6 +42,9 @@ body.
 ### AdjustmentEvent (request)
 
 - `actor`: UUID — the steward (android device) the adjustment is about
+- `target_event_id`: UUID — optional link to the event this correction
+  supersedes. May reference another adjustment, so an adjustment can itself
+  be adjusted. Null when the adjustment has no single target
 - `corrected_fact`: [CorrectedFact] object that is the new, adjusted event.
 - `reason`: string — mandatory human-readable justification
 - `author`: UUID — the admin who performed the adjustment (from session)
