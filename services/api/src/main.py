@@ -4,16 +4,27 @@ Manning Patrol Backend
 Main FastAPI application.
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.api.v1.routers import events, health, positioning_simulator
 from src.services.producer import EventValidationError
+from .api.v1.routers import health, positioning_simulator, events
+from .db.main import engine, init_db
 
 API_PREFIX = "/api/v1"
 
-app = FastAPI(title="Manning Patrol Backend")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+    await engine.dispose()
+
+
+app = FastAPI(title="Manning Patrol Backend", lifespan=lifespan)
 
 
 @app.exception_handler(EventValidationError)
@@ -38,6 +49,11 @@ app.add_middleware(
 app.include_router(health.router, prefix=API_PREFIX)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX)
 app.include_router(events.router, prefix=API_PREFIX)
+
+
+@app.get("/ping")
+async def ping():
+    return {"message": "up"}
 
 
 @app.get("/ping")

@@ -1,3 +1,14 @@
-###POSTGRESS DATABASE TO BE DEFINED HERE
-#
- 
+services:
+  db:
+    image: postgres:18
+    container_name: postgres-dev
+    environment:
+      POSTGRES_USER: metro
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
