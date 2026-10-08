@@ -7,7 +7,7 @@
 // the contract's PatrolSessionEvenet carries only the device id: the startedAt stays on the phone
 // (ADR-0004) and is not sent. until the real device id lands, the patrol sessionis reported for
 // the synthetic steward the fixtures use.
-import DeviceInfo from 'react-native-device-info';
+import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 import { PatrolSessionEvent } from "@/types/patrol_session/patrolSessionEvent";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -15,8 +15,9 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
 async function postPatrolSessionEvent(action: "start" | "stop", timestamp: string): Promise<void> {
 
   try {
-    const body: PatrolSessionEvent = { 
-      android_id: await DeviceInfo.getAndroidId(),
+    const body: PatrolSessionEvent = {
+      // For a real-device build, restore DeviceInfo.getAndroidId(); Expo Go uses the mock ID.
+      android_id: MOCK_ANDROID_ID,
       timestamp: timestamp
     };
 

@@ -8,8 +8,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.v1.routers import health, positioning_ingestion, positioning_simulator
+from src.api.v2.routers import positioning_ingestion as positioning_ingestion_v2
 
 API_PREFIX = "/api/v1"
+API_V2_PREFIX = "/api/v2"
 
 app = FastAPI(title="Manning Patrol Backend")
 
@@ -24,6 +26,7 @@ app.add_middleware(
 app.include_router(health.router, prefix=API_PREFIX)
 app.include_router(positioning_ingestion.router, prefix=API_PREFIX)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX)
+app.include_router(positioning_ingestion_v2.router, prefix=API_V2_PREFIX)
 
 
 @app.get("/")

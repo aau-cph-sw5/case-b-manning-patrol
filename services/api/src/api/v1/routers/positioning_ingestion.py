@@ -8,8 +8,12 @@ the server appends to the event log and answers 201.
 
 from fastapi import APIRouter, status
 
-from services.api.src.models.beacon_to_station import ConnectionEvent, PatrolSessionEvent
-from src.services.ingestion_service import record_connection_event, record_patrol_session_event
+from src.models.connection_event import ConnectionEvent
+from src.models.patrol_session_event import PatrolSessionEvent
+from src.services.ingestion_service import (
+    record_connection_event,
+    record_patrol_session_event,
+)
 
 router = APIRouter(tags=["positioning-ingestion"])
 

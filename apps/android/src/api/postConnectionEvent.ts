@@ -6,14 +6,15 @@
 // shows what the backend receives, which is the point of the mock demo.
 import type { BeaconConnectionEvent } from "@/types/beacon";
 import { ConnectionEvent } from "@/types/connection/connectionEvent";
-import DeviceInfo from "react-native-device-info";
+import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function postConnectionEvent(event: BeaconConnectionEvent): Promise<void> {
   try {
     const body: ConnectionEvent = {
-      android_id: await DeviceInfo.getAndroidId(),
+      // For a real-device build, restore DeviceInfo.getAndroidId(); Expo Go uses the mock ID.
+      android_id: MOCK_ANDROID_ID,
       beacon_id: event.beacon_id,
       timestamp: event.timestamp,
     };

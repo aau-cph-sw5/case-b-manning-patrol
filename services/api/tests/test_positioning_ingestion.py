@@ -5,7 +5,7 @@ what happened. These are the 20% of cases that cover the whole contract."""
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import API_PREFIX, app
+from src.main import API_PREFIX, API_V2_PREFIX, app
 from src.services import ingestion_service
 
 client = TestClient(app)
@@ -88,3 +88,61 @@ def test_connection_with_bad_timestamp_is_rejected():
 
     assert response.status_code == 422
     assert ingestion_service.connection_log == []
+
+
+@pytest.mark.parametrize(
+    ("action", "expected_event"),
+    [("connect", "CONNECTED"), ("disconnect", "DISCONNECTED")],
+)
+def test_v2_connection_endpoints_record_timestamp(action, expected_event):
+    response = client.post(
+        f"{API_V2_PREFIX}/connection/{action}",
+        json={
+            "android_id": ANDROID_ID,
+            "beacon_id": BEACON_ID,
+            "timestamp": TIMESTAMP,
+        },
+    )
+
+    assert response.status_code == 201
+    assert ingestion_service.connection_log == [
+        {
+            "event": expected_event,
+            "android_id": ANDROID_ID,
+            "beacon_id": BEACON_ID,
+            "timestamp": TIMESTAMP,
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    ("action", "expected_event"),
+    [
+        ("start", "PATROL_SESSION_STARTED"),
+        ("stop", "PATROL_SESSION_STOPPED"),
+    ],
+)
+def test_v2_patrol_session_endpoints_record_timestamp(action, expected_event):
+    response = client.post(
+        f"{API_V2_PREFIX}/patrol-session/{action}",
+        json={"android_id": ANDROID_ID, "timestamp": TIMESTAMP},
+    )
+
+    assert response.status_code == 201
+    assert ingestion_service.patrol_session_log == [
+        {
+            "event": expected_event,
+            "android_id": ANDROID_ID,
+            "timestamp": TIMESTAMP,
+        }
+    ]
+
+
+def test_v2_patrol_session_without_timestamp_is_rejected():
+    response = client.post(
+        f"{API_V2_PREFIX}/patrol-session/start",
+        json={"android_id": ANDROID_ID},
+    )
+
+    assert response.status_code == 422
+    assert ingestion_service.patrol_session_log == []
