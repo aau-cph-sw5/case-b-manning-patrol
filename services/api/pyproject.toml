@@ -15,6 +15,7 @@ dependencies = [
     "sqlmodel>=0.0.47",
     "asyncpg>=0.30.0",
     "aiosqlite>=0.20.0",
+    "greenlet>=3.5.6",
 ]
 
 [project.scripts]

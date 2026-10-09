@@ -17,6 +17,13 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
+The app reads its database address from `DATABASE_URL`, and it will not start
+without it. Create `services/api/.env` and insert your personal `DATABASE_URL`:
+
+```
+DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE_NAME
+```
+
 ## Running
 
 ```bash
@@ -63,20 +70,27 @@ uv run ty check src/
 ```
 services/api/
 ├── src/
-│   ├── main.py                  # FastAPI app definition
-│   ├── models.py
+│   ├── main.py                  # FastAPI app definition and startup
 │   ├── api/
 │   │   └── v1/
 │   │       └── routers/
+│   │           ├── health.py
 │   │           └── positioning_simulator.py # Positioning Interface simulator
+│   ├── data/
+│   │   └── stations.v1.json     # Station dataset, see data/README.md
+│   ├── db/
+│   │   ├── config.py            # Settings, reads DATABASE_URL
+│   │   ├── main.py              # Engine, sessions, table creation
+│   │   └── ingest.py            # Loads stations.v1.json into the database
+│   ├── models/                  # Table models (station, patrol_area) and others
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py
-│       └── db/                  # Database access layer (planned, empty)
+│       └── db/                  # Empty
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline replayed by the simulator
 ├── tests/
-├── docker-compose.yml # Local PostgreSQL database (planned, not yet defined)
+├── docker-compose.yml # Local PostgreSQL database (not yet defined)
 ├── pyproject.toml    # Dependencies and tool config
 ├── uv.lock           # Locked dependency versions
 └── .python-version   # Python version (3.13)
@@ -88,26 +102,27 @@ Implements the Positioning Interface contract (`contracts/positioning-interface/
 
 - `WS /api/v1/ws/observation-events` - WebSocket stream of events
 
-Fixtures used:
-- `fixtures/fixture-shifts.json` - Raw shift/ping data
-- `fixtures/mapping.json` - Beacon ID to station/train mapping
+Fixture used:
+- `fixtures/fixture-events-v1.json` - Event timeline replayed by the simulator
 
 ## Database
 
-> **Status:** planned — not yet implemented.
+The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
 
-The backend will use PostgreSQL, run locally via Docker Compose:
+- `src/db/config.py` reads `DATABASE_URL` from the `.env`.
+- `src/db/main.py` creates the engine and, on startup, creates the tables
+  `station` and `patrolarea` if they do not exist.
+- `src/db/ingest.py` then loads `src/data/stations.v1.json` into those tables.
+  It replaces their contents on every start, so rows added by hand are lost.
+  See `src/data/README.md`.
 
-- `docker-compose.yml` — will define the PostgreSQL service. It is currently
-  a placeholder with no services, so `docker compose up` does nothing yet.
-- `src/services/db/` — will hold the database access layer (connection
-  setup, queries). Currently empty.
+You need a PostgreSQL server and an empty database that `DATABASE_URL` points
+to. `docker-compose.yml` is still a placeholder with no services, so
+`docker compose up` does nothing yet; install PostgreSQL locally until it is
+defined.
 
-Once the database service is defined, start it with:
-
-```bash
-docker compose up -d
-```
+The tests do not need a running database. They set up an in-memory SQLite
+database, and CI only sets a dummy `DATABASE_URL`.
 
 ## Tool Configuration
 
