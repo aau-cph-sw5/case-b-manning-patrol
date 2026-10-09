@@ -14,6 +14,7 @@ class MainProducer:
         event_type: EventType,
         actor: str,
         device_timestamp: datetime,
+        source: str,
         beacon: str | None = None,
     ) -> EventModel:
 
@@ -26,6 +27,7 @@ class MainProducer:
             beacon=beacon,
             device_timestamp=device_timestamp,
             server_timestamp=_now_utc(),
+            source=source,
         )
 
         await insert_event(session, event_model)
@@ -38,6 +40,7 @@ class MainProducer:
         corrected_fact: CorrectedFact,
         reason: str,
         author: str,
+        source: str,
         target_event_id: UUID | None = None,
     ) -> AdjustmentModel:
 
@@ -49,6 +52,7 @@ class MainProducer:
             reason=reason,
             author=author,
             server_timestamp=_now_utc(),
+            source=source,
         )
 
         await insert_adjustment(session, adjustment_model)

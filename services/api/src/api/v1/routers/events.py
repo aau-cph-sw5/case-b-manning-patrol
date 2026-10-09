@@ -43,6 +43,7 @@ async def connection_event(connection_event: ConnectionEvent, session: SessionDe
         actor=connection_event.android_id,
         beacon=connection_event.beacon_id,
         device_timestamp=connection_event.timestamp,
+        source="API",
     )
     return event_model
 
@@ -55,6 +56,7 @@ async def disconnection_event(connection_event: ConnectionEvent, session: Sessio
         actor=connection_event.android_id,
         beacon=connection_event.beacon_id,
         device_timestamp=connection_event.timestamp,
+        source="API",
     )
     return event_model
 
@@ -66,6 +68,7 @@ async def shift_start_event(shift_event: ShiftEvent, session: SessionDep):
         event_type=EventType.START_EVENT,
         actor=shift_event.android_id,
         device_timestamp=shift_event.timestamp,
+        source="API",
     )
     return event_model
 
@@ -77,6 +80,7 @@ async def shift_stop_event(shift_event: ShiftEvent, session: SessionDep):
         event_type=EventType.STOP_EVENT,
         actor=shift_event.android_id,
         device_timestamp=shift_event.timestamp,
+        source="API",
     )
     return event_model
 
@@ -90,5 +94,6 @@ async def adjustment_event(adjustment_event: AdjustmentEvent, session: SessionDe
         reason=adjustment_event.reason,
         author=adjustment_event.author,
         target_event_id=adjustment_event.target_event_id,
+        source="API",
     )
     return adjustment_model

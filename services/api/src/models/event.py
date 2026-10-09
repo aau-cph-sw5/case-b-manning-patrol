@@ -21,6 +21,7 @@ class Event(SQLModel, table=True):
     beacon: str | None
     device_timestamp: datetime
     server_timestamp: datetime
+    source: str
 
 
 class Adjustment(SQLModel, table=True):
@@ -33,6 +34,7 @@ class Adjustment(SQLModel, table=True):
     corrected_fact_type: EventType
     corrected_beacon_id: str | None
     corrected_occured_at: datetime
+    source: str
 
 
 class EventModel(BaseModel):
@@ -42,6 +44,7 @@ class EventModel(BaseModel):
     beacon: str | None
     device_timestamp: datetime
     server_timestamp: datetime
+    source: str
 
 
 class CorrectedFact(BaseModel):
@@ -58,3 +61,4 @@ class AdjustmentModel(BaseModel):
     reason: str
     author: str
     server_timestamp: datetime
+    source: str

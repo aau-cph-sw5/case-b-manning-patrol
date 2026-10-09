@@ -39,6 +39,7 @@ def make_event(**overrides: Any) -> EventModel:
         "beacon": "beacon-1",
         "device_timestamp": TIMESTAMP,
         "server_timestamp": TIMESTAMP,
+        "source": "test",
     }
     return EventModel(**(fields | overrides))
 
@@ -51,6 +52,7 @@ def make_adjustment(**overrides: Any) -> AdjustmentModel:
         "reason": "Forgot to check in",
         "author": "supervisor-1",
         "server_timestamp": TIMESTAMP,
+        "source": "test",
         "corrected_fact": CorrectedFact(
             fact_type=EventType.START_EVENT,
             beacon_id="beacon-1",
@@ -151,6 +153,7 @@ async def test_insert_event_can_be_read_back(session):
     assert result.event_type == EventType.START_EVENT
     assert result.actor == "steward-1"
     assert result.beacon is None
+    assert result.source == "test"
 
 
 @pytest.mark.asyncio
@@ -184,6 +187,7 @@ async def test_insert_adjustment_can_be_read_back(session):
     assert result.target_event_id == target_event_id
     assert result.reason == "Forgot to check in"
     assert result.corrected_fact_type == EventType.START_EVENT
+    assert result.source == "test"
 
 
 @pytest.mark.asyncio
