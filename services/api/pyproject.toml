@@ -36,6 +36,9 @@ build-backend = "uv_build"
 module-name = "src"
 module-root = ""
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
 [tool.ruff]
 line-length = 88
 target-version = "py313"

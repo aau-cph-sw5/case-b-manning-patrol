@@ -22,6 +22,6 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-async def init_db() -> None:
-    async with engine.begin() as conn:
+async def init_db(engine_: AsyncEngine | None = None) -> None:
+    async with (engine_ or engine).begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
