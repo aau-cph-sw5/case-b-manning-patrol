@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.event import Adjustment, Event
+from src.models.event import Adjustment, AdjustmentModel, Event, EventModel
 
 
 async def get_event(session: AsyncSession, event_id: UUID) -> Event:
@@ -22,10 +22,11 @@ async def get_events(session: AsyncSession) -> list[Event]:
     return list(result.all())
 
 
-async def insert_event(session: AsyncSession, event: Event):
-    session.add(event)
+async def insert_event(session: AsyncSession, event: EventModel) -> Event:
+    event_row = Event(**event.model_dump())
+    session.add(event_row)
     await session.commit()
-    return "Fuck jer"
+    return event_row
 
 
 async def get_adjustment(session: AsyncSession, adjustment_id: UUID) -> Adjustment:
@@ -42,7 +43,16 @@ async def get_adjustments(session: AsyncSession) -> list[Adjustment]:
     return list(result.all())
 
 
-async def insert_adjustment(session: AsyncSession, adjustment: Adjustment):
-    session.add(adjustment)
+async def insert_adjustment(
+    session: AsyncSession,
+    adjustment: AdjustmentModel,
+) -> Adjustment:
+    adjustment_row = Adjustment(
+        **adjustment.model_dump(exclude={"corrected_fact"}),
+        corrected_fact_type=adjustment.corrected_fact.fact_type,
+        corrected_beacon_id=adjustment.corrected_fact.beacon_id,
+        corrected_occured_at=adjustment.corrected_fact.occurred_at,
+    )
+    session.add(adjustment_row)
     await session.commit()
-    return "Især dig Victor"
+    return adjustment_row

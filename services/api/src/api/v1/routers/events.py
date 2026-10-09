@@ -1,13 +1,18 @@
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.event import EventType
-from src.services.producer import CorrectedFact, MainProducer
+from src.db.main import get_session
+from src.models.event import CorrectedFact, EventType
+from src.services.producer import MainProducer
 
 router = APIRouter(tags=["events handler"])
+
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 class ConnectionEvent(BaseModel):
@@ -31,8 +36,9 @@ class AdjustmentEvent(BaseModel):
 
 # TODO: Connection needs to return Area
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
-async def connection_event(connection_event: ConnectionEvent):
+async def connection_event(connection_event: ConnectionEvent, session: SessionDep):
     event_model = await MainProducer.append_event(
+        session=session,
         event_type=EventType.CONNECT_EVENT,
         actor=connection_event.android_id,
         beacon=connection_event.beacon_id,
@@ -42,8 +48,9 @@ async def connection_event(connection_event: ConnectionEvent):
 
 
 @router.post("/connection/disconnect", status_code=status.HTTP_201_CREATED)
-async def disconnection_event(connection_event: ConnectionEvent):
+async def disconnection_event(connection_event: ConnectionEvent, session: SessionDep):
     event_model = await MainProducer.append_event(
+        session=session,
         event_type=EventType.DISCONNECT_EVENT,
         actor=connection_event.android_id,
         beacon=connection_event.beacon_id,
@@ -53,8 +60,9 @@ async def disconnection_event(connection_event: ConnectionEvent):
 
 
 @router.post("/patrol_session/start", status_code=status.HTTP_201_CREATED)
-async def shift_start_event(shift_event: ShiftEvent):
+async def shift_start_event(shift_event: ShiftEvent, session: SessionDep):
     event_model = await MainProducer.append_event(
+        session=session,
         event_type=EventType.START_EVENT,
         actor=shift_event.android_id,
         device_timestamp=shift_event.timestamp,
@@ -63,8 +71,9 @@ async def shift_start_event(shift_event: ShiftEvent):
 
 
 @router.post("/patrol_session/stop", status_code=status.HTTP_201_CREATED)
-async def shift_stop_event(shift_event: ShiftEvent):
+async def shift_stop_event(shift_event: ShiftEvent, session: SessionDep):
     event_model = await MainProducer.append_event(
+        session=session,
         event_type=EventType.STOP_EVENT,
         actor=shift_event.android_id,
         device_timestamp=shift_event.timestamp,
@@ -73,8 +82,9 @@ async def shift_stop_event(shift_event: ShiftEvent):
 
 
 @router.post("/adjustment", status_code=status.HTTP_201_CREATED)
-async def adjustment_event(adjustment_event: AdjustmentEvent):
+async def adjustment_event(adjustment_event: AdjustmentEvent, session: SessionDep):
     adjustment_model = await MainProducer.append_adjustment(
+        session=session,
         actor=adjustment_event.android_id,
         corrected_fact=adjustment_event.corrected_fact,
         reason=adjustment_event.reason,

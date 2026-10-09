@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 
@@ -32,3 +33,28 @@ class Adjustment(SQLModel, table=True):
     corrected_fact_type: EventType
     corrected_beacon_id: str | None
     corrected_occured_at: datetime
+
+
+class EventModel(BaseModel):
+    event_id: UUID
+    event_type: EventType
+    actor: str
+    beacon: str | None
+    device_timestamp: datetime
+    server_timestamp: datetime
+
+
+class CorrectedFact(BaseModel):
+    fact_type: EventType
+    beacon_id: str | None = None
+    occurred_at: datetime
+
+
+class AdjustmentModel(BaseModel):
+    adjustment_id: UUID
+    target_event_id: UUID | None = None
+    actor: str
+    corrected_fact: CorrectedFact
+    reason: str
+    author: str
+    server_timestamp: datetime

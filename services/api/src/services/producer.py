@@ -1,39 +1,16 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.event import EventType
-
-
-class EventModel(BaseModel):
-    event_id: UUID
-    event_type: EventType
-    actor: str
-    beacon: str | None
-    device_timestamp: datetime
-    server_timestamp: datetime
-
-
-class CorrectedFact(BaseModel):
-    fact_type: EventType
-    beacon_id: str | None = None
-    occurred_at: datetime
-
-
-class AdjustmentModel(BaseModel):
-    adjustment_id: UUID
-    target_event_id: UUID | None = None
-    actor: str
-    corrected_fact: CorrectedFact
-    reason: str
-    author: str
-    server_timestamp: datetime
+from src.db.repository.events import insert_adjustment, insert_event
+from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 
 
 class MainProducer:
     @staticmethod
     async def append_event(
+        session: AsyncSession,
         event_type: EventType,
         actor: str,
         device_timestamp: datetime,
@@ -51,11 +28,12 @@ class MainProducer:
             server_timestamp=_now_utc(),
         )
 
-        await _send_event_model_tester(event_model)
+        await insert_event(session, event_model)
         return event_model
 
     @staticmethod
     async def append_adjustment(
+        session: AsyncSession,
         actor: str,
         corrected_fact: CorrectedFact,
         reason: str,
@@ -73,20 +51,8 @@ class MainProducer:
             server_timestamp=_now_utc(),
         )
 
-        await _send_adjustment_model_tester(adjustment_model)
+        await insert_adjustment(session, adjustment_model)
         return adjustment_model
-
-
-async def _send_event_model_tester(event_model: EventModel) -> EventModel:
-    print(event_model)
-    return event_model
-
-
-async def _send_adjustment_model_tester(
-    adjustment_model: AdjustmentModel,
-) -> AdjustmentModel:
-    print(adjustment_model)
-    return adjustment_model
 
 
 def _now_utc() -> datetime:

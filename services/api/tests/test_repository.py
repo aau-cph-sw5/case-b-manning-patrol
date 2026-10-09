@@ -13,7 +13,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository import events, patrol_area, station
 from src.models import PatrolArea, Station
-from src.models.event import Adjustment, Event, EventType
+from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 from src.models.patrol_area import AreaKind
 
 TIMESTAMP = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
@@ -31,7 +31,7 @@ async def session() -> AsyncGenerator[AsyncSession]:
     await engine.dispose()
 
 
-def make_event(**overrides: Any) -> Event:
+def make_event(**overrides: Any) -> EventModel:
     fields: dict[str, Any] = {
         "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
@@ -40,10 +40,10 @@ def make_event(**overrides: Any) -> Event:
         "device_timestamp": TIMESTAMP,
         "server_timestamp": TIMESTAMP,
     }
-    return Event(**(fields | overrides))
+    return EventModel(**(fields | overrides))
 
 
-def make_adjustment(**overrides: Any) -> Adjustment:
+def make_adjustment(**overrides: Any) -> AdjustmentModel:
     fields: dict[str, Any] = {
         "adjustment_id": uuid4(),
         "target_event_id": uuid4(),
@@ -51,11 +51,13 @@ def make_adjustment(**overrides: Any) -> Adjustment:
         "reason": "Forgot to check in",
         "author": "supervisor-1",
         "server_timestamp": TIMESTAMP,
-        "corrected_fact_type": EventType.START_EVENT,
-        "corrected_beacon_id": "beacon-1",
-        "corrected_occured_at": TIMESTAMP,
+        "corrected_fact": CorrectedFact(
+            fact_type=EventType.START_EVENT,
+            beacon_id="beacon-1",
+            occurred_at=TIMESTAMP,
+        ),
     }
-    return Adjustment(**(fields | overrides))
+    return AdjustmentModel(**(fields | overrides))
 
 
 @pytest.mark.asyncio
