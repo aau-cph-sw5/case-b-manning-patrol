@@ -18,3 +18,4 @@
 ## v2.0.0
 - Updated naming of "shifts" to "patrol sessions"
 - Add timestamp to the PatrolSessionEvent
+- Renamed schemas to kebab-case: `ConnectionEvent` -> `connection-event`, `Patrol-SessionEvent` -> `patrol-session-event`

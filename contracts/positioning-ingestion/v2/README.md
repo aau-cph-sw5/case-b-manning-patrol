@@ -15,10 +15,10 @@ graph TD
 
 ## Endpoints
 
-- `POST api/v2/connection/connect` - Report connection established ([ConnectionEvent])
-- `POST api/v2/connection/disconnect` - Report connection lost ([ConnectionEvent])
-- `POST api/v2/patrol-session/start` - Report patrol session started ([PatrolSessionEvent])
-- `POST api/v2/patrol-session/stop` - Report patrol session stopped ([PatrolSessionEvent])
+- `POST api/v2/connection/connect` - Report connection established ([connection-event])
+- `POST api/v2/connection/disconnect` - Report connection lost ([connection-event])
+- `POST api/v2/patrol-session/start` - Report patrol session started ([patrol-session-event])
+- `POST api/v2/patrol-session/stop` - Report patrol session stopped ([patrol-session-event])
 
 ## Implementation Notes
 
@@ -28,11 +28,11 @@ Each endpoint corresponds to exactly one action, so event payloads no longer car
 
 ## Data Models
 
-### ConnectionEvent
+### connection-event
 - `android_id`: UUID
 - `beacon_id`: UUID
 - `timestamp`: Date — when the connection or disconnection occurred on the device
 
-### PatrolSessionEvent
+### patrol-session-event
 - `id`: UUID (android)
 - `timestamp`: Date — when the connection or disconnection occurred on the device

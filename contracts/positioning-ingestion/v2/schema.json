@@ -21,7 +21,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/ConnectionEvent"
+								"$ref": "#/components/schemas/connection-event"
 							}
 						}
 					}
@@ -62,7 +62,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/ConnectionEvent"
+								"$ref": "#/components/schemas/connection-event"
 							}
 						}
 					}
@@ -103,7 +103,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/PatrolSessionEvent"
+								"$ref": "#/components/schemas/patrol-session-event"
 							}
 						}
 					}
@@ -144,7 +144,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/PatrolSessionEvent"
+								"$ref": "#/components/schemas/patrol-session-event"
 							}
 						}
 					}
@@ -179,7 +179,7 @@
 	},
 	"components": {
 		"schemas": {
-			"ConnectionEvent": {
+			"connection-event": {
 				"type": "object",
 				"properties": {
 					"android_id": {
@@ -203,7 +203,7 @@
 				},
 				"required": ["android_id", "beacon_id", "timestamp"]
 			},
-			"PatrolSessionEvent": {
+			"patrol-session-event": {
 				"type": "object",
 				"properties": {
 					"android_id": {
