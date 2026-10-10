@@ -1,30 +1,33 @@
-from collections.abc import AsyncGenerator
+import os
 
-import pytest
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlmodel.ext.asyncio.session import AsyncSession
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
-import src.models  # noqa: F401  registrerer tabel-metadata
+from collections.abc import AsyncGenerator, Generator  # noqa: E402
+
+import pytest  # noqa: E402
+from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
+from sqlalchemy.pool import StaticPool  # noqa: E402
+from sqlmodel import SQLModel  # noqa: E402
+from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
+
+from src.db.main import get_session  # noqa: E402
+from src.main import app  # noqa: E402
 
 
-@pytest.fixture
-async def engine() -> AsyncGenerator[AsyncEngine]:
-    engine = create_async_engine("sqlite+aiosqlite://")
-    yield engine
-    await engine.dispose()
+@pytest.fixture(autouse=True)
+def override_db_session() -> Generator[None]:
+    engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
+    tables_created = False
 
-
-@pytest.fixture
-async def session_factory(engine):
-    async def factory():
+    async def get_test_session() -> AsyncGenerator[AsyncSession]:
+        nonlocal tables_created
+        if not tables_created:
+            async with engine.begin() as conn:
+                await conn.run_sync(SQLModel.metadata.create_all)
+            tables_created = True
         async with AsyncSession(engine) as session:
             yield session
 
-    return factory
-
-
-@pytest.fixture
-def app():
-    from src.main import app
-
-    return app
+    app.dependency_overrides[get_session] = get_test_session
+    yield
+    app.dependency_overrides.pop(get_session, None)

@@ -6,6 +6,8 @@ Backend service for the Manning Patrol positioning system.
 
 - Python 3.13
 - [uv](https://github.com/astral-sh/uv) (Astral package manager)
+- Docker for Windows/MacOS (running the VM where the database container lives)
+    - If Linux or WSL2, container can run native in the OS. Search for setup yourself.
 
 ## Setup
 
@@ -64,15 +66,17 @@ uv run ty check src/
 services/api/
 ├── src/
 │   ├── main.py                  # FastAPI app definition
-│   ├── models.py
+│   ├── models/                  # Shared models (events, adjustments, beacons)
 │   ├── api/
 │   │   └── v1/
 │   │       └── routers/
+│   │           ├── events.py            # Event and adjustment ingestion routes
+│   │           ├── health.py           # Health check endpoint
 │   │           └── positioning_simulator.py # Positioning Interface simulator
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py
-│       └── db/                  # Database access layer (planned, empty)
+│       └── producer.py          # Event/adjustment producer
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline replayed by the simulator
 ├── tests/
@@ -86,7 +90,9 @@ services/api/
 
 Implements the Positioning Interface contract (`contracts/positioning-interface/v1/`):
 
-- `WS /api/v1/ws/observation-events` - WebSocket stream of events
+- `GET /observations` - Returns currently active area observations
+- `GET /observation-events` - Returns all observation events
+- `GET /ws/observation-events` - WebSocket stream of events
 
 Fixtures used:
 - `fixtures/fixture-shifts.json` - Raw shift/ping data
@@ -94,16 +100,18 @@ Fixtures used:
 
 ## Database
 
-> **Status:** planned — not yet implemented.
+> **Status:** Docker-Compose PostgreSQL setup
+
+Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
+See '.env-example' for .env setup.
 
 The backend will use PostgreSQL, run locally via Docker Compose:
 
-- `docker-compose.yml` — will define the PostgreSQL service. It is currently
-  a placeholder with no services, so `docker compose up` does nothing yet.
+- `docker-compose.yml` — defines the PostgreSQL setup.
 - `src/services/db/` — will hold the database access layer (connection
   setup, queries). Currently empty.
 
-Once the database service is defined, start it with:
+Once the database service is defined, start it from '.../services/api/':
 
 ```bash
 docker compose up -d
