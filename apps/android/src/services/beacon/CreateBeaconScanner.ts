@@ -2,18 +2,17 @@
 // to one, holding it for a while, losing it, then reaching the next. no Bluetooth is
 // involved, so it runs in Expo Go and on the emulator; the real scanner can be dropped in
 // behind the same BeaconScanner interface.
-import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
+import type { BeaconConnectionEvent } from "@/types/beacon";
 import type { BeaconScanner } from "@/types/BeaconScanner";
 
 export function createBeaconScanner(): BeaconScanner {
-
-  let listener: ((event: BeaconConnectionEvent) => void) | null = null;
-    function emit(event: BeaconEventKind, beacon_id: string) {
-      if (listener!== null) {
-        listener({ event, beacon_id, timestamp: new Date().toISOString() });
-      }
-    }
-    
+  // commented out for now, since we don't have a real scanner yet. when we do, we'll just drop it in behind the same interface.
+  // let listener: ((event: BeaconConnectionEvent) => void) | null = null;
+  // function emit(event: BeaconEventKind, beacon_id: string) {
+  //   if (listener !== null) {
+  //     listener({ event, beacon_id, timestamp: new Date().toISOString() });
+  //   }
+  // }
 
     function startFunction(l: (event: BeaconConnectionEvent) => void) {
         // bluetooth logic:
@@ -32,4 +31,3 @@ export function createBeaconScanner(): BeaconScanner {
     };
     return scanner;
 }
-
