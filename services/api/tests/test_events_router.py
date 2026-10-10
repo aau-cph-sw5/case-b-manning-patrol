@@ -46,7 +46,7 @@ def test_connection_event_returns_created_event():
             "android_id": "android-1",
             "corrected_fact": {
                 "fact_type": "connect",
-                "beacon_id": "12345",
+                "beacon_id": "beacon-1",
                 "occurred_at": "2026-10-02T10:00:00+00:00",
             },
             "reason": "Adjusted something",
@@ -100,7 +100,7 @@ def test_connection_event_returns_created_event():
     assert adjustment_event["actor"] == "android-1"
     assert adjustment_event["corrected_fact"] == {
         "fact_type": "connect",
-        "beacon_id": "12345",
+        "beacon_id": "beacon-1",
         "occurred_at": "2026-10-02T10:00:00Z",
     }
     assert adjustment_event["reason"] == "Adjusted something"
