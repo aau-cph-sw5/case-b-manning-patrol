@@ -9,6 +9,6 @@ class AreaKind(StrEnum):
 
 @dataclass
 class PatrolArea:
-    id: str
+    area_id: str
     area_kind: AreaKind
     beacon_id: str
