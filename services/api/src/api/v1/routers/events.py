@@ -61,7 +61,7 @@ async def disconnection_event(connection_event: ConnectionEvent, session: Sessio
     return event_model
 
 
-@router.post("/patrol_session/start", status_code=status.HTTP_201_CREATED)
+@router.post("/patrol-session/start", status_code=status.HTTP_201_CREATED)
 async def shift_start_event(shift_event: ShiftEvent, session: SessionDep):
     event_model = await MainProducer.append_event(
         session=session,
@@ -73,7 +73,7 @@ async def shift_start_event(shift_event: ShiftEvent, session: SessionDep):
     return event_model
 
 
-@router.post("/patrol_session/stop", status_code=status.HTTP_201_CREATED)
+@router.post("/patrol-session/stop", status_code=status.HTTP_201_CREATED)
 async def shift_stop_event(shift_event: ShiftEvent, session: SessionDep):
     event_model = await MainProducer.append_event(
         session=session,
