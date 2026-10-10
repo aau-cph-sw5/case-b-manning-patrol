@@ -56,6 +56,8 @@ All request fields, plus:
 - `adjustment_id`: UUID — server-generated identifier of the appended event
 - `server_timestamp`: date-time — when the backend recorded the adjustment, UTC
   in ISO 8601 with offset
+- `source`: string — server-assigned origin of the write (e.g. `"API"`); never
+  taken from the request body
 
 ### CorrectedFact
 

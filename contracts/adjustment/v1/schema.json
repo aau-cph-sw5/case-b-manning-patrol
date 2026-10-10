@@ -158,9 +158,14 @@
 								"format": "date-time",
 								"description": "When the backend recorded the adjustment. UTC in ISO 8601 with offset.",
 								"example": "2026-10-06T12:30:00+00:00"
+							},
+							"source": {
+								"type": "string",
+								"description": "Server-assigned origin of the write, e.g. the API route that appended the event. Never taken from the request body.",
+								"example": "API"
 							}
 						},
-						"required": ["adjustment_id", "server_timestamp"]
+						"required": ["adjustment_id", "server_timestamp", "source"]
 					}
 				]
 			},
