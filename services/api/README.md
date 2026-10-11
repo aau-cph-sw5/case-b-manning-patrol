@@ -73,7 +73,7 @@ services/api/
 │   │           ├── events.py            # Event and adjustment ingestion routes
 │   │           ├── health.py           # Health check endpoint
 │   │           └── positioning_simulator.py # Positioning Interface simulator
-│   ├── scripts/                 # `uv run lint` / `uv run check` entry points
+│   ├── scripts/                 # `uv run lint` / `check` / `seed` entry points
 │   └── services/
 │       ├── positioning_service.py
 │       └── producer.py          # Event/adjustment producer
@@ -116,6 +116,18 @@ Once the database service is defined, start it from '.../services/api/':
 ```bash
 docker compose up -d
 ```
+
+### Seed data
+
+```bash
+uv run seed
+```
+
+Creates the tables if they are missing and inserts the timeline from
+`fixtures/fixture-events-v1.json` as events (`source = "seed"`), wrapped in a
+patrol session start/stop, plus one adjustment correcting the station 4 signal
+blip. Event IDs are derived from the fixture, so running it again only inserts
+what is missing.
 
 ## Tool Configuration
 
