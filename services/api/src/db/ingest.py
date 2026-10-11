@@ -6,8 +6,8 @@ from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.models import PatrolArea, Station
-from src.models.patrol_area import AreaKind
 from src.models.line import Line
+from src.models.patrol_area import AreaKind
 from src.models.station_line import StationLine
 
 STATIONS_FILE = Path(__file__).parent.parent / "data" / "stations.v1.json"
@@ -24,7 +24,7 @@ async def load_stations(session: AsyncSession, path: Path = STATIONS_FILE) -> No
         session.add(
             Station(id=station["id"], name=station["name"])
         )
-        
+
     for line in data["lines"]:
         session.add(
             Line(id=line["id"], name=line["name"])
@@ -36,7 +36,7 @@ async def load_stations(session: AsyncSession, path: Path = STATIONS_FILE) -> No
             session.add(
                 StationLine(station_id=station["id"], line_id=line_id)
             )
-    
+
     # Stations must exist in the database before areas can point to them.
     await session.flush()
 

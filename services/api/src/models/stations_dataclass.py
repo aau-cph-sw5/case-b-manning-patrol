@@ -15,4 +15,4 @@ class Station:
         for a in self.patrol_areas:
             if a.area_kind == kind:
                 return a
-        return None_
+        return None

@@ -1,4 +1,4 @@
-from sqlmodel import JSON, Column, Field, SQLModel
+from sqlmodel import Field, SQLModel
 
 
 class Line(SQLModel, table=True):
