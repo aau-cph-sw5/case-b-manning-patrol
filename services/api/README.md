@@ -6,6 +6,8 @@ Backend service for the Manning Patrol positioning system.
 
 - Python 3.13
 - [uv](https://github.com/astral-sh/uv) (Astral package manager)
+- Docker for Windows/MacOS (running the VM where the database container lives)
+    - If Linux or WSL2, container can run native in the OS. Search for setup yourself.
 
 ## Setup
 
@@ -71,10 +73,12 @@ uv run ty check src/
 services/api/
 ├── src/
 │   ├── main.py                  # FastAPI app definition and startup
+│   ├── models/                  # Shared models (events, adjustments, beacons)
 │   ├── api/
 │   │   └── v1/
 │   │       └── routers/
-│   │           ├── health.py
+│   │           ├── events.py           # Event and adjustment ingestion routes
+│   │           ├── health.py           # Health check endpoint
 │   │           └── positioning_simulator.py # Positioning Interface simulator
 │   ├── data/
 │   │   └── stations.v1.json     # Station dataset, see data/README.md
@@ -86,7 +90,8 @@ services/api/
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py
-│       └── db/                  # Empty
+│       ├── db/                  # Empty
+│       └── producer.py          # Event/adjustment producer
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline replayed by the simulator
 ├── tests/
@@ -100,7 +105,9 @@ services/api/
 
 Implements the Positioning Interface contract (`contracts/positioning-interface/v1/`):
 
-- `WS /api/v1/ws/observation-events` - WebSocket stream of events
+- `GET /observations` - Returns currently active area observations
+- `GET /observation-events` - Returns all observation events
+- `GET /ws/observation-events` - WebSocket stream of events
 
 Fixture used:
 - `fixtures/fixture-events-v1.json` - Event timeline replayed by the simulator
@@ -108,6 +115,10 @@ Fixture used:
 ## Database
 
 The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
+> **Status:** Docker-Compose PostgreSQL setup
+
+Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
+See '.env-example' for .env setup.
 
 - `src/db/config.py` reads `DATABASE_URL` from the `.env`.
 - `src/db/main.py` creates the engine and, on startup, creates the tables
@@ -116,13 +127,19 @@ The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
   It replaces their contents on every start, so rows added by hand are lost.
   See `src/data/README.md`.
 
-You need a PostgreSQL server and an empty database that `DATABASE_URL` points
-to. `docker-compose.yml` is still a placeholder with no services, so
-`docker compose up` does nothing yet; install PostgreSQL locally until it is
-defined.
+- `docker-compose.yml` — defines the PostgreSQL setup.
+- `src/services/db/` — hold the database access layer (connection
+  setup, queries).
+  
+Make sure port 5432 is available before utilizing the docker setup- 
+if you have used a local postgres dB prior then it most likely is 
+occupying that port( previous db setup)
+ 
+Once the database service is defined, start it from '.../services/api/':
 
-The tests do not need a running database. They set up an in-memory SQLite
-database, and CI only sets a dummy `DATABASE_URL`.
+```bash
+docker compose up -d
+```
 
 ## Tool Configuration
 

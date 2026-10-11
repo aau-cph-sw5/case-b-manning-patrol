@@ -9,13 +9,17 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
-    "httpx2>=2.13.1",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.6.1",
     "sqlmodel>=0.0.47",
     "asyncpg>=0.30.0",
     "aiosqlite>=0.20.0",
+    "dotenv>=0.9.9",
+    "psycopg[binary]>=3.3.6",
+    "docker>=7.2.0",
     "greenlet>=3.5.6",
+    "pytest-asyncio>=1.4.0",
+    "httpx2>=2.13.1",
 ]
 
 [project.scripts]
@@ -31,6 +35,9 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = "src"
 module-root = ""
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 88
