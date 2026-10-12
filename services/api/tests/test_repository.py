@@ -64,14 +64,13 @@ def make_adjustment(**overrides: Any) -> AdjustmentModel:
 
 @pytest.mark.asyncio
 async def test_get_station_returns_matching_station(session):
-    session.add(Station(id="S1", name="Nørreport", line_ids=["M1", "M2"]))
-    session.add(Station(id="S2", name="Kongens Nytorv", line_ids=["M3"]))
+    session.add(Station(id="S1", name="Nørreport"))
+    session.add(Station(id="S2", name="Kongens Nytorv"))
     await session.commit()
 
     result = await station.get_station(session, "S1")
 
     assert result.name == "Nørreport"
-    assert result.line_ids == ["M1", "M2"]
 
 
 @pytest.mark.asyncio
@@ -82,8 +81,8 @@ async def test_get_station_raises_when_missing(session):
 
 @pytest.mark.asyncio
 async def test_get_stations_returns_all_stations(session):
-    session.add(Station(id="S1", name="Nørreport", line_ids=["M1"]))
-    session.add(Station(id="S2", name="Kongens Nytorv", line_ids=["M3"]))
+    session.add(Station(id="S1", name="Nørreport"))
+    session.add(Station(id="S2", name="Kongens Nytorv"))
     await session.commit()
 
     result = await station.get_stations(session)
@@ -99,12 +98,12 @@ async def test_get_stations_returns_empty_list_when_no_stations(session):
 @pytest.mark.asyncio
 async def test_get_patrol_area_returns_matching_area(session):
     beacon_id = uuid4()
-    session.add(Station(id="S1", name="Nørreport", line_ids=["M1"]))
+    session.add(Station(id="S1", name="Nørreport"))
     session.add(
         PatrolArea(
             beacon_id=beacon_id,
             station_id="S1",
-            id="S1-platform",
+            area_id="S1-platform",
             area_kind=AreaKind.PLATFORM,
         ),
     )
@@ -118,12 +117,12 @@ async def test_get_patrol_area_returns_matching_area(session):
 
 @pytest.mark.asyncio
 async def test_get_patrol_areas_returns_all_areas(session):
-    session.add(Station(id="S1", name="Nørreport", line_ids=["M1"]))
+    session.add(Station(id="S1", name="Nørreport"))
     session.add(
         PatrolArea(
             beacon_id=uuid4(),
             station_id="S1",
-            id="S1-platform",
+            area_id="S1-platform",
             area_kind=AreaKind.PLATFORM,
         ),
     )
@@ -131,7 +130,7 @@ async def test_get_patrol_areas_returns_all_areas(session):
         PatrolArea(
             beacon_id=uuid4(),
             station_id="S1",
-            id="S1-concourse",
+            area_id="S1-concourse",
             area_kind=AreaKind.CONCOURSE,
         ),
     )
@@ -139,7 +138,7 @@ async def test_get_patrol_areas_returns_all_areas(session):
 
     result = await patrol_area.get_patrol_areas(session)
 
-    assert {a.id for a in result} == {"S1-platform", "S1-concourse"}
+    assert {a.area_id for a in result} == {"S1-platform", "S1-concourse"}
 
 
 @pytest.mark.asyncio

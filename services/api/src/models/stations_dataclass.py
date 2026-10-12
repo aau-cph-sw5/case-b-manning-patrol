@@ -7,7 +7,6 @@ from .patrol_area import AreaKind, PatrolArea
 class Station:
     id: str
     name: str
-    line_ids: list[str]
     patrol_areas: list[PatrolArea]
 
     # Returns the PatrolArea matching the given kind, or None if no match is found.
