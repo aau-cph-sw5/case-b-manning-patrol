@@ -141,6 +141,21 @@ Once the database service is defined, start it from '.../services/api/':
 docker compose up -d
 ```
 
+### Resetting the database
+
+On startup the backend only creates tables that do not exist yet; it never
+alters existing ones. If the server crashes at startup with an
+`UndefinedColumnError` after pulling model changes, the database still has the
+old table shape. Reset it with:
+
+```bash
+uv run reset-db
+```
+
+This drops and recreates every table. Stations, lines and patrol areas are
+re-ingested from `src/data/stations.v1.json` on the next server start, but any
+other rows (events, adjustments) are lost.
+
 ## Tool Configuration
 
 - **uv**: Package management
