@@ -68,11 +68,14 @@ services/api/
 │   ├── main.py                  # FastAPI app definition
 │   ├── models/                  # Shared models (events, adjustments, beacons)
 │   ├── api/
-│   │   └── v1/
+│   │   ├── v1/
+│   │   │   └── routers/
+│   │   │       ├── adjustment.py       # Adjustment route (contracts/positioning-adjustment v1, draft)
+│   │   │       ├── health.py           # Health check endpoint
+│   │   │       └── positioning_simulator.py # Positioning Interface simulator
+│   │   └── v2/
 │   │       └── routers/
-│   │           ├── events.py            # Event and adjustment ingestion routes
-│   │           ├── health.py           # Health check endpoint
-│   │           └── positioning_simulator.py # Positioning Interface simulator
+│   │           └── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py

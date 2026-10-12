@@ -25,7 +25,7 @@ def test_connection_event_returns_created_event():
     )
 
     start_response = client.post(
-        app.url_path_for("shift_start_event"),
+        app.url_path_for("patrol_session_start_event"),
         json={
             "android_id": "android-1",
             "timestamp": "2026-10-02T10:00:00+00:00",
@@ -33,7 +33,7 @@ def test_connection_event_returns_created_event():
     )
 
     stop_response = client.post(
-        app.url_path_for("shift_stop_event"),
+        app.url_path_for("patrol_session_stop_event"),
         json={
             "android_id": "android-1",
             "timestamp": "2026-10-02T10:00:00+00:00",
@@ -74,7 +74,7 @@ def test_connection_event_returns_created_event():
     assert disconnection_event["server_timestamp"]
     assert disconnection_event["event_id"]
 
-    # Asserting Shift Start
+    # Asserting Patrol Session Start
     assert start_response.status_code == 201
     start_event = start_response.json()
     assert start_event["event_type"] == "start"
@@ -84,7 +84,7 @@ def test_connection_event_returns_created_event():
     assert start_event["server_timestamp"]
     assert start_event["event_id"]
 
-    # Asserting Shift Stop
+    # Asserting Patrol Session Stop
     assert stop_response.status_code == 201
     stop_event = stop_response.json()
     assert stop_event["event_type"] == "stop"

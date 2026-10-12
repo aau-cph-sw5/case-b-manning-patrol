@@ -12,10 +12,12 @@ from fastapi.responses import JSONResponse
 
 from src.services.producer import EventValidationError
 
-from .api.v1.routers import events, health, positioning_simulator
+from .api.v1.routers import adjustment, health, positioning_simulator
+from .api.v2.routers import patrol_session
 from .db.main import engine, init_db
 
-API_PREFIX = "/api/v1"
+API_PREFIX_V1 = "/api/v1"
+API_PREFIX_V2 = "/api/v2"
 
 
 @asynccontextmanager
@@ -47,9 +49,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router, prefix=API_PREFIX)
-app.include_router(positioning_simulator.router, prefix=API_PREFIX)
-app.include_router(events.router, prefix=API_PREFIX)
+app.include_router(health.router, prefix=API_PREFIX_V1)
+app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
+app.include_router(adjustment.router, prefix=API_PREFIX_V1)
+app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
 
 @app.get("/ping")
