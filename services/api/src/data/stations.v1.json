@@ -1,0 +1,246 @@
+{
+  "version": "2026-10-01.1",
+  "lines": [
+    { "id": "M1", "name": "Metro Line 1" },
+    { "id": "M2", "name": "Metro Line 2" },
+    { "id": "M3", "name": "Metro Line 3" },
+    { "id": "M4", "name": "Metro Line 4" }
+  ],
+  "stations": [
+    { "id": "STN-001", "name": "Station 01", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-001-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440001" },
+        { "id": "PA-001-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440081" }
+      ]
+    },
+    { "id": "STN-002", "name": "Station 02", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-002-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440002" }
+      ]
+    },
+    { "id": "STN-003", "name": "Station 03", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-003-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440003" }
+      ]
+    },
+    { "id": "STN-004", "name": "Station 04", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-004-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440004" }
+      ]
+    },
+    { "id": "STN-005", "name": "Station 05", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-005-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440005" },
+        { "id": "PA-005-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440085" }
+      ]
+    },
+    { "id": "STN-006", "name": "Station 06", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-006-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440006" }
+      ]
+    },
+    { "id": "STN-007", "name": "Station 07", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-007-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440007" }
+      ]
+    },
+    { "id": "STN-008", "name": "Station 08", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-008-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440008" }
+      ]
+    },
+    { "id": "STN-009", "name": "Station 09", "line_ids": ["M1"],
+      "patrol_areas": [
+        { "id": "PA-009-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440009" }
+      ]
+    },
+    { "id": "STN-010", "name": "Station 10", "line_ids": ["M1", "M2"],
+      "patrol_areas": [
+        { "id": "PA-010-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544000a" }
+      ]
+    },
+    { "id": "STN-011", "name": "Station 11", "line_ids": ["M1", "M2"],
+      "patrol_areas": [
+        { "id": "PA-011-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544000b" },
+        { "id": "PA-011-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544008b" }
+      ]
+    },
+    { "id": "STN-012", "name": "Station 12", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-012-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544000c" }
+      ]
+    },
+    { "id": "STN-013", "name": "Station 13", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-013-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544000d" }
+      ]
+    },
+    { "id": "STN-014", "name": "Station 14", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-014-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544000e" }
+      ]
+    },
+    { "id": "STN-015", "name": "Station 15", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-015-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544000f" },
+        { "id": "PA-015-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544008f" }
+      ]
+    },
+    { "id": "STN-016", "name": "Station 16", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-016-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440010" }
+      ]
+    },
+    { "id": "STN-017", "name": "Station 17", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-017-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440011" }
+      ]
+    },
+    { "id": "STN-018", "name": "Station 18", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-018-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440012" }
+      ]
+    },
+    { "id": "STN-019", "name": "Station 19", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-019-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440013" }
+      ]
+    },
+    { "id": "STN-020", "name": "Station 20", "line_ids": ["M2"],
+      "patrol_areas": [
+        { "id": "PA-020-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440014" },
+        { "id": "PA-020-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440094" }
+      ]
+    },
+    { "id": "STN-021", "name": "Station 21", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-021-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440015" },
+        { "id": "PA-021-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440095" }
+      ]
+    },
+    { "id": "STN-022", "name": "Station 22", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-022-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440016" }
+      ]
+    },
+    { "id": "STN-023", "name": "Station 23", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-023-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440017" },
+        { "id": "PA-023-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440097" }
+      ]
+    },
+    { "id": "STN-024", "name": "Station 24", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-024-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440018" },
+        { "id": "PA-024-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440098" }
+      ]
+    },
+    { "id": "STN-025", "name": "Station 25", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-025-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440019" },
+        { "id": "PA-025-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-446655440099" }
+      ]
+    },
+    { "id": "STN-026", "name": "Station 26", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-026-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544001a" },
+        { "id": "PA-026-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544009a" }
+      ]
+    },
+    { "id": "STN-027", "name": "Station 27", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-027-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544001b" }
+      ]
+    },
+    { "id": "STN-028", "name": "Station 28", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-028-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544001c" },
+        { "id": "PA-028-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544009c" }
+      ]
+    },
+    { "id": "STN-029", "name": "Station 29", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-029-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544001d" },
+        { "id": "PA-029-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544009d" }
+      ]
+    },
+    { "id": "STN-030", "name": "Station 30", "line_ids": ["M3"],
+      "patrol_areas": [
+        { "id": "PA-030-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544001e" },
+        { "id": "PA-030-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544009e" }
+      ]
+    },
+    { "id": "STN-031", "name": "Station 31", "line_ids": ["M3", "M4"],
+      "patrol_areas": [
+        { "id": "PA-031-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544001f" },
+        { "id": "PA-031-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-44665544009f" }
+      ]
+    },
+    { "id": "STN-032", "name": "Station 32", "line_ids": ["M3", "M4"],
+      "patrol_areas": [
+        { "id": "PA-032-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440020" },
+        { "id": "PA-032-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a0" }
+      ]
+    },
+    { "id": "STN-033", "name": "Station 33", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-033-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440021" },
+        { "id": "PA-033-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a1" }
+      ]
+    },
+    { "id": "STN-034", "name": "Station 34", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-034-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440022" },
+        { "id": "PA-034-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a2" }
+      ]
+    },
+    { "id": "STN-035", "name": "Station 35", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-035-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440023" },
+        { "id": "PA-035-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a3" }
+      ]
+    },
+    { "id": "STN-036", "name": "Station 36", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-036-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440024" },
+        { "id": "PA-036-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a4" }
+      ]
+    },
+    { "id": "STN-037", "name": "Station 37", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-037-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440025" },
+        { "id": "PA-037-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a5" }
+      ]
+    },
+    { "id": "STN-038", "name": "Station 38", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-038-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440026" },
+        { "id": "PA-038-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a6" }
+      ]
+    },
+    { "id": "STN-039", "name": "Station 39", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-039-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440027" },
+        { "id": "PA-039-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a7" }
+      ]
+    },
+    { "id": "STN-040", "name": "Station 40", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-040-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440028" },
+        { "id": "PA-040-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a8" }
+      ]
+    },
+    { "id": "STN-041", "name": "Station 41", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-041-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-446655440029" },
+        { "id": "PA-041-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400a9" }
+      ]
+    },
+    { "id": "STN-042", "name": "Station 42", "line_ids": ["M4"],
+      "patrol_areas": [
+        { "id": "PA-042-P", "kind": "platform", "beacon_id": "660e8400-e29b-41d4-a716-44665544002a" },
+        { "id": "PA-042-C", "kind": "concourse", "beacon_id": "660e8400-e29b-41d4-a716-4466554400aa" }
+      ]
+    }
+  ]
+}
