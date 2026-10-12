@@ -23,3 +23,6 @@ mapping.log
 
 # OS
 .DS_Store
+
+# DB
+*.db

@@ -1,0 +1,188 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Adjustment Event API",
+		"description": "DRAFT - NOT PUBLISHED. Backend API contract for the Web dashboard to append manual correction events to the append-only event store. Adjustments correct the real state shown on dashboards and in reports without modifying or deleting any recorded history.",
+		"version": "0.1.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/api/v1/adjustment": {
+			"post": {
+				"summary": "Append an adjustment event",
+				"description": "Appends a manual correction to the append-only event store. There is no update or delete path anywhere in the system: history is never rewritten, and the real state is the projection that accounts for adjustments.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AdjustmentEventCreate"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Adjustment recorded successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AdjustmentEventStored"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request, e.g. a corrected_fact for a connect or disconnect without a beacon_id",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Referenced actor, beacon, or target event not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AdjustmentEventCreate": {
+				"type": "object",
+				"description": "The manual correction to append. The store is contractual evidence of compliance, so the justification travels with the correction.",
+				"properties": {
+					"actor": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Steward (android device) the adjustment is about.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					},
+					"target_event_id": {
+						"type": "string",
+						"format": "uuid",
+						"nullable": true,
+						"description": "Optional link to the event this correction supersedes. May reference another adjustment, so an adjustment can itself be adjusted. Null when the adjustment has no single target.",
+						"example": "770e8400-e29b-41d4-a716-446655440002"
+					},
+					"corrected_fact": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/CorrectedFact"
+							}
+						]
+					},
+					"reason": {
+						"type": "string",
+						"description": "Mandatory human-readable justification for the correction.",
+						"example": "Beacon never fired on arrival; steward confirms platform patrol 10:05-10:35."
+					},
+					"author": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Admin who performed the adjustment, taken from the authenticated dashboard session.",
+						"example": "880e8400-e29b-41d4-a716-446655440003"
+					}
+				},
+				"required": ["actor", "corrected_fact", "reason", "author"]
+			},
+			"CorrectedFact": {
+				"type": "object",
+				"description": "The event that actually happened, expressed in the same vocabulary as the ingestion events.",
+				"properties": {
+					"fact_type": {
+						"type": "string",
+						"enum": ["connect", "disconnect", "shift_start", "shift_stop"],
+						"description": "The event that actually happened.",
+						"example": "connect"
+					},
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"nullable": true,
+						"description": "Required when fact_type is connect or disconnect, null otherwise.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"occurred_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the corrected fact actually happened. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:05:00+00:00"
+					}
+				},
+				"required": ["fact_type", "occurred_at"]
+			},
+			"AdjustmentEventStored": {
+				"type": "object",
+				"description": "The adjustment as stored in the append-only event store.",
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/AdjustmentEventCreate"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"adjustment_id": {
+								"type": "string",
+								"format": "uuid",
+								"description": "Server-generated identifier of the appended adjustment event.",
+								"example": "990e8400-e29b-41d4-a716-446655440004"
+							},
+							"server_timestamp": {
+								"type": "string",
+								"format": "date-time",
+								"description": "When the backend recorded the adjustment. UTC in ISO 8601 with offset.",
+								"example": "2026-10-06T12:30:00+00:00"
+							},
+							"source": {
+								"type": "string",
+								"description": "Server-assigned origin of the write, e.g. the API route that appended the event. Never taken from the request body.",
+								"example": "API"
+							}
+						},
+						"required": ["adjustment_id", "server_timestamp", "source"]
+					}
+				]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}

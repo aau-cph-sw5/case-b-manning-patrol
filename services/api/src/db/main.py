@@ -4,7 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import patrol_area, station  # noqa: F401  registers table metadata
+from src.models import (  # noqa: F401  registers table metadata
+    event,
+    patrol_area,
+    station,
+)
 
 from .config import settings
 
@@ -18,6 +22,6 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-async def init_db() -> None:
-    async with engine.begin() as conn:
+async def init_db(engine_: AsyncEngine | None = None) -> None:
+    async with (engine_ or engine).begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
