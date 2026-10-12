@@ -9,7 +9,9 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.ingest import load_stations
-from src.models import PatrolArea, Station
+from src.models import PatrolArea, Station 
+from src.models.line import Line 
+from src.models.station_line import StationLine
 
 # Mock data shaped exactly like services/api/src/data/stations.v1.json.
 STATION = {
@@ -34,7 +36,7 @@ STATION = {
 EXTRA_STATION = {
     "id": "STN-002",
     "name": "Station 02",
-    "line_ids": ["M1"],
+    "line_ids": ["M3"],
     "patrol_areas": [
         {
             "id": "PA-002-P",
@@ -47,8 +49,14 @@ EXTRA_STATION = {
 
 def write_stations_file(path: Path, stations: list[dict]) -> Path:
     """Write the given station entries to a JSON file, like stations.v1.json."""
+    # Collect all unique line_ids from stations to create lines
+    line_ids = set()
+    for station in stations:
+        line_ids.update(station["line_ids"])
+    
+    lines = [{"id": line_id, "name": f"Metro Line {line_id[-1]}"} for line_id in sorted(line_ids)]
 
-    path.write_text(json.dumps({"stations": stations}), encoding="utf-8")
+    path.write_text(json.dumps({"stations": stations, "lines": lines}), encoding="utf-8")
     return path
 
 
@@ -92,11 +100,17 @@ async def test_load_stations_loads_station_and_patrol_areas(session, tmp_path):
     stations = (await session.exec(select(Station))).all()
     assert [station.id for station in stations] == ["STN-001"]
     assert stations[0].name == "Station 01"
-    assert stations[0].line_ids == ["M1"]
 
-    # Both of the station's patrol areas must have been ingested too.
+    lines = (await session.exec(select(Line))).all()
+    assert [line.id for line in lines] == ["M1"]
+    assert lines[0].name == "Metro Line 1"
+
+    station_lines = (await session.exec(select(StationLine))).all()
+    assert station_lines[0].station_id == "STN-001"
+    assert station_lines[0].line_id == "M1"
+
     areas = (await session.exec(select(PatrolArea))).all()
-    assert {area.id for area in areas} == {"PA-001-P", "PA-001-C"}
+    assert {area.area_id for area in areas} == {"PA-001-P", "PA-001-C"}
 
 
 @pytest.mark.asyncio
@@ -113,6 +127,14 @@ async def test_station_added_to_file_appears_without_code_change(session, tmp_pa
     stations = (await session.exec(select(Station))).all()
     assert [station.id for station in stations] == ["STN-001", "STN-002"]
 
+    lines = (await session.exec(select(Line))).all()
+    assert [line.id for line in lines] == ["M1", "M3"]
+    assert lines[0].name == "Metro Line 1"
+
+    station_lines = (await session.exec(select(StationLine))).all()
+    assert {line.station_id for line in station_lines} == {"STN-001", "STN-002"}
+    assert {line.line_id for line in station_lines} == {"M1", "M3"}
+
     # The new station's patrol areas must be ingested along with it.
     areas = (await session.exec(select(PatrolArea))).all()
-    assert {area.id for area in areas} == {"PA-001-P", "PA-001-C", "PA-002-P"}
+    assert {area.area_id for area in areas} == {"PA-001-P", "PA-001-C", "PA-002-P"}
