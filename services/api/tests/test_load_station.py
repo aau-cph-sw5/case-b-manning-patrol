@@ -9,8 +9,8 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.ingest import load_stations
-from src.models import PatrolArea, Station 
-from src.models.line import Line 
+from src.models import PatrolArea, Station
+from src.models.line import Line
 from src.models.station_line import StationLine
 
 # Mock data shaped exactly like services/api/src/data/stations.v1.json.
@@ -53,10 +53,12 @@ def write_stations_file(path: Path, stations: list[dict]) -> Path:
     line_ids = set()
     for station in stations:
         line_ids.update(station["line_ids"])
-    
-    lines = [{"id": line_id, "name": f"Metro Line {line_id[-1]}"} for line_id in sorted(line_ids)]
 
-    path.write_text(json.dumps({"stations": stations, "lines": lines}), encoding="utf-8")
+    lines = [{"id": line_id, "name": f"Metro Line {line_id[-1]}"}
+             for line_id in sorted(line_ids)]
+
+    path.write_text(json.dumps({"stations": stations, "lines": lines}),
+                    encoding="utf-8")
     return path
 
 
