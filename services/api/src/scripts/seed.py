@@ -40,6 +40,14 @@ def _parse_timestamp(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+def load_events(filename: str) -> list[Event]:
+    """Load the fixture as events, failing loudly instead of seeding nothing."""
+    fixture = load_fixture(filename)
+    if not fixture:
+        raise FileNotFoundError(f"Fixture {filename} is missing or empty")
+    return build_events(fixture)
+
+
 def build_events(fixture: list[dict]) -> list[Event]:
     """Turn the fixture timeline into events, wrapped in a patrol session."""
     events = [
@@ -84,7 +92,7 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
     blip_id = _seed_id(f"{FIXTURE}/10")
     blip = next((event for event in events if event.event_id == blip_id), None)
     if blip is None:
-        return []
+        raise ValueError(f"Fixture {FIXTURE} has no event 10 to adjust")
 
     return [
         Adjustment(
@@ -103,7 +111,7 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
 
 
 async def seed(session: AsyncSession) -> SeedResult:
-    events = build_events(load_fixture(FIXTURE))
+    events = load_events(FIXTURE)
     adjustments = build_adjustments(events)
 
     existing_events = set(
