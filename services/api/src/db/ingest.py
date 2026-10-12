@@ -12,6 +12,7 @@ from src.models.station_line import StationLine
 
 STATIONS_FILE = Path(__file__).parent.parent / "data" / "stations.v1.json"
 
+
 async def load_stations(session: AsyncSession, path: Path = STATIONS_FILE) -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
 
@@ -21,21 +22,15 @@ async def load_stations(session: AsyncSession, path: Path = STATIONS_FILE) -> No
     await session.exec(delete(Line))
 
     for station in data["stations"]:
-        session.add(
-            Station(id=station["id"], name=station["name"])
-        )
+        session.add(Station(id=station["id"], name=station["name"]))
 
     for line in data["lines"]:
-        session.add(
-            Line(id=line["id"], name=line["name"])
-        )
+        session.add(Line(id=line["id"], name=line["name"]))
 
     # create station-line relationships
     for station in data["stations"]:
         for line_id in station["line_ids"]:
-            session.add(
-                StationLine(station_id=station["id"], line_id=line_id)
-            )
+            session.add(StationLine(station_id=station["id"], line_id=line_id))
 
     # Stations must exist in the database before areas can point to them.
     await session.flush()

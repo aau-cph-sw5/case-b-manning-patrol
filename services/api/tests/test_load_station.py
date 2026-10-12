@@ -54,11 +54,14 @@ def write_stations_file(path: Path, stations: list[dict]) -> Path:
     for station in stations:
         line_ids.update(station["line_ids"])
 
-    lines = [{"id": line_id, "name": f"Metro Line {line_id[-1]}"}
-             for line_id in sorted(line_ids)]
+    lines = [
+        {"id": line_id, "name": f"Metro Line {line_id[-1]}"}
+        for line_id in sorted(line_ids)
+    ]
 
-    path.write_text(json.dumps({"stations": stations, "lines": lines}),
-                    encoding="utf-8")
+    path.write_text(
+        json.dumps({"stations": stations, "lines": lines}), encoding="utf-8"
+    )
     return path
 
 
