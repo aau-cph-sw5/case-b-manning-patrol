@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Adjustment Event API",
 		"description": "DRAFT - NOT PUBLISHED. Backend API contract for the Web dashboard to append manual correction events to the append-only event store. Adjustments correct the real state shown on dashboards and in reports without modifying or deleting any recorded history.",
-		"version": "0.1.0"
+		"version": "2.0.1"
 	},
 	"servers": [
 		{
