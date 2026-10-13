@@ -33,7 +33,6 @@ async def get_adjustment(session: AsyncSession, adjustment_id: UUID) -> Adjustme
     result = await session.exec(
         select(Adjustment).where(Adjustment.adjustment_id == adjustment_id)
     )
-
     return result.one()
 
 

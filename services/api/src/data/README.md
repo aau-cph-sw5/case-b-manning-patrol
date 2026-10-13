@@ -2,8 +2,9 @@
 
 `stations.v1.json` is the data source for the station network: which lines
 exist, which stations exist, and which patrol areas (concourse and platform)
-each station has. It is loaded into the database by the ingest step; the code
-contains no hardcoded stations.
+each station has. It is loaded into the database by `load_stations` in
+`src/db/ingest.py`, which runs every time the app starts; the code contains no
+hardcoded stations.
 
 ## What the file contains
 
@@ -57,6 +58,6 @@ group encodes the area:
 |---|---|
 | Each station maps to its identifier, its line, and its distinct patrol areas | Every station entry carries `id`, `line_ids`, and a `patrol_areas` list with one entry per area. |
 | Each patrol area carries the identifier of the beacon that names it | Every area entry has a `beacon_id` field. |
-| The dataset is loaded from a versioned file and reloading is idempotent | The network lives in this JSON file under version control, not in code. The ingest step reads the file and replaces the DB contents in one transaction, so reloading it any number of times yields identical database state. |
-| Stations serving two lines are modelled once and referenced twice rather than duplicated | STN-010, STN-011, STN-031, STN-032 appear once, with both lines in `line_ids`. In the database they are one `station` row with two `station_line` rows. |
-| A station added to the file appears in the system without a code change | Add an entry to `stations` and reload; the ingest reads the file, so no schema or code change is needed. |
+| The dataset is loaded from a versioned file and reloading is idempotent | The network lives in this JSON file under version control, not in code. `load_stations` reads the file and replaces the contents of the `station` and `patrolarea` tables in one transaction, so reloading it any number of times yields identical database state. `tests/test_ingest.py` loads the file twice and checks for 42 stations and 67 patrol areas both times, with foreign keys enforced. Because the tables are replaced on every start, rows added to them by hand are lost. |
+| Stations serving two lines are modelled once and referenced twice rather than duplicated | STN-010, STN-011, STN-031, STN-032 appear once, with both lines in `line_ids`. In the database they are one `station` row whose `line_ids` column holds both lines. |
+| A station added to the file appears in the system without a code change | Add an entry to `stations` and restart the app; `load_stations` reads the file, so no schema or code change is needed. |

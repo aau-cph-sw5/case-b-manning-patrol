@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.services.producer import EventValidationError
 
@@ -23,6 +24,8 @@ API_PREFIX_V2 = "/api/v2"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    async with AsyncSession(engine) as session:
+        await load_stations(session)
     yield
     await engine.dispose()
 
