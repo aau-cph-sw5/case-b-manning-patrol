@@ -11,7 +11,7 @@ CONTRACTS_DIR = Path(__file__).parents[3] / "contracts"
 
 
 PUBLISHED_CONTRACTS = [
-    CONTRACTS_DIR / "positioning-ingestion" / "v2" / "schema.json",
+    CONTRACTS_DIR / "api" / "v2" / "positioning-ingestion" / "schema.json",
 ]
 
 
@@ -36,7 +36,9 @@ def _app_routes() -> set[tuple[str, str]]:
 
 
 @pytest.mark.parametrize(
-    "schema_path", PUBLISHED_CONTRACTS, ids=lambda p: p.parent.parent.name
+    "schema_path",
+    PUBLISHED_CONTRACTS,
+    ids=lambda p: f"{p.parent.parent.name}/{p.parent.name}",
 )
 def test_contract_routes_are_served(schema_path: Path):
     missing = _contract_routes(schema_path) - _app_routes()
