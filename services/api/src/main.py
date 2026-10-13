@@ -15,6 +15,7 @@ from src.services.producer import EventValidationError
 
 from .api.v1.routers import adjustment, health, positioning_simulator
 from .api.v2.routers import patrol_session
+from .db.ingest import load_stations
 from .db.main import engine, init_db
 
 API_PREFIX_V1 = "/api/v1"
