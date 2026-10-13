@@ -19,6 +19,13 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
+The app reads its database address from `DATABASE_URL`, and it will not start
+without it. Create `services/api/.env` and insert your personal `DATABASE_URL`:
+
+```
+DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE_NAME
+```
+
 ## Running
 
 ```bash
@@ -65,7 +72,7 @@ uv run ty check src/
 ```
 services/api/
 ├── src/
-│   ├── main.py                  # FastAPI app definition
+│   ├── main.py                  # FastAPI app definition and startup
 │   ├── models/                  # Shared models (events, adjustments, beacons)
 │   ├── api/
 │   │   ├── v1/
@@ -75,15 +82,25 @@ services/api/
 │   │   │       └── positioning_simulator.py # Positioning Interface simulator
 │   │   └── v2/
 │   │       └── routers/
-│   │           └── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
+│   │           ├── events.py           # Event and adjustment ingestion routes
+│   │           ├── health.py           # Health check endpoint
+│   │           └── positioning_simulator.py # Positioning Interface simulator
+│   ├── data/
+│   │   └── stations.v1.json     # Station dataset, see data/README.md
+│   ├── db/
+│   │   ├── config.py            # Settings, reads DATABASE_URL
+│   │   ├── main.py              # Engine, sessions, table creation
+│   │   └── ingest.py            # Loads stations.v1.json into the database
+│   ├── models/                  # Table models (station, patrol_area) and others
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── positioning_service.py
+│       ├── db/                  # Empty
 │       └── producer.py          # Event/adjustment producer
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline replayed by the simulator
 ├── tests/
-├── docker-compose.yml # Local PostgreSQL database (planned, not yet defined)
+├── docker-compose.yml # Local PostgreSQL database (not yet defined)
 ├── pyproject.toml    # Dependencies and tool config
 ├── uv.lock           # Locked dependency versions
 └── .python-version   # Python version (3.13)
@@ -97,28 +114,52 @@ Implements the Positioning Interface contract (`contracts/positioning-interface/
 - `GET /observation-events` - Returns all observation events
 - `GET /ws/observation-events` - WebSocket stream of events
 
-Fixtures used:
-- `fixtures/fixture-shifts.json` - Raw shift/ping data
-- `fixtures/mapping.json` - Beacon ID to station/train mapping
+Fixture used:
+- `fixtures/fixture-events-v1.json` - Event timeline replayed by the simulator
 
 ## Database
 
+The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
 > **Status:** Docker-Compose PostgreSQL setup
 
 Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
 See '.env-example' for .env setup.
 
-The backend will use PostgreSQL, run locally via Docker Compose:
+- `src/db/config.py` reads `DATABASE_URL` from the `.env`.
+- `src/db/main.py` creates the engine and, on startup, creates the tables
+  `station` and `patrolarea` if they do not exist.
+- `src/db/ingest.py` then loads `src/data/stations.v1.json` into those tables.
+  It replaces their contents on every start, so rows added by hand are lost.
+  See `src/data/README.md`.
 
 - `docker-compose.yml` — defines the PostgreSQL setup.
-- `src/services/db/` — will hold the database access layer (connection
-  setup, queries). Currently empty.
-
+- `src/services/db/` — hold the database access layer (connection
+  setup, queries).
+  
+Make sure port 5432 is available before utilizing the docker setup- 
+if you have used a local postgres dB prior then it most likely is 
+occupying that port( previous db setup)
+ 
 Once the database service is defined, start it from '.../services/api/':
 
 ```bash
 docker compose up -d
 ```
+
+### Resetting the database
+
+On startup the backend only creates tables that do not exist yet; it never
+alters existing ones. If the server crashes at startup with an
+`UndefinedColumnError` after pulling model changes, the database still has the
+old table shape. Reset it with:
+
+```bash
+uv run reset-db
+```
+
+This drops and recreates every table. Stations, lines and patrol areas are
+re-ingested from `src/data/stations.v1.json` on the next server start, but any
+other rows (events, adjustments) are lost.
 
 ## Tool Configuration
 
