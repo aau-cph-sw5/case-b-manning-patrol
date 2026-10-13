@@ -7,31 +7,33 @@ The contracts describe the interface between the clients and the server. They fo
 
 ```
 contracts/
-├── README.md           
-├── some-contract/       
+├── README.md
+├── api/
 │   ├── v1/
-│   │   ├── README.md   
-│   │   ├── schema.json
-│   │   └── CHANGELOG.md
-│   └── v2/              
-│       ├── README.md
-│       ├── schema.json
-│       └── CHANGELOG.md
-└── another-contract/    
-    ├── v1/
-    │   ├── README.md
-    │   ├── schema.json
-    │   └── CHANGELOG.md
-    └── v2/
-        ├── README.md
-        ├── schema.json
-        └── CHANGELOG.md
+│   │   ├── CHANGELOG.md
+│   │   ├── service-a/
+│   │   │   ├── README.md
+│   │   │   └── schema.json
+│   │   └── service-b/
+│   │       ├── README.md
+│   │       └── schema.json
+│   └── v2/
+│       ├── CHANGELOG.md
+│       ├── service-a/
+│       │   ├── README.md
+│       │   └── schema.json
+│       └── service-b/
+│           ├── README.md
+│           └── schema.json
 ```
 
 
 ## How to update/create a contract
 
 If you want to update a schema, follow the guidelines below:
+
+### CHANGELOG.md
+Each versioned directory (`v1/`, `v2/`, etc.) must include a `CHANGELOG.md` to document changes for that version.
 
 ### Versioning Rules
 - If the update **breaks the existing system** (e.g., URL changes, endpoints removed, or fields renamed), create a **new major version** (e.g., `v1.0.0` → `v2.0.0`).
@@ -48,6 +50,3 @@ If you want to update a schema, follow the guidelines below:
   - Update the `info.version` field in `schema.json`.
   - Document the fix in the `CHANGELOG.md`.
   
-### CHANGELOG.md
-Each versioned directory (`v1/`, `v2/`, etc.) must include a `CHANGELOG.md` to document changes for that version.
-Use this format:

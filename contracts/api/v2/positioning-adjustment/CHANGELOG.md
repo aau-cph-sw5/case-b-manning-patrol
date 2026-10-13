@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.0 - Initial draft (unpublished)
+## v2.0.0 - Initial draft (unpublished)
 
 - Draft of Adjustment Event API contract for group review. Not yet published.
 - `POST /api/v1/adjustment` appends a manual correction to the append-only
