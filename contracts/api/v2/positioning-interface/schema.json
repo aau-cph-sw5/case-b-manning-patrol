@@ -12,7 +12,7 @@
 		}
 	],
 	"paths": {
-		"/api/v1/dashboard": {
+		"/api/v2/dashboard": {
 			"get": {
 				"summary": "Get dashboard overview",
 				"description": "Returns every station and train, each with its current manning state. Used to populate the dashboard on load.",
@@ -40,7 +40,7 @@
 				}
 			}
 		},
-		"/api/v1/stations/{stationID}": {
+		"/api/v2/stations/{stationID}": {
 			"get": {
 				"summary": "Get station by ID",
 				"description": "Returns a single station, including its areas and each area's current manning state.",
@@ -90,7 +90,7 @@
 				}
 			}
 		},
-		"/api/v1/trains/{trainID}": {
+		"/api/v2/trains/{trainID}": {
 			"get": {
 				"summary": "Get train by ID",
 				"description": "Returns a single train and its current manning state.",

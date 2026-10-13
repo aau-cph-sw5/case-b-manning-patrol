@@ -12,7 +12,7 @@
 		}
 	],
 	"paths": {
-		"/api/v1/adjustment": {
+		"/api/v2/adjustment": {
 			"post": {
 				"summary": "Append an adjustment event",
 				"description": "Appends a manual correction to the append-only event store. There is no update or delete path anywhere in the system: history is never rewritten, and the real state is the projection that accounts for adjustments.",
