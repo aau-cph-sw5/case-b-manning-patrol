@@ -1,16 +1,15 @@
 from datetime import datetime
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
-from src.models.event import CorrectedFact, EventType
+from src.models.event import EventType
 from src.services.producer import MainProducer
 
-router = APIRouter(tags=["events handler"])
+router = APIRouter(tags=["positioning-ingestion"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
@@ -21,17 +20,9 @@ class ConnectionEvent(BaseModel):
     timestamp: datetime
 
 
-class ShiftEvent(BaseModel):
+class PatrolSessionEvent(BaseModel):
     android_id: str
     timestamp: datetime
-
-
-class AdjustmentEvent(BaseModel):
-    android_id: str
-    corrected_fact: CorrectedFact
-    reason: str
-    author: str
-    target_event_id: UUID | None = None
 
 
 # TODO: Connection needs to return Area
@@ -62,38 +53,28 @@ async def disconnection_event(connection_event: ConnectionEvent, session: Sessio
 
 
 @router.post("/patrol-session/start", status_code=status.HTTP_201_CREATED)
-async def shift_start_event(shift_event: ShiftEvent, session: SessionDep):
+async def patrol_session_start_event(
+    patrol_session_event: PatrolSessionEvent, session: SessionDep
+):
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.START_EVENT,
-        actor=shift_event.android_id,
-        device_timestamp=shift_event.timestamp,
+        actor=patrol_session_event.android_id,
+        device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
     return event_model
 
 
 @router.post("/patrol-session/stop", status_code=status.HTTP_201_CREATED)
-async def shift_stop_event(shift_event: ShiftEvent, session: SessionDep):
+async def patrol_session_stop_event(
+    patrol_session_event: PatrolSessionEvent, session: SessionDep
+):
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.STOP_EVENT,
-        actor=shift_event.android_id,
-        device_timestamp=shift_event.timestamp,
+        actor=patrol_session_event.android_id,
+        device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
     return event_model
-
-
-@router.post("/adjustment", status_code=status.HTTP_201_CREATED)
-async def adjustment_event(adjustment_event: AdjustmentEvent, session: SessionDep):
-    adjustment_model = await MainProducer.append_adjustment(
-        session=session,
-        actor=adjustment_event.android_id,
-        corrected_fact=adjustment_event.corrected_fact,
-        reason=adjustment_event.reason,
-        author=adjustment_event.author,
-        target_event_id=adjustment_event.target_event_id,
-        source="API",
-    )
-    return adjustment_model
