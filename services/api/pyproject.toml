@@ -27,7 +27,7 @@ dev = "src.main:dev"
 positioning-simulator = "src.api.v1.routers.positioning_simulator:app"
 lint = "src.scripts.lint:main"
 check = "src.scripts.check:main"
-seed = "src.scripts.seed:main"
+reset-db = "src.scripts.reset_db:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]
@@ -57,8 +57,8 @@ select = [
 
 [dependency-groups]
 dev = [
-    "pytest",
-    "ruff>=0.10.0",
-    "ty",
-	"pytest-asyncio>=1.4.0"
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+    "ty>=0.0.84",
+    "pytest-asyncio>=1.4.0",
 ]

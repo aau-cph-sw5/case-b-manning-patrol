@@ -1,0 +1,8 @@
+name: CI Base
+run-name: ${{ github.actor }} is running workflows
+on: [push, pull_request]
+jobs:
+  frontend:
+    uses: ./.github/workflows/ci-frontend.yml
+  backend:
+    uses: ./.github/workflows/ci-backend.yml
