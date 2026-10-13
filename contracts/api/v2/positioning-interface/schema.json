@@ -143,7 +143,7 @@
 		"/stationUpdate": {
 			"get": {
 				"summary": "Subscribe to station updates",
-				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a StationResponse to subscribers, the same payload as GET /api/v1/stations/{stationID}, whenever a connection event changes a station's manning state.",
+				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a StationResponse to subscribers, whenever a connection event changes a station's manning state.",
 				"x-websocket": true,
 				"responses": {
 					"200": {
