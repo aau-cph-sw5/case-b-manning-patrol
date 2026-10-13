@@ -142,27 +142,27 @@
 		},
 		"/stationUpdate": {
 			"get": {
-				"summary": "Subscribe to station updates",
-				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a StationResponse to subscribers, whenever a connection event changes a station's manning state.",
-				"x-websocket": true,
-				"responses": {
-					"200": {
-						"description": "Message pushed to subscribers over the open WebSocket connection",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/StationResponse"
-								}
-							}
-						}
-					}
-				}
-			}
+        "summary": "Subscribe to station updates",
+        "description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a StationResponse to subscribers, whenever a connection event changes a station's manning state.",
+        "x-websocket": true,
+        "responses": {
+          "200": {
+            "description": "Message pushed to subscribers over the open WebSocket connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
 		},
 		"/trainUpdate": {
 			"get": {
 				"summary": "Subscribe to train updates",
-				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a TrainResponse to subscribers, the same payload as GET /api/v1/trains/{trainID}, whenever a connection event changes a train's manning state.",
+				"description": "WebSocket channel (upgrade from this HTTP endpoint). Backend pushes a TrainResponse to subscribers, whenever a connection event changes a train's manning state.",
 				"x-websocket": true,
 				"responses": {
 					"200": {

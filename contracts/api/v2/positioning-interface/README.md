@@ -6,9 +6,9 @@ Backend API contract for station and train presence positioning data. Consumed b
 
 ```mermaid
 graph TD
-    WebUI[Web UI\nReact] -->|"GET api/v1/dashboard"| RestAPI
-    WebUI -->|"GET api/v1/stations/{stationID}"| RestAPI
-    WebUI -->|"GET api/v1/trains/{trainID}"| RestAPI
+    WebUI[Web UI\nReact] -->|"GET api/v2/dashboard"| RestAPI
+    WebUI -->|"GET api/v2/stations/{stationID}"| RestAPI
+    WebUI -->|"GET api/v2/trains/{trainID}"| RestAPI
     WebUI -.->|"WS /stationUpdate"| RestAPI
     WebUI -.->|"WS /trainUpdate"| RestAPI
     RestAPI[RestAPI] --> Backend[Backend\npython]
@@ -16,9 +16,9 @@ graph TD
 
 ## Endpoints
 
-- `GET api/v1/dashboard` - Returns every station and train ([DashboardResponse])
-- `GET api/v1/stations/{stationID}` - Returns a single station and its areas ([StationResponse])
-- `GET api/v1/trains/{trainID}` - Returns a single train ([TrainResponse])
+- `GET api/v2/dashboard` - Returns every station and train ([DashboardResponse])
+- `GET api/v2/stations/{stationID}` - Returns a single station and its areas ([StationResponse])
+- `GET api/v2/trains/{trainID}` - Returns a single train ([TrainResponse])
 - `WS /stationUpdate` - Live push of a [StationResponse] whenever a station's manning state changes
 - `WS /trainUpdate` - Live push of a [TrainResponse] whenever a train's manning state changes
 
