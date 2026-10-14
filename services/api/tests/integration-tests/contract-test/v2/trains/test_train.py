@@ -1,4 +1,4 @@
-"""Tests for GET /api/v2/trains/{trainID} (TrainResponse)."""
+"""Tests for GET /api/v2/trains/{trainID} (TrainResponse).
 
 UNKNOWN_TRAIN_ID = "770e8400-e29b-41d4-a716-446655440099"
 
@@ -10,3 +10,4 @@ def test_get_unknown_train_returns_404(client):
     error = response.json()
     assert isinstance(error["code"], str)
     assert isinstance(error["message"], str)
+"""

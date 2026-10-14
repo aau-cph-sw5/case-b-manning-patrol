@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from uuid import UUID
 
 
 class AreaKind(StrEnum):
@@ -11,4 +12,4 @@ class AreaKind(StrEnum):
 class PatrolArea:
     area_id: str
     area_kind: AreaKind
-    beacon_id: str
+    beacon_id: UUID

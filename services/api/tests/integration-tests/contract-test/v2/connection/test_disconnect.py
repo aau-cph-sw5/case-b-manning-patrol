@@ -33,8 +33,8 @@ def test_disconnect_records_the_disconnection_event(client):
 
     event = response.json()
     assert event["event_type"] == "disconnect"
-    assert event["actor"] == ANDROID_ID
-    assert event["beacon"] == BEACON_ID
+    assert event["android_id"] == ANDROID_ID
+    assert event["beacon_id"] == BEACON_ID
     assert UUID(event["event_id"])
     assert datetime.fromisoformat(event["server_timestamp"])
     device_timestamp = datetime.fromisoformat(event["device_timestamp"])

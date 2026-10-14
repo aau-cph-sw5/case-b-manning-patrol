@@ -33,8 +33,8 @@ def test_connect_records_the_connection_event(client):
 
     event = response.json()
     assert event["event_type"] == "connect"
-    assert event["actor"] == ANDROID_ID
-    assert event["beacon"] == BEACON_ID
+    assert event["android_id"] == ANDROID_ID
+    assert event["beacon_id"] == BEACON_ID
     assert UUID(event["event_id"])
     assert datetime.fromisoformat(event["server_timestamp"])
     device_timestamp = datetime.fromisoformat(event["device_timestamp"])

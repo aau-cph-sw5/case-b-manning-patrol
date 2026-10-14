@@ -23,9 +23,9 @@ def test_patrol_session_stop_records_the_stop_event(client):
     )
 
     event = response.json()
-    assert event["event_type"] == "stop"
-    assert event["actor"] == ANDROID_ID
-    assert event["beacon"] is None
+    assert event["event_type"] == "shift_stop"
+    assert event["android_id"] == ANDROID_ID
+    assert event["beacon_id"] is None
     assert UUID(event["event_id"])
     assert datetime.fromisoformat(event["server_timestamp"])
     device_timestamp = datetime.fromisoformat(event["device_timestamp"])

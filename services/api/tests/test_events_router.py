@@ -58,8 +58,8 @@ def test_connection_event_returns_created_event():
     assert connection_response.status_code == 201
     connection_event = connection_response.json()
     assert connection_event["event_type"] == "connect"
-    assert connection_event["actor"] == "android-1"
-    assert connection_event["beacon"] == "beacon-1"
+    assert connection_event["android_id"] == "android-1"
+    assert connection_event["beacon_id"] == "beacon-1"
     assert connection_event["device_timestamp"] == "2026-10-02T10:00:00Z"
     assert connection_event["server_timestamp"]
     assert connection_event["event_id"]
@@ -68,8 +68,8 @@ def test_connection_event_returns_created_event():
     assert disconnection_response.status_code == 201
     disconnection_event = disconnection_response.json()
     assert disconnection_event["event_type"] == "disconnect"
-    assert disconnection_event["actor"] == "android-1"
-    assert disconnection_event["beacon"] == "beacon-1"
+    assert disconnection_event["android_id"] == "android-1"
+    assert disconnection_event["beacon_id"] == "beacon-1"
     assert disconnection_event["device_timestamp"] == "2026-10-02T10:00:00Z"
     assert disconnection_event["server_timestamp"]
     assert disconnection_event["event_id"]
@@ -77,9 +77,9 @@ def test_connection_event_returns_created_event():
     # Asserting Patrol Session Start
     assert start_response.status_code == 201
     start_event = start_response.json()
-    assert start_event["event_type"] == "start"
-    assert start_event["actor"] == "android-1"
-    assert start_event["beacon"] is None
+    assert start_event["event_type"] == "shift_start"
+    assert start_event["android_id"] == "android-1"
+    assert start_event["beacon_id"] is None
     assert start_event["device_timestamp"] == "2026-10-02T10:00:00Z"
     assert start_event["server_timestamp"]
     assert start_event["event_id"]
@@ -87,9 +87,9 @@ def test_connection_event_returns_created_event():
     # Asserting Patrol Session Stop
     assert stop_response.status_code == 201
     stop_event = stop_response.json()
-    assert stop_event["event_type"] == "stop"
-    assert stop_event["actor"] == "android-1"
-    assert stop_event["beacon"] is None
+    assert stop_event["event_type"] == "shift_stop"
+    assert stop_event["android_id"] == "android-1"
+    assert stop_event["beacon_id"] is None
     assert stop_event["device_timestamp"] == "2026-10-02T10:00:00Z"
     assert stop_event["server_timestamp"]
     assert stop_event["event_id"]
@@ -97,7 +97,7 @@ def test_connection_event_returns_created_event():
     # Asserting Adjustment
     assert adjustment_response.status_code == 201
     adjustment_event = adjustment_response.json()
-    assert adjustment_event["actor"] == "android-1"
+    assert adjustment_event["androd_id"] == "android-1"
     assert adjustment_event["corrected_fact"] == {
         "fact_type": "connect",
         "beacon_id": "beacon-1",

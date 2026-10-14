@@ -54,8 +54,8 @@ def build_events(fixture: list[dict]) -> list[Event]:
         Event(
             event_id=_seed_id(f"{FIXTURE}/{entry['debugging_number']}"),
             event_type=FIXTURE_EVENT_TYPES[entry["event"]],
-            actor=entry["android_id"],
-            beacon=entry["beacon_id"],
+            android_id=entry["android_id"],
+            beacon_id=entry["beacon_id"],
             device_timestamp=_parse_timestamp(entry["timestamp"]),
             server_timestamp=_parse_timestamp(entry["timestamp"]),
             source=SOURCE,
@@ -67,8 +67,8 @@ def build_events(fixture: list[dict]) -> list[Event]:
 
     first, last = events[0], events[-1]
     session_bounds = [
-        ("start", EventType.START_EVENT, first, -timedelta(minutes=1)),
-        ("stop", EventType.STOP_EVENT, last, timedelta(minutes=1)),
+        ("shift_start", EventType.START_EVENT, first, -timedelta(minutes=1)),
+        ("shift_stop", EventType.STOP_EVENT, last, timedelta(minutes=1)),
     ]
     for name, event_type, anchor, offset in session_bounds:
         timestamp = anchor.device_timestamp + offset
@@ -76,8 +76,8 @@ def build_events(fixture: list[dict]) -> list[Event]:
             Event(
                 event_id=_seed_id(f"{FIXTURE}/{name}"),
                 event_type=event_type,
-                actor=anchor.actor,
-                beacon=None,
+                android_id=anchor.android_id,
+                beacon_id=None,
                 device_timestamp=timestamp,
                 server_timestamp=timestamp,
                 source=SOURCE,
@@ -98,12 +98,12 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
         Adjustment(
             adjustment_id=_seed_id(f"{FIXTURE}/adjustment/10"),
             target_event_id=blip.event_id,
-            actor=blip.actor,
+            android_id=blip.android_id,
             reason="Signal blip, steward did not leave the platform",
             author="seed-supervisor",
             server_timestamp=blip.server_timestamp + timedelta(hours=2),
             corrected_fact_type=EventType.CONNECT_EVENT,
-            corrected_beacon_id=blip.beacon,
+            corrected_beacon_id=blip.beacon_id,
             corrected_occured_at=blip.device_timestamp,
             source=SOURCE,
         ),
