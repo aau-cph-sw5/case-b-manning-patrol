@@ -30,8 +30,9 @@ def test_adjustment_returns_stored_adjustment(client):
     assert response.status_code == 201
     adjustment = response.json()
     assert adjustment["android_id"] == ANDROID_ID
-    assert datetime.fromisoformat(adjustment["corrected_fact"]["occurred_at"]) == datetime.fromisoformat(
-    VALID_ADJUSTMENT["corrected_fact"]["occurred_at"])
+    assert datetime.fromisoformat(
+        adjustment["corrected_fact"]["occurred_at"]) == datetime.fromisoformat(
+        VALID_ADJUSTMENT["corrected_fact"]["occurred_at"])
     assert adjustment["reason"] == REASON
     assert adjustment["author"] == AUTHOR_ID
     assert adjustment["target_event_id"] is None

@@ -1,10 +1,12 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.exceptions import RequestValidationError
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.repository.events import get_event, insert_adjustment, insert_event
 from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
+
 
 class MainProducer:
     @staticmethod
@@ -28,7 +30,7 @@ class MainProducer:
             server_timestamp=_now_utc(),
             source=source,
         )
-        
+
         await insert_event(session, event_model)
         return event_model
 
@@ -43,17 +45,17 @@ class MainProducer:
         target_event_id: UUID | None = None,
     ) -> AdjustmentModel:
 
-        if ((corrected_fact.fact_type == EventType.CONNECT_EVENT or 
-             corrected_fact.fact_type == EventType.DISCONNECT_EVENT) and 
-             corrected_fact.beacon_id == None):
+        if ((corrected_fact.fact_type == EventType.CONNECT_EVENT or
+             corrected_fact.fact_type == EventType.DISCONNECT_EVENT) and
+             corrected_fact.beacon_id is None):
             raise RequestValidationError("Connect and Disconnect event needs beacon")
 
         if (target_event_id is not None):
             try:
                 await get_event(session, target_event_id)
-            except:
-                raise EventValidationError("target event id does not exist")
-            
+            except Exception:
+                raise EventValidationError("target event id does not exist") from None
+
 
         adjustment_model = AdjustmentModel(
             adjustment_id=uuid4(),
@@ -90,7 +92,7 @@ async def validate_event(
     android_id: UUID,
     beacon_id: UUID | None = None,
 ) -> None:
-    android_id_found = await return_actor(android_id)  
+    android_id_found = await return_actor(android_id)
 
     if android_id_found is None:
         raise AndroidIddNotFoundError(f"Android_id '{android_id}' was not found")

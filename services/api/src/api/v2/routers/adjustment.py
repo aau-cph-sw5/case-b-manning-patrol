@@ -23,7 +23,9 @@ class AdjustmentEvent(BaseModel):
 
 
 @router.post("/adjustment", status_code=status.HTTP_201_CREATED)
-async def adjustment_event(adjustment_event: AdjustmentEvent, session: SessionDep) -> AdjustmentModel:
+async def adjustment_event(
+    adjustment_event: AdjustmentEvent,
+    session: SessionDep) -> AdjustmentModel:
     adjustment_model = await MainProducer.append_adjustment(
         session=session,
         android_id=adjustment_event.android_id,
@@ -33,5 +35,5 @@ async def adjustment_event(adjustment_event: AdjustmentEvent, session: SessionDe
         target_event_id=adjustment_event.target_event_id,
         source="API",
     )
-    
+
     return adjustment_model

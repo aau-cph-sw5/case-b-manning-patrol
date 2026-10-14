@@ -7,10 +7,11 @@ Main FastAPI application.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi.exceptions import RequestValidationError
+
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import health, positioning_simulator

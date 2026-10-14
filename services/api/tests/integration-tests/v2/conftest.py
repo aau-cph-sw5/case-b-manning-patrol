@@ -1,29 +1,20 @@
+import os
+from collections.abc import AsyncGenerator, Generator  # noqa: E402
 from contextlib import asynccontextmanager
 from uuid import UUID
 
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-
-from src.db.main import get_session
-from src.main import app
-from src.models import PatrolArea, Station
-from src.models.patrol_area import AreaKind
-
-import os
-
-
-from collections.abc import AsyncGenerator, Generator  # noqa: E402
-
-import pytest  # noqa: E402
 from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
 from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 
-from src.db.main import get_session  # noqa: E402
-from src.main import app  # noqa: E402
-
+from src.db.main import get_session
+from src.main import app
+from src.models import PatrolArea, Station
+from src.models.patrol_area import AreaKind
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
