@@ -6,7 +6,8 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <Stack>
-        <Stack.Screen name="index" options={{ title: "Patrol" }} />
+        {/* the patrol screen draws its own figma header, so the native one stays out of the way */}
+        <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack>
     </GestureHandlerRootView>
   );

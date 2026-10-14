@@ -1,19 +1,25 @@
-// the steward's patrol screen. the session slider drives everything below it: swiping
-// start opens the patrol session and starts the mock beacon scan at once; swiping stop ends both.
-// every event the scanner produces prints in the terminal and is forwarded to the
-// backend as it arrives.
-import { useEffect, useMemo } from "react";
-import { ScrollView, StyleSheet, Text } from "react-native";
+// the steward's patrol screen, laid out per the figma template. the session slider
+// drives everything below it: swiping start opens the patrol session and starts the
+// mock beacon scan at once; swiping stop ends both. every event the scanner produces
+// prints in the terminal and is forwarded to the backend as it arrives.
+import { useEffect, useMemo, useState } from "react";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 
+import { BottomNav } from "@/components/BottomNav";
 import { SessionSlider } from "@/components/SessionSlider";
+import { StationHeader } from "@/components/StationHeader";
+import { StationList } from "@/components/StationList";
 import { MOCK_ANDROID_ID, MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
+import { MODE_LINES, stations, type StationMode } from "@/fixtures/mockStations";
 import { useBeaconScanner } from "@/hooks/useBeaconScanner";
+import { useElapsedTime } from "@/hooks/useElapsedTime";
 import { usePatrolSession } from "@/hooks/usePatrolSession";
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 
 export default function Index() {
+  const [mode, setMode] = useState<StationMode>("m1/m2");
+
   // one scanner for the lifetime of the screen, so start/stop always talks to the same one
-  
   const scanner = useMemo(
     () =>
       createMockBeaconScanner({
@@ -35,67 +41,72 @@ export default function Index() {
     }
   }, [patrolSession.status, startScan, stopScan]);
 
+  // station timers advance with the live session; startedAt is null while stopped,
+  // so they fall back to the seeded mock times
+  const sessionElapsed = useElapsedTime(patrolSession.startedAt);
+  const elapsedSeconds = Math.floor(sessionElapsed / 1000);
+
+  const visibleStations = useMemo(
+    () =>
+      stations.filter((station) =>
+        station.lines.some((line) => MODE_LINES[mode].includes(line)),
+      ),
+    [mode],
+  );
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <SessionSlider
-        status={patrolSession.status}
-        startedAt={patrolSession.startedAt}
-        error={patrolSession.error}
-        onStart={start}
-        onStop={stop}
-      />
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.screen}>
+        <StationHeader mode={mode} onModeChange={setMode} />
 
-      <Text style={styles.section}>
-        {scan.scanning ? "Scanning (mock)" : "Not scanning"}
-      </Text>
+        <View style={styles.body}>
+          <View style={styles.sliderCard}>
+            <SessionSlider
+              status={patrolSession.status}
+              startedAt={patrolSession.startedAt}
+              error={patrolSession.error}
+              onStart={start}
+              onStop={stop}
+            />
+            <Text style={styles.scanStatus}>
+              {scan.scanning ? "Scanning (mock)" : "Not scanning"}
+            </Text>
+          </View>
 
-      <Text style={styles.subsection}>Connected beacons</Text>
-      {scan.connectedBeaconIds.length === 0 ? (
-        <Text style={styles.empty}>None</Text>
-      ) : (
-        scan.connectedBeaconIds.map((beaconId) => (
-          <Text key={beaconId} style={styles.beacon}>
-            {beaconId}
-          </Text>
-        ))
-      )}
+          <StationList stations={visibleStations} elapsedSeconds={elapsedSeconds} />
+        </View>
 
-      <Text style={styles.subsection}>Recent events (BeaconConnectionEvents)</Text>
-      {scan.recentEvents.map((event) => (
-        <Text key={`${event.timestamp}-${event.beacon_id}`} style={styles.event}>
-          {event.event === "CONNECTED" ? "+" : "-"} {event.beacon_id} at {event.timestamp}
-        </Text>
-      ))}
-    </ScrollView>
+        <BottomNav />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#f3f1ef",
+  },
   screen: {
     flex: 1,
-    backgroundColor: "white",
   },
-  content: {
-    gap: 12,
-    padding: 16,
+  body: {
+    flex: 1,
+    minHeight: 0,
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    gap: 14,
   },
-  section: {
-    fontSize: 16,
-    fontWeight: "bold",
+  sliderCard: {
+    borderRadius: 22,
+    backgroundColor: "#ffffff",
+    padding: 10,
+    elevation: 4,
   },
-  subsection: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  empty: {
-    fontSize: 14,
-    color: "gray",
-  },
-  beacon: {
-    fontSize: 14,
-  },
-  event: {
-    fontSize: 12,
-    fontFamily: undefined,
+  scanStatus: {
+    marginTop: 8,
+    textAlign: "center",
+    fontSize: 10,
+    color: "#777174",
   },
 });
