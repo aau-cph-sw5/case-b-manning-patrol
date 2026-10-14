@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
@@ -15,13 +16,13 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 class ConnectionEvent(BaseModel):
-    android_id: str
-    beacon_id: str
+    android_id: UUID
+    beacon_id: UUID
     timestamp: datetime
 
 
 class PatrolSessionEvent(BaseModel):
-    android_id: str
+    android_id: UUID
     timestamp: datetime
 
 

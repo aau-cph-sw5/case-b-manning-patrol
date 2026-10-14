@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
-
+from fastapi.exceptions import RequestValidationError
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import adjustment, health, positioning_simulator
@@ -41,7 +41,23 @@ async def event_validation_exception_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
-        content={"detail": str(error)},
+        content={
+            "code": "400",
+            "message": str(error)
+        },
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    _: Request,
+    error: RequestValidationError):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "code": "400",
+            "message": str(error)
+            }
     )
 
 
