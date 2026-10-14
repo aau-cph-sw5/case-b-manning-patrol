@@ -1,4 +1,4 @@
-"""Tests for GET /api/v2/stations/{stationID} (StationResponse)."""
+"""Tests for GET /api/v2/stations/{stationID} (StationResponse).
 
 from datetime import datetime
 from uuid import UUID
@@ -33,3 +33,4 @@ def test_get_unknown_station_returns_404(client):
     error = response.json()
     assert isinstance(error["code"], str)
     assert isinstance(error["message"], str)
+"""

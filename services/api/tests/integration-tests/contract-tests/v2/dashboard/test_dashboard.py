@@ -1,4 +1,4 @@
-"""Tests for GET /api/v2/dashboard (DashboardResponse)."""
+"""Tests for GET /api/v2/dashboard (DashboardResponse).
 
 from datetime import datetime
 from uuid import UUID
@@ -29,3 +29,4 @@ def test_dashboard_returns_stations_and_trains(client, seeded_station_id):
         assert isinstance(train["manned_time_secs"], int)
         steward = train["current_steward_id"]
         assert steward is None or UUID(steward)
+"""
