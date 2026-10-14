@@ -45,8 +45,20 @@ jobs:
         cache: 'npm'
         cache-dependency-path: ${{ matrix.workdir }}/package-lock.json
 
+        # Fail on high/critical advisories, with documented exceptions for the
+    # Expo SDK 57 build chain (see apps/android/.audit-ci.json):
+    #   GHSA-vfj7-8cjw-p6xm (braces, high)      - no patched release exists on npm (latest 3.0.3 is vulnerable)
+    #   GHSA-86w9-cpqp-85rv (node-forge, high)  - no patched release exists on npm (latest 1.4.0 is vulnerable)
+    # Both are dev/build tooling (metro file matching, code-signing certs),
+    # not code shipped to devices. `npm audit fix --force` would downgrade to
+    # Expo SDK 44 and break the app. audit-ci prints "Consider not
+    # allowlisting" once an advisory disappears from the report - remove it
+    # from the allowlist when that happens (e.g. braces > 3.0.3 ships).
     - name: Audit dependencies
-      run: npm audit --audit-level=high
+      run: npx --yes audit-ci@^7 --config .audit-ci.json
+      
+      # Previous command:
+      # run: npm audit --audit-level=high
 
   uv:
     name: uv audit
