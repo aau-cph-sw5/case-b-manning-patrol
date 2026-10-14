@@ -15,7 +15,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 class AdjustmentEvent(BaseModel):
-    android_id: str
+    android_id: UUID
     corrected_fact: CorrectedFact
     reason: str
     author: str
@@ -26,7 +26,7 @@ class AdjustmentEvent(BaseModel):
 async def adjustment_event(adjustment_event: AdjustmentEvent, session: SessionDep):
     adjustment_model = await MainProducer.append_adjustment(
         session=session,
-        actor=adjustment_event.android_id,
+        android_id=adjustment_event.android_id,
         corrected_fact=adjustment_event.corrected_fact,
         reason=adjustment_event.reason,
         author=adjustment_event.author,

@@ -42,24 +42,13 @@ async def event_validation_exception_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
-        content={
-            "code": "400",
-            "message": str(error)
-        },
+        content={"code": "400", "message": str(error)},
     )
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    _: Request,
-    error: RequestValidationError):
-    return JSONResponse(
-        status_code=400,
-        content={
-            "code": "400",
-            "message": str(error)
-            }
-    )
+async def validation_exception_handler(_: Request, error: RequestValidationError):
+    return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
 # CORS for frontend access

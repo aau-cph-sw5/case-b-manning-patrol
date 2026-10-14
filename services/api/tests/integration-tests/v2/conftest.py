@@ -44,8 +44,6 @@ async def seeded_station_id() -> str:
     return SEEDED_STATION_ID
 
 
-
-
 @pytest.fixture(autouse=True)
 def override_db_session() -> Generator[None]:
     engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)

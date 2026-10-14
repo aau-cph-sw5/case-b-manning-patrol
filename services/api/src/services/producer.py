@@ -45,17 +45,17 @@ class MainProducer:
         target_event_id: UUID | None = None,
     ) -> AdjustmentModel:
 
-        if ((corrected_fact.fact_type == EventType.CONNECT_EVENT or
-             corrected_fact.fact_type == EventType.DISCONNECT_EVENT) and
-             corrected_fact.beacon_id is None):
+        if (
+            corrected_fact.fact_type == EventType.CONNECT_EVENT
+            or corrected_fact.fact_type == EventType.DISCONNECT_EVENT
+        ) and corrected_fact.beacon_id is None:
             raise RequestValidationError("Connect and Disconnect event needs beacon")
 
-        if (target_event_id is not None):
+        if target_event_id is not None:
             try:
                 await get_event(session, target_event_id)
             except Exception:
                 raise EventValidationError("target event id does not exist") from None
-
 
         adjustment_model = AdjustmentModel(
             adjustment_id=uuid4(),

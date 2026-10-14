@@ -1,6 +1,7 @@
 """Tests for POST /api/v2/adjustment (AdjustmentEventCreate)."""
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from src.models.event import EventType
@@ -12,7 +13,7 @@ AUTHOR_ID = "880e8400-e29b-41d4-a716-446655440003"
 REASON = "Beacon never fired on arrival; steward confirms platform patrol."
 TARGET_EVENT_ID = "770e8400-e29b-41d4-a716-446655440002"
 
-VALID_ADJUSTMENT = {
+VALID_ADJUSTMENT: dict[str, Any] = {
     "android_id": ANDROID_ID,
     "corrected_fact": {
         "fact_type": EventType.CONNECT_EVENT,
@@ -31,8 +32,8 @@ def test_adjustment_returns_stored_adjustment(client):
     adjustment = response.json()
     assert adjustment["android_id"] == ANDROID_ID
     assert datetime.fromisoformat(
-        adjustment["corrected_fact"]["occurred_at"]) == datetime.fromisoformat(
-        VALID_ADJUSTMENT["corrected_fact"]["occurred_at"])
+        adjustment["corrected_fact"]["occurred_at"]
+    ) == datetime.fromisoformat(VALID_ADJUSTMENT["corrected_fact"]["occurred_at"])
     assert adjustment["reason"] == REASON
     assert adjustment["author"] == AUTHOR_ID
     assert adjustment["target_event_id"] is None
