@@ -3,7 +3,11 @@ from uuid import UUID, uuid4
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.repository.events import insert_adjustment, insert_event
+from src.db.repository.events import (
+    get_open_connections,
+    insert_adjustment,
+    insert_event,
+)
 from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 
 
@@ -32,6 +36,32 @@ class MainProducer:
 
         await insert_event(session, event_model)
         return event_model
+
+    @staticmethod
+    @staticmethod
+    async def close_open_connections(
+        session: AsyncSession,
+        actor: str,
+        device_timestamp: datetime,
+        source: str,
+    ) -> list[EventModel]:
+        open_connections = await get_open_connections(session, actor)
+        pending_closures = [
+            (connection.actor, connection.beacon) for connection in open_connections
+        ]
+        closed_connections = []
+        for connection_actor, connection_beacon in pending_closures:
+            closed_connections.append(
+                await MainProducer.append_event(
+                    session=session,
+                    event_type=EventType.DISCONNECT_EVENT,
+                    actor=connection_actor,
+                    beacon=connection_beacon,
+                    device_timestamp=device_timestamp,
+                    source=source,
+                )
+            )
+        return closed_connections
 
     @staticmethod
     async def append_adjustment(
