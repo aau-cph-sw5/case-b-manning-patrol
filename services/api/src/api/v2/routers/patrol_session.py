@@ -77,4 +77,10 @@ async def patrol_session_stop_event(
         device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
+    await MainProducer.close_open_connections(
+        session=session,
+        actor=patrol_session_event.android_id,
+        device_timestamp=patrol_session_event.timestamp,
+        source="API",
+    )
     return event_model
