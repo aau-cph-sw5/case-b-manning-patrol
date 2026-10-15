@@ -1,6 +1,21 @@
-from fastapi.testclient import TestClient
+from collections.abc import AsyncGenerator
+from datetime import UTC, datetime, timedelta
 
+import pytest_asyncio
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.api.v2.routers.patrol_session import (
+    PatrolSessionEvent,
+    patrol_session_stop_event,
+)
+from src.db.repository import events
 from src.main import app
+from src.models.event import EventType
+from src.services.producer import MainProducer
 
 
 def test_connection_event_returns_created_event():
@@ -108,3 +123,69 @@ def test_connection_event_returns_created_event():
     assert adjustment_event["adjustment_id"]
     assert adjustment_event["author"] == "Controller-1"
     assert adjustment_event["target_event_id"] is None
+
+
+@pytest_asyncio.fixture
+async def db_session() -> AsyncGenerator[AsyncSession]:
+    engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+    async with AsyncSession(engine) as session:
+        yield session
+
+    await engine.dispose()
+
+
+async def test_patrol_session_stop_closes_open_connections(db_session):
+    started_at = datetime(2026, 10, 9, 10, 0, tzinfo=UTC)
+    stopped_at = started_at + timedelta(hours=2)
+
+    for beacon_id, timestamp in [
+        ("beacon-1", started_at),
+        ("beacon-2", started_at + timedelta(minutes=30)),
+        ("beacon-3", started_at - timedelta(hours=1)),
+    ]:
+        await MainProducer.append_event(
+            session=db_session,
+            event_type=EventType.CONNECT_EVENT,
+            actor="android-1",
+            beacon=beacon_id,
+            device_timestamp=timestamp,
+            source="test",
+        )
+    await MainProducer.append_event(
+        session=db_session,
+        event_type=EventType.DISCONNECT_EVENT,
+        actor="android-1",
+        beacon="beacon-3",
+        device_timestamp=started_at,
+        source="test",
+    )
+
+    stop_event = await patrol_session_stop_event(
+        PatrolSessionEvent(android_id="android-1", timestamp=stopped_at),
+        db_session,
+    )
+
+    assert stop_event.event_type == EventType.STOP_EVENT
+    assert await events.get_open_connections(db_session, "android-1") == []
+
+    all_events = await events.get_events(db_session)
+    disconnects = [
+        event for event in all_events if event.event_type == EventType.DISCONNECT_EVENT
+    ]
+    closed = [
+        disconnect_event
+        for disconnect_event in disconnects
+        if disconnect_event.beacon in {"beacon-1", "beacon-2"}
+    ]
+    assert {closed_connection.beacon for closed_connection in closed} == {
+        "beacon-1",
+        "beacon-2",
+    }
+    assert all(
+        closed_connection.device_timestamp.replace(tzinfo=None)
+        == stopped_at.replace(tzinfo=None)
+        for closed_connection in closed
+    )
