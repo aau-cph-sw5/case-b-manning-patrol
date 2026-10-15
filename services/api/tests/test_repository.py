@@ -210,7 +210,9 @@ async def test_get_open_connections_returns_unmatched_connects(session):
 
     result = await events.get_open_connections(session, "steward-1")
 
-    assert [e.event_id for e in result] == [open_connect.event_id]
+    assert [open_connection.event_id for open_connection in result] == [
+        open_connect.event_id
+    ]
 
 
 @pytest.mark.asyncio
@@ -255,7 +257,9 @@ async def test_get_open_connections_returns_reopened_connects(session):
 
     result = await events.get_open_connections(session, "steward-1")
 
-    assert [e.event_id for e in result] == [reopened.event_id]
+    assert [open_connection.event_id for open_connection in result] == [
+        reopened.event_id
+    ]
 
 
 @pytest.mark.asyncio
@@ -275,4 +279,4 @@ async def test_get_open_connections_returns_one_event_per_beacon(session):
 
     result = await events.get_open_connections(session, "steward-1")
 
-    assert [e.event_id for e in result] == [latest.event_id]
+    assert [open_connection.event_id for open_connection in result] == [latest.event_id]
