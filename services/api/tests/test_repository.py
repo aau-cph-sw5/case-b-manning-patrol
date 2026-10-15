@@ -200,3 +200,79 @@ async def test_get_adjustments_returns_all_inserted_adjustments(session):
     result = await events.get_adjustments(session)
 
     assert {a.adjustment_id for a in result} == expected_ids
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_returns_unmatched_connects(session):
+    open_connect = make_event(beacon="beacon-open")
+
+    await events.insert_event(session, open_connect)
+
+    result = await events.get_open_connections(session, "steward-1")
+
+    assert [e.event_id for e in result] == [open_connect.event_id]
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_ignores_disconnects_without_connect(session):
+    await events.insert_event(
+        session, make_event(event_type=EventType.DISCONNECT_EVENT)
+    )
+
+    assert await events.get_open_connections(session, "steward-1") == []
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_excludes_disconnected_beacons(session):
+    await events.insert_event(
+        session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
+    )
+    await events.insert_event(
+        session,
+        make_event(
+            event_type=EventType.DISCONNECT_EVENT,
+            device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC),
+        ),
+    )
+
+    assert await events.get_open_connections(session, "steward-1") == []
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_returns_reopened_connects(session):
+    reopened = make_event(device_timestamp=datetime(2026, 10, 8, 12, tzinfo=UTC))
+    await events.insert_event(
+        session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
+    )
+    await events.insert_event(
+        session,
+        make_event(
+            event_type=EventType.DISCONNECT_EVENT,
+            device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC),
+        ),
+    )
+    await events.insert_event(session, reopened)
+
+    result = await events.get_open_connections(session, "steward-1")
+
+    assert [e.event_id for e in result] == [reopened.event_id]
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_only_returns_events_of_actor(session):
+    await events.insert_event(session, make_event(actor="steward-2"))
+
+    assert await events.get_open_connections(session, "steward-1") == []
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_returns_one_event_per_beacon(session):
+    await events.insert_event(
+        session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
+    )
+    latest = make_event(device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC))
+    await events.insert_event(session, latest)
+
+    result = await events.get_open_connections(session, "steward-1")
+
+    assert [e.event_id for e in result] == [latest.event_id]
