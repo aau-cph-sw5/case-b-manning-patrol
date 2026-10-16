@@ -195,7 +195,9 @@ async def test_reconnect_to_same_beacon_is_stored_as_new_event(session):
         EventType.DISCONNECT_EVENT,
         EventType.CONNECT_EVENT,
     ]
-    assert {(e.actor, e.beacon) for e in result} == {("steward-1", "beacon-1")}
+    assert {(e.android_id, e.beacon_id) for e in result} == {
+        (connect.android_id, connect.beacon_id),
+    }
     assert result[0].event_id != result[2].event_id
     assert result[2].device_timestamp == TIMESTAMP + timedelta(minutes=5)
 
