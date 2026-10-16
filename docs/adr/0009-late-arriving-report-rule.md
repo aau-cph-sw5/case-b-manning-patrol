@@ -4,7 +4,7 @@
 
 **Date:** 2026-10-16
 
-**Deciders.** Sebastian Juel Milo, Héðinn Snær Arnarson, Group 3
+**Deciders:** Sebastian Juel Milo, Héðinn Snær Arnarson, Group 3
 
 **Related backlog items.** MET-B-006
 
