@@ -12,7 +12,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.main import engine, init_db
+from src.db.main import engine, upgrade_db
 from src.models.event import Adjustment, Event, EventType
 from src.services.positioning_service import load_fixture
 
@@ -150,7 +150,6 @@ async def seed(session: AsyncSession) -> SeedResult:
 
 
 async def _run() -> SeedResult:
-    await init_db()
     try:
         async with AsyncSession(engine) as session:
             return await seed(session)
@@ -159,7 +158,8 @@ async def _run() -> SeedResult:
 
 
 def main():
-    """Create tables if needed and insert the seed data."""
+    """Apply pending migrations and insert the seed data."""
+    upgrade_db()
     result = asyncio.run(_run())
     print(
         f"Inserted {result.events_inserted} events and "
