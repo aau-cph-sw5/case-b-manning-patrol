@@ -1,6 +1,6 @@
 # ADR 0009. An observation, which arrives after the shift it belongs to has been reported, is handled by a stated rule, rather than silently accepted
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Date:** 2026-10-16
 
