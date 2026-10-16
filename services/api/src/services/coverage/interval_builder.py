@@ -2,7 +2,6 @@ from src.models.coverage import PresenceInterval
 from src.models.event import Event
 
 
-# Turns stored events into presence intervals. Pure: no I/O and no clock.
 class IntervalBuilder:
     def build(self, events: list[Event]) -> list[PresenceInterval]:
         """Turn the stored events into presence intervals, one per visit.

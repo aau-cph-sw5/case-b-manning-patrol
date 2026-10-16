@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from src.models.coverage import (
     AreaCoverage,
     AreaRef,
+    CoveredTimeSpan,
     OverdueEpisode,
     PresenceInterval,
-    CoveredTimeSpan,
 )
 from src.models.patrol_area import AreaKind
 
