@@ -6,7 +6,7 @@
 
 **Deciders:** Sebastian Juel Milo, Héðinn Snær Arnarson, Group 3
 
-**Related backlog items.** MET-B-006
+**Related backlog items:** MET-B-006
 
 ## Context
 
