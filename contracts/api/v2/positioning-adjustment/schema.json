@@ -48,7 +48,7 @@
 						}
 					},
 					"404": {
-						"description": "Referenced actor, beacon, or target event not found",
+						"description": "Referenced android_id, beacon, or target event not found",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -77,7 +77,7 @@
 				"type": "object",
 				"description": "The manual correction to append. The store is contractual evidence of compliance, so the justification travels with the correction.",
 				"properties": {
-					"actor": {
+					"android_id": {
 						"type": "string",
 						"format": "uuid",
 						"description": "Steward (android device) the adjustment is about.",
@@ -109,7 +109,7 @@
 						"example": "880e8400-e29b-41d4-a716-446655440003"
 					}
 				},
-				"required": ["actor", "corrected_fact", "reason", "author"]
+				"required": ["android_id", "corrected_fact", "reason", "author"]
 			},
 			"CorrectedFact": {
 				"type": "object",
@@ -125,7 +125,7 @@
 						"type": "string",
 						"format": "uuid",
 						"nullable": true,
-						"description": "Required when fact_type is connect or disconnect, null otherwise.",
+						"description": "only used when fact_type is connect or disconnect",
 						"example": "550e8400-e29b-41d4-a716-446655440000"
 					},
 					"occurred_at": {

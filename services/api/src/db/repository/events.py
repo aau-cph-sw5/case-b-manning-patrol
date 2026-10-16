@@ -29,37 +29,40 @@ async def get_events(session: AsyncSession) -> list[Event]:
     return list(result.all())
 
 
-async def get_open_connections(session: AsyncSession, actor: str) -> list[Event]:
+async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[Event]:
     connects = await session.exec(
         select(Event).where(
-            Event.actor == actor, Event.event_type == EventType.CONNECT_EVENT
+            Event.android_id == android_id,
+            Event.event_type == EventType.CONNECT_EVENT,
         )
     )
     disconnects = await session.exec(
         select(Event).where(
-            Event.actor == actor, Event.event_type == EventType.DISCONNECT_EVENT
+            Event.android_id == android_id,
+            Event.event_type == EventType.DISCONNECT_EVENT,
         )
     )
 
-    latest_disconnect: dict[str | None, datetime] = {}
+    latest_disconnect: dict[UUID | None, datetime] = {}
     for disconnect in disconnects:
         if (
-            disconnect.beacon not in latest_disconnect
-            or disconnect.device_timestamp > latest_disconnect[disconnect.beacon]
+            disconnect.beacon_id not in latest_disconnect
+            or disconnect.device_timestamp > latest_disconnect[disconnect.beacon_id]
         ):
-            latest_disconnect[disconnect.beacon] = disconnect.device_timestamp
+            latest_disconnect[disconnect.beacon_id] = disconnect.device_timestamp
 
-    open_connections: dict[str | None, Event] = {}
+    open_connections: dict[UUID | None, Event] = {}
     for connect in connects:
         is_open = (
-            connect.beacon not in latest_disconnect
-            or connect.device_timestamp > latest_disconnect[connect.beacon]
+            connect.beacon_id not in latest_disconnect
+            or connect.device_timestamp > latest_disconnect[connect.beacon_id]
         )
-        is_latest = connect.beacon not in open_connections or (
-            connect.device_timestamp > open_connections[connect.beacon].device_timestamp
+        is_latest = connect.beacon_id not in open_connections or (
+            connect.device_timestamp
+            > open_connections[connect.beacon_id].device_timestamp
         )
         if is_open and is_latest:
-            open_connections[connect.beacon] = connect
+            open_connections[connect.beacon_id] = connect
 
     return list(open_connections.values())
 
