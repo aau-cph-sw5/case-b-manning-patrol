@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 
-**Date.** 2026-10-16
+**Date:** 2026-10-16
 
 **Deciders.** Sebastian Juel Milo, Héðinn Snær Arnarson, Group 3
 
