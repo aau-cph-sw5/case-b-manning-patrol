@@ -15,7 +15,7 @@ Without this rule compliance percentages are quietly wrong.
 
 
 ## Decision
-Based on an answer from Metro in August 2026, if an observation arrives late, a Report will be reissued. The report is therefore a versioned artefact rather than a file produced once. A reissue supersedes the earlier version, however the earlier version remains retrieveable. 
+Based on an answer from Metro in August 2026, if an observation arrives late, a report will be reissued. The report is therefore a versioned artefact rather than a file produced once. A reissue supersedes the earlier version, however the earlier version remains retrievable. 
 
 ## Consequences
 Based on the work on the append-only event store (**0008-append-only-event-store-decision.md**) which stores both the handheld timestamp and the server timestamp, we already have the data required to version reports, therefore the acceptance criteria from MET-B-006: "An observation arriving out of order is placed by its observation timestamp" is trivially solved. 
