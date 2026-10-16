@@ -11,7 +11,7 @@
 ## Context
 
 A handheld that reconnects after a period underground will deliver observation late.
-Without this rule compliance percentages are quietly wrong
+Without this rule compliance percentages are quietly wrong.
 
 
 ## Decision
