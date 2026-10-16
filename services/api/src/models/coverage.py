@@ -40,11 +40,11 @@ class AreaRef:
 
 # A span of time during which an area counts as covered.
 @dataclass(frozen=True)
-class TimeSpan:
+class CoveredTimeSpan:
     start: datetime
     end: datetime
 
-    def touches(self, other: TimeSpan) -> bool:
+    def touches(self, other: CoveredTimeSpan) -> bool:
         """Tell whether this span and another can be merged into one.
 
         True when they overlap, or when one ends exactly where the other starts.
@@ -53,7 +53,7 @@ class TimeSpan:
         """
         raise NotImplementedError
 
-    def merge(self, other: TimeSpan) -> TimeSpan:
+    def merge(self, other: CoveredTimeSpan) -> CoveredTimeSpan:
         """Combine two touching spans into one.
 
         Returns a span from the earlier start to the later end. Only call it
@@ -114,7 +114,7 @@ class PresenceInterval:
         min_duration: timedelta,
         window: timedelta,
         now: datetime,
-    ) -> TimeSpan | None:
+    ) -> CoveredTimeSpan | None:
         """The span of time this visit keeps the area covered.
 
         None if the visit does not qualify. Otherwise the span runs from
