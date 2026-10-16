@@ -1,24 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { connectToStationUpdates } from "../api/stationEventStream";
 
 export function StationScreen() {
-  useEffect(() => {
-    const disconnect = connectToStationUpdates(
-      (data) => {
-        console.log("Received station update:", data);
-        //Add handling of data here
-      },
-      (error) => {
-        console.error("SSE error:", error);
-        //Add error handling here
-      },
-    );
-    //Calls the disconnect function when done with useeffect
-    return () => {
-      disconnect();
-    };
-  }, []);
+    const [stationData, setStationData] = useState<string[]>([]);
 
-  return null;
+    useEffect(() => {
+        const disconnect = connectToStationUpdates(
+        (data) => {
+            console.log("Received station update:", data);
+
+            setStationData((currentData) => [
+                ...currentData, data,
+            ])
+            //Add handling of data here
+        },
+        (error) => {
+            console.error("SSE error:", error);
+            //Add error handling here
+        },
+        );
+        //Calls the disconnect function when done with useeffect
+        return () => {
+        disconnect();
+        };
+    }, []);
+
+    return null;
 }
 
