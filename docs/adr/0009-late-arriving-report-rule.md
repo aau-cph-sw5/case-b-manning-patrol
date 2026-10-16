@@ -27,7 +27,7 @@ Potential drawbacks:
 - Generation of the reports will be more complex, but remains a seperate issue.
 
 ## Alternatives considered
-No alternatives considered as this was a requirement coming straight from Metroservice
+No alternatives considered as this was a requirement coming straight from Metroservice.
 
 ## Notes
 This ADR only describes how the data will be stored to later generate the report and does not consider how to actually generate a Report. 
