@@ -7,14 +7,15 @@ Main FastAPI application.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.services.producer import EventValidationError
 
-from .api.v1.routers import adjustment, health, positioning_simulator
-from .api.v2.routers import patrol_session
+from .api.v1.routers import health, positioning_simulator
+from .api.v2.routers import adjustment, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
 
@@ -41,8 +42,13 @@ async def event_validation_exception_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
-        content={"detail": str(error)},
+        content={"code": "400", "message": str(error)},
     )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_: Request, error: RequestValidationError):
+    return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
 # CORS for frontend access
@@ -55,7 +61,7 @@ app.add_middleware(
 
 app.include_router(health.router, prefix=API_PREFIX_V1)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
-app.include_router(adjustment.router, prefix=API_PREFIX_V1)
+app.include_router(adjustment.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
 

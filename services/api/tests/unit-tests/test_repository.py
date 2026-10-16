@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
@@ -35,8 +35,8 @@ def make_event(**overrides: Any) -> EventModel:
     fields: dict[str, Any] = {
         "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
-        "actor": "steward-1",
-        "beacon": "beacon-1",
+        "android_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
+        "beacon_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
         "device_timestamp": TIMESTAMP,
         "server_timestamp": TIMESTAMP,
         "source": "test",
@@ -48,14 +48,14 @@ def make_adjustment(**overrides: Any) -> AdjustmentModel:
     fields: dict[str, Any] = {
         "adjustment_id": uuid4(),
         "target_event_id": uuid4(),
-        "actor": "steward-1",
+        "android_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
         "reason": "Forgot to check in",
         "author": "supervisor-1",
         "server_timestamp": TIMESTAMP,
         "source": "test",
         "corrected_fact": CorrectedFact(
             fact_type=EventType.START_EVENT,
-            beacon_id="beacon-1",
+            beacon_id=UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
             occurred_at=TIMESTAMP,
         ),
     }
@@ -143,15 +143,15 @@ async def test_get_patrol_areas_returns_all_areas(session):
 
 @pytest.mark.asyncio
 async def test_insert_event_can_be_read_back(session):
-    event = make_event(event_type=EventType.START_EVENT, beacon=None)
+    event = make_event(event_type=EventType.START_EVENT, beacon_id=None)
     event_id = event.event_id
 
     await events.insert_event(session, event)
     result = await events.get_event(session, event_id)
 
     assert result.event_type == EventType.START_EVENT
-    assert result.actor == "steward-1"
-    assert result.beacon is None
+    assert result.android_id == event.android_id
+    assert result.beacon_id is None
     assert result.source == "test"
 
 
