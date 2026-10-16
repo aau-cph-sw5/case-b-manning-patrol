@@ -122,7 +122,7 @@ def test_adjustment_rejects_unknown_fact_type(client):
     assert isinstance(error["message"], str)
 
 
-def test_adjustment_rejects_missing_actor(client):
+def test_adjustment_rejects_missing_android_id(client):
     payload = dict(VALID_ADJUSTMENT)
     del payload["android_id"]
 

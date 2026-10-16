@@ -92,7 +92,7 @@ async def validate_event(
     android_id: UUID,
     beacon_id: UUID | None = None,
 ) -> None:
-    android_id_found = await return_actor(android_id)
+    android_id_found = await return_android_id(android_id)
 
     if android_id_found is None:
         raise AndroidIddNotFoundError(f"Android_id '{android_id}' was not found")
@@ -105,10 +105,10 @@ async def validate_event(
 
 
 # CHANGE TO GET VALID ACTOR/ANDROID ID FROM DB. RETURN ACTOR OR NONE
-async def return_actor(android_id: UUID) -> str | None:
-    return "Actor1"
+async def return_android_id(android_id: UUID) -> str | None:
+    return "Android_1"
 
 
 # CHANGE TO GET VALID BEACON ID FROM DB. RETURN BEACON OR NONE
 async def return_beacon(beacon_id: UUID) -> str | None:
-    return "Beacon1"
+    return "Beacon_1"
