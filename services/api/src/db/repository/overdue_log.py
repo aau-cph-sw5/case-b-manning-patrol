@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import OverdueCleared, OverdueDetected
+from src.services.coverage.coverage import OverdueCleared, OverdueDetected
 
 
 async def get_entry_ids(session: AsyncSession) -> set[UUID]:

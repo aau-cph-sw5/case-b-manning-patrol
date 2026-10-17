@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from src.models.coverage import StationCoverage
+from src.services.coverage.coverage import StationCoverage
 
 
 # Where changed coverage is pushed. Keeps the transport (SSE today) replaceable.

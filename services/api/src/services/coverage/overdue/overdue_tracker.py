@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import StationCoverage
+from src.services.coverage.coverage import StationCoverage
 
 
 # Command: appends what the system detected about overdue areas to the overdue

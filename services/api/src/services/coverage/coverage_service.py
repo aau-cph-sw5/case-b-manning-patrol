@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import StationCoverage
+from src.services.coverage.coverage import StationCoverage
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 
