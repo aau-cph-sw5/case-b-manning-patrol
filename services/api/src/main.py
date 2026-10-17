@@ -12,12 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.services.producer import EventValidationError
-
-from .api.v1.routers import health, positioning_simulator
-from .api.v2.routers import adjustment, patrol_session
+from .api.v1.routers import adjustment, positioning_simulator
+from .api.v2.routers import health, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
+from .services.producer import EventValidationError
 
 API_PREFIX_V1 = "/api/v1"
 API_PREFIX_V2 = "/api/v2"
@@ -59,9 +58,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router, prefix=API_PREFIX_V1)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(health.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
 
