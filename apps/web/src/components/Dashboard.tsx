@@ -1,0 +1,31 @@
+import { STATIONS, ATTENTION } from '../data/mockData.tsx'
+import StationCard from './StationCard.tsx'
+import { timeColorClass, PersonIcon } from './StationCard'
+
+function Dashboard() {
+  return (
+    <>
+      <h1>Manning Patrol Dashboard</h1>
+      <div className="dash">
+        <section className="station-grid">
+          {STATIONS.map((station) => (
+            <StationCard key={station.code} station={station} />
+          ))}
+        </section>
+        <aside className="card attention">
+          <h2>ATTENTION ({ATTENTION.length})</h2>
+          <ul className="attention-list">
+            {ATTENTION.map((item) => (
+              <li key={item.code} className={timeColorClass(item.value)}>
+                {item.person && <PersonIcon />}
+                {item.code} {item.value}
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </div>
+    </>
+  )
+}
+
+export default Dashboard
