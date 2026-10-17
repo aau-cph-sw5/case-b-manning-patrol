@@ -14,8 +14,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.services.producer import EventValidationError
 
-from .api.v1.routers import health, positioning_simulator
 from .api.v2.routers import adjustment, patrol_session
+from .api.v1.routers import positioning_simulator
+from .api.v2.routers import health, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
 
@@ -59,9 +60,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router, prefix=API_PREFIX_V1)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(health.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
 

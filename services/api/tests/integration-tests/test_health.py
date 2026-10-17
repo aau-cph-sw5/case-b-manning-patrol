@@ -1,13 +1,13 @@
 from fastapi.testclient import TestClient
 
-from src.main import API_PREFIX_V1, app
+from src.main import API_PREFIX_V2, app
 
 client = TestClient(app)
 
 
 def test_health_check():
     expected_response = {"status": "ok", "message": "Manning Patrol Backend running"}
-    response = client.get(f"{API_PREFIX_V1}/health")
+    response = client.get(f"{API_PREFIX_V2}/health")
     assert response.status_code == 200
     assert response.json() == expected_response
 

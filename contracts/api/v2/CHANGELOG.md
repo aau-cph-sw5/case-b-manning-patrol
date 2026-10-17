@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.0 - Health API contract
+- Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
+- The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
+
 ## v2.0.1 - Initial draft (unpublished)
 - `POST /api/v2/patrol-session/stop` now also closes open connections: the
   server appends a disconnect event (stamped with the stop `timestamp`) for
