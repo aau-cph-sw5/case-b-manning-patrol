@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
@@ -17,6 +17,9 @@ from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventTy
 from src.models.patrol_area import AreaKind
 
 TIMESTAMP = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
+STEWARD_ANDROID_ID = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")
+OTHER_ANDROID_ID = UUID("c1d0e2f3-4a5b-4c6d-8e9f-0a1b2c3d4e5f")
+OPEN_BEACON_ID = UUID("d2e1f0a1-3b4c-4d5e-9f0a-1b2c3d4e5f6a")
 
 
 @pytest_asyncio.fixture
@@ -35,8 +38,8 @@ def make_event(**overrides: Any) -> EventModel:
     fields: dict[str, Any] = {
         "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
-        "actor": "steward-1",
-        "beacon": "beacon-1",
+        "android_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
+        "beacon_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
         "device_timestamp": TIMESTAMP,
         "server_timestamp": TIMESTAMP,
         "source": "test",
@@ -48,14 +51,14 @@ def make_adjustment(**overrides: Any) -> AdjustmentModel:
     fields: dict[str, Any] = {
         "adjustment_id": uuid4(),
         "target_event_id": uuid4(),
-        "actor": "steward-1",
+        "android_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
         "reason": "Forgot to check in",
         "author": "supervisor-1",
         "server_timestamp": TIMESTAMP,
         "source": "test",
         "corrected_fact": CorrectedFact(
             fact_type=EventType.START_EVENT,
-            beacon_id="beacon-1",
+            beacon_id=UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
             occurred_at=TIMESTAMP,
         ),
     }
@@ -143,15 +146,15 @@ async def test_get_patrol_areas_returns_all_areas(session):
 
 @pytest.mark.asyncio
 async def test_insert_event_can_be_read_back(session):
-    event = make_event(event_type=EventType.START_EVENT, beacon=None)
+    event = make_event(event_type=EventType.START_EVENT, beacon_id=None)
     event_id = event.event_id
 
     await events.insert_event(session, event)
     result = await events.get_event(session, event_id)
 
     assert result.event_type == EventType.START_EVENT
-    assert result.actor == "steward-1"
-    assert result.beacon is None
+    assert result.android_id == event.android_id
+    assert result.beacon_id is None
     assert result.source == "test"
 
 
@@ -200,3 +203,83 @@ async def test_get_adjustments_returns_all_inserted_adjustments(session):
     result = await events.get_adjustments(session)
 
     assert {a.adjustment_id for a in result} == expected_ids
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_returns_unmatched_connects(session):
+    open_connect = make_event(beacon_id=OPEN_BEACON_ID)
+
+    await events.insert_event(session, open_connect)
+
+    result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
+
+    assert [open_connection.event_id for open_connection in result] == [
+        open_connect.event_id
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_ignores_disconnects_without_connect(session):
+    await events.insert_event(
+        session, make_event(event_type=EventType.DISCONNECT_EVENT)
+    )
+
+    assert await events.get_open_connections(session, STEWARD_ANDROID_ID) == []
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_excludes_disconnected_beacons(session):
+    await events.insert_event(
+        session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
+    )
+    await events.insert_event(
+        session,
+        make_event(
+            event_type=EventType.DISCONNECT_EVENT,
+            device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC),
+        ),
+    )
+
+    assert await events.get_open_connections(session, STEWARD_ANDROID_ID) == []
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_returns_reopened_connects(session):
+    reopened = make_event(device_timestamp=datetime(2026, 10, 8, 12, tzinfo=UTC))
+    await events.insert_event(
+        session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
+    )
+    await events.insert_event(
+        session,
+        make_event(
+            event_type=EventType.DISCONNECT_EVENT,
+            device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC),
+        ),
+    )
+    await events.insert_event(session, reopened)
+
+    result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
+
+    assert [open_connection.event_id for open_connection in result] == [
+        reopened.event_id
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_only_returns_events_of_android_id(session):
+    await events.insert_event(session, make_event(android_id=OTHER_ANDROID_ID))
+
+    assert await events.get_open_connections(session, STEWARD_ANDROID_ID) == []
+
+
+@pytest.mark.asyncio
+async def test_get_open_connections_returns_one_event_per_beacon(session):
+    await events.insert_event(
+        session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
+    )
+    latest = make_event(device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC))
+    await events.insert_event(session, latest)
+
+    result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
+
+    assert [open_connection.event_id for open_connection in result] == [latest.event_id]

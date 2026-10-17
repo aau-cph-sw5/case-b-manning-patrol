@@ -1,9 +1,15 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+from fastapi.exceptions import RequestValidationError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.repository.events import insert_adjustment, insert_event
+from src.db.repository.events import (
+    get_event,
+    get_open_connections,
+    insert_adjustment,
+    insert_event,
+)
 from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 
 
@@ -12,19 +18,19 @@ class MainProducer:
     async def append_event(
         session: AsyncSession,
         event_type: EventType,
-        actor: str,
+        android_id: UUID,
         device_timestamp: datetime,
         source: str,
-        beacon: str | None = None,
+        beacon_id: UUID | None = None,
     ) -> EventModel:
 
-        await validate_event(actor, beacon)
+        await validate_event(android_id, beacon_id)
 
         event_model = EventModel(
             event_id=uuid4(),
             event_type=event_type,
-            actor=actor,
-            beacon=beacon,
+            android_id=android_id,
+            beacon_id=beacon_id,
             device_timestamp=device_timestamp,
             server_timestamp=_now_utc(),
             source=source,
@@ -34,9 +40,35 @@ class MainProducer:
         return event_model
 
     @staticmethod
+    async def close_open_connections(
+        session: AsyncSession,
+        android_id: UUID,
+        device_timestamp: datetime,
+        source: str,
+    ) -> list[EventModel]:
+        open_connections = await get_open_connections(session, android_id)
+        pending_closures = [
+            (connection.android_id, connection.beacon_id)
+            for connection in open_connections
+        ]
+        closed_connections: list[EventModel] = []
+        for connection_android_id, connection_beacon_id in pending_closures:
+            closed_connections.append(
+                await MainProducer.append_event(
+                    session=session,
+                    event_type=EventType.DISCONNECT_EVENT,
+                    android_id=connection_android_id,
+                    beacon_id=connection_beacon_id,
+                    device_timestamp=device_timestamp,
+                    source=source,
+                )
+            )
+        return closed_connections
+
+    @staticmethod
     async def append_adjustment(
         session: AsyncSession,
-        actor: str,
+        android_id: UUID,
         corrected_fact: CorrectedFact,
         reason: str,
         author: str,
@@ -44,10 +76,22 @@ class MainProducer:
         target_event_id: UUID | None = None,
     ) -> AdjustmentModel:
 
+        if (
+            corrected_fact.fact_type == EventType.CONNECT_EVENT
+            or corrected_fact.fact_type == EventType.DISCONNECT_EVENT
+        ) and corrected_fact.beacon_id is None:
+            raise RequestValidationError("Connect and Disconnect event needs beacon")
+
+        if target_event_id is not None:
+            try:
+                await get_event(session, target_event_id)
+            except Exception:
+                raise EventValidationError("target event id does not exist") from None
+
         adjustment_model = AdjustmentModel(
             adjustment_id=uuid4(),
             target_event_id=target_event_id,
-            actor=actor,
+            android_id=android_id,
             corrected_fact=corrected_fact,
             reason=reason,
             author=author,
@@ -67,7 +111,7 @@ class EventValidationError(Exception):
     pass
 
 
-class ActorNotFoundError(EventValidationError):
+class AndroidIddNotFoundError(EventValidationError):
     pass
 
 
@@ -76,26 +120,26 @@ class BeaconNotFoundError(EventValidationError):
 
 
 async def validate_event(
-    actor: str,
-    beacon: str | None = None,
+    android_id: UUID,
+    beacon_id: UUID | None = None,
 ) -> None:
-    actor_found = await return_actor(actor)
+    android_id_found = await return_android_id(android_id)
 
-    if actor_found is None:
-        raise ActorNotFoundError(f"Actor '{actor}' was not found")
+    if android_id_found is None:
+        raise AndroidIddNotFoundError(f"Android_id '{android_id}' was not found")
 
-    if beacon is not None:
-        beacon_found = await return_beacon(beacon)
+    if beacon_id is not None:
+        beacon_found = await return_beacon(beacon_id)
 
         if beacon_found is None:
-            raise BeaconNotFoundError(f"Beacon '{beacon}' was not found")
+            raise BeaconNotFoundError(f"Beacon '{beacon_id}' was not found")
 
 
 # CHANGE TO GET VALID ACTOR/ANDROID ID FROM DB. RETURN ACTOR OR NONE
-async def return_actor(actor: str) -> str | None:
-    return "Actor1"
+async def return_android_id(android_id: UUID) -> str | None:
+    return "Android_1"
 
 
 # CHANGE TO GET VALID BEACON ID FROM DB. RETURN BEACON OR NONE
-async def return_beacon(beacon: str) -> str | None:
-    return "Beacon1"
+async def return_beacon(beacon_id: UUID) -> str | None:
+    return "Beacon_1"

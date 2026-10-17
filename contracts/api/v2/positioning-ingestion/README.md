@@ -26,6 +26,8 @@ All endpoints use POST to maintain an append-only event log. Stewards press "sta
 
 Each endpoint corresponds to exactly one action, so event payloads no longer carry a `status` field — the action is implied by which endpoint was called (this replaces v1's combined `/connection-event` and `/patrol-session-event` endpoints).
 
+Posting `patrol-session/stop` also closes any open connections for the device: the server finds every connect event from that `android_id` without a matching disconnect event and appends a disconnect event for each, stamped with the stop `timestamp`. Clients therefore do not need to POST `connection/disconnect` when a session ends; the phone no longer has to keep track of open beacon connections.
+
 ## Data Models
 
 ### connection-event

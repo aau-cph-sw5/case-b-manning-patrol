@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
@@ -15,13 +16,13 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 class ConnectionEvent(BaseModel):
-    android_id: str
-    beacon_id: str
+    android_id: UUID
+    beacon_id: UUID
     timestamp: datetime
 
 
 class PatrolSessionEvent(BaseModel):
-    android_id: str
+    android_id: UUID
     timestamp: datetime
 
 
@@ -31,8 +32,8 @@ async def connection_event(connection_event: ConnectionEvent, session: SessionDe
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.CONNECT_EVENT,
-        actor=connection_event.android_id,
-        beacon=connection_event.beacon_id,
+        android_id=connection_event.android_id,
+        beacon_id=connection_event.beacon_id,
         device_timestamp=connection_event.timestamp,
         source="API",
     )
@@ -44,8 +45,8 @@ async def disconnection_event(connection_event: ConnectionEvent, session: Sessio
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.DISCONNECT_EVENT,
-        actor=connection_event.android_id,
-        beacon=connection_event.beacon_id,
+        android_id=connection_event.android_id,
+        beacon_id=connection_event.beacon_id,
         device_timestamp=connection_event.timestamp,
         source="API",
     )
@@ -59,7 +60,7 @@ async def patrol_session_start_event(
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.START_EVENT,
-        actor=patrol_session_event.android_id,
+        android_id=patrol_session_event.android_id,
         device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
@@ -73,7 +74,13 @@ async def patrol_session_stop_event(
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.STOP_EVENT,
-        actor=patrol_session_event.android_id,
+        android_id=patrol_session_event.android_id,
+        device_timestamp=patrol_session_event.timestamp,
+        source="API",
+    )
+    await MainProducer.close_open_connections(
+        session=session,
+        android_id=patrol_session_event.android_id,
         device_timestamp=patrol_session_event.timestamp,
         source="API",
     )

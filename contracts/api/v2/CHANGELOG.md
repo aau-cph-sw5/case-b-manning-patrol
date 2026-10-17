@@ -1,10 +1,15 @@
 # Changelog
 
 ## v2.0.1 - Initial draft (unpublished)
+- `POST /api/v2/patrol-session/stop` now also closes open connections: the
+  server appends a disconnect event (stamped with the stop `timestamp`) for
+  every connect event of that `android_id` that has no matching disconnect,
+  so clients no longer need to POST `/connection/disconnect` when a session
+  ends.
 - Draft of Adjustment Event API contract for group review. Not yet published.
 - `POST /api/v2/adjustment` appends a manual correction to the append-only
   event store; there is no update or delete path.
-- `AdjustmentEventCreate` request: `actor`, optional `target_event_id` (an
+- `AdjustmentEventCreate` request: `android_id`, optional `target_event_id` (an
   adjustment may point at another adjustment), a `corrected_fact` in the same
   vocabulary as the ingestion events, and the mandatory `reason` and `author`
   audit fields.

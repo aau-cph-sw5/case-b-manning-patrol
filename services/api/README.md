@@ -57,6 +57,11 @@ uv run check
 
 This runs the same steps as CI: `uv sync --locked`, `ruff check`, `ty check`, `ruff format --check`, and `pytest`.
 
+CI additionally runs `alembic upgrade head` and `alembic check` against a
+PostgreSQL service container, so a model change without a matching migration
+fails the build. Run them locally against your database before pushing a
+model change (see [Migrations](#migrations)).
+
 ### Individual commands
 
 ```bash
@@ -71,6 +76,10 @@ uv run ty check src/
 
 ```
 services/api/
+├── alembic/
+│   ├── env.py                   # Reads DATABASE_URL and SQLModel metadata
+│   └── versions/                # Migration scripts, applied in order
+├── alembic.ini
 ├── src/
 │   ├── main.py                  # FastAPI app definition and startup
 │   ├── models/                  # Shared models (events, adjustments, beacons)
@@ -120,9 +129,13 @@ The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
 Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
 See '.env-example' for .env setup.
 
-- `src/db/config.py` reads `DATABASE_URL` from the `.env`.
-- `src/db/main.py` creates the engine and, on startup, creates the tables
-  `station` and `patrolarea` if they do not exist.
+- `src/db/config.py` reads `DATABASE_URL` from the `.env`. Alembic reads the
+  same setting, so `alembic.ini` holds no database URL.
+- The schema is managed by Alembic migrations in `alembic/versions/`.
+- `src/db/main.py` creates the engine and still runs `create_all` on server
+  startup. Apply migrations before starting the server on a new database,
+  otherwise the tables are created without Alembic's version record and
+  `alembic upgrade head` will fail with "table already exists".
 - `src/db/ingest.py` then loads `src/data/stations.v1.json` into those tables.
   It replaces their contents on every start, so rows added by hand are lost.
   See `src/data/README.md`.
@@ -139,22 +152,55 @@ Once the database service is defined, start it from '.../services/api/':
 
 ```bash
 docker compose up -d
+uv run alembic upgrade head
 ```
+
+### Migrations
+
+After pulling changes, bring your database up to date:
+
+```bash
+uv run alembic upgrade head
+```
+
+After changing a model in `src/models/`, generate a migration, read it, and
+commit it with the model change:
+
+```bash
+uv run alembic revision --autogenerate -m "describe the change"
+uv run alembic upgrade head
+uv run alembic check    # passes when the models and migrations agree
+```
+
+Autogenerate compares the models against your current database, so run
+`upgrade head` first, otherwise the migration also contains changes that are
+already in earlier migrations. Review the generated file: autogenerate does not
+detect renames (it emits a drop and an add, losing data) and adding a
+`nullable=False` column to a table with rows needs a default or a backfill.
+
+### Seeding
+
+```bash
+uv run python -m src.scripts.seed
+```
+
+Applies pending migrations, then inserts the fixture event timeline. Running it
+again only inserts rows that are missing.
 
 ### Resetting the database
 
-On startup the backend only creates tables that do not exist yet; it never
-alters existing ones. If the server crashes at startup with an
-`UndefinedColumnError` after pulling model changes, the database still has the
-old table shape. Reset it with:
+If your database is in a state migrations cannot fix (for example, tables
+created by an older server start before Alembic), reset it with:
 
 ```bash
 uv run reset-db
 ```
 
-This drops and recreates every table. Stations, lines and patrol areas are
-re-ingested from `src/data/stations.v1.json` on the next server start, but any
-other rows (events, adjustments) are lost.
+This drops every table, including Alembic's `alembic_version`, and re-applies
+all migrations. Stations, lines and patrol areas are re-ingested from
+`src/data/stations.v1.json` on the next server start, but any other rows
+(events, adjustments) are lost. Tables that no longer exist in the models are
+not dropped; use `docker compose down -v` to start completely fresh.
 
 ## Tool Configuration
 
