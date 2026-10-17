@@ -21,21 +21,13 @@ class CoverageStatus(StrEnum):
 # Identifies one patrol area. Key for area coverage and for overdue log entries.
 @dataclass(frozen=True)
 class AreaRef:
-    station_id: str
+    station_id: str | None
     area_id: str
     kind: AreaKind
 
     @staticmethod
     def from_patrol_area(area: PatrolArea) -> AreaRef:
-        """Turn a PatrolArea row into the key that coverage uses.
-
-        CoverageService calls this once per patrol area when it loads the areas.
-        It copies station_id, area_id and area_kind into a frozen, hashable
-        value, so the coverage rule never depends on the database model.
-        PatrolArea.station_id may be None but AreaRef.station_id may not: agree
-        with the caller whether that raises or the area is skipped.
-        """
-        raise NotImplementedError
+        return AreaRef(area.station_id, area.area_id, area.area_kind)
 
 
 # A span of time during which an area counts as covered.
@@ -49,9 +41,13 @@ class CoveredTimeSpan:
 
         True when they overlap, or when one ends exactly where the other starts.
         Touching spans leave no uncovered moment between them, so the area was
-        never overdue there. CoverageWindow._union checks this before merge.
+        never overdue there.
         """
-        raise NotImplementedError
+        if self.end < other.start:
+            return False
+        if other.end < self.start:
+            return False
+        return True
 
     def merge(self, other: CoveredTimeSpan) -> CoveredTimeSpan:
         """Combine two touching spans into one.
@@ -60,7 +56,11 @@ class CoveredTimeSpan:
         when touches(other) is True: for spans with a gap between them, the
         result would wrongly cover the gap.
         """
-        raise NotImplementedError
+        if not self.touches(other):
+            raise ValueError("Cannot merge non-touching spans")
+        return CoveredTimeSpan(
+            start=min(self.start, other.start), end=max(self.end, other.end)
+        )
 
 
 # One steward's presence at one beacon: a CONNECT and the DISCONNECT or STOP that
@@ -79,7 +79,7 @@ class PresenceInterval:
         ended_at is None. Open visits count towards current_steward_ids and are
         measured up to now.
         """
-        raise NotImplementedError
+        return self.ended_at is None
 
     def duration(self, now: datetime) -> timedelta:
         """How long the steward has been, or was, at the beacon.
@@ -88,7 +88,9 @@ class PresenceInterval:
         so it is measured up to now. now is passed in instead of read from the
         clock, so the result is repeatable (AC5).
         """
-        raise NotImplementedError
+        if self.ended_at is not None:
+            return self.ended_at - self.started_at
+        return now - self.started_at
 
     def qualifies(self, min_duration: timedelta, now: datetime) -> bool:
         """Tell whether the visit is long enough to count as a patrol.
@@ -98,7 +100,7 @@ class PresenceInterval:
         walking through, never counts. An open visit can cross the threshold
         while it is still going on, which is one reason for the clock tick.
         """
-        raise NotImplementedError
+        return self.duration(now) >= min_duration
 
     def qualified_at(self, min_duration: timedelta) -> datetime:
         """The moment the visit started to count as a patrol.
@@ -107,7 +109,7 @@ class PresenceInterval:
         because before this moment the visit was not long enough yet. It is
         also the moment an overdue episode ends when this visit clears it.
         """
-        raise NotImplementedError
+        return self.started_at + min_duration
 
     def covered_span(
         self,
@@ -122,7 +124,12 @@ class PresenceInterval:
         stays compliant for one window after the steward leaves. For an open
         visit the end moves forward with now.
         """
-        raise NotImplementedError
+        if not self.qualifies(min_duration, now):
+            return None
+        return CoveredTimeSpan(
+            start=self.qualified_at(min_duration),
+            end=(self.ended_at or now) + window,
+        )
 
 
 # A stretch of time an area went without qualifying coverage. cleared_at is None
@@ -138,7 +145,7 @@ class OverdueEpisode:
         True when no qualifying visit has ended the episode yet, which means
         cleared_at is None.
         """
-        raise NotImplementedError
+        return self.cleared_at is None
 
     def duration(self, now: datetime) -> timedelta:
         """How long the area has been, or was, overdue.
@@ -146,7 +153,9 @@ class OverdueEpisode:
         cleared_at - overdue_at for a cleared episode, now - overdue_at for an
         open one. now is a parameter, so the result is repeatable.
         """
-        raise NotImplementedError
+        if self.cleared_at is not None:
+            return self.cleared_at - self.overdue_at
+        return now - self.overdue_at
 
 
 # Coverage of one patrol area at as_of. Stores only facts; overdue_at,
@@ -172,7 +181,19 @@ class AreaCoverage:
         start to count from, so there is no deadline. Derived, not stored, so
         it cannot disagree with the facts it comes from.
         """
-        raise NotImplementedError
+        if self.covered_now:
+            return None
+
+        if self.last_covered_at is None and self.baseline is None:
+            return None  # shift hasn't started yet
+
+        if self.last_covered_at is None and self.baseline is not None:
+            return self.baseline + self.window
+
+        if self.last_covered_at is not None and self.baseline is None:
+            return self.last_covered_at + self.window
+
+        return None
 
     @property
     def overdue_by(self) -> timedelta | None:
@@ -182,7 +203,9 @@ class AreaCoverage:
         None when overdue_at is None, because without a deadline the duration
         is unknown. The dashboard keeps counting between updates by itself.
         """
-        raise NotImplementedError
+        if self.overdue_at is None:
+            return None
+        return datetime.now() - self.overdue_at
 
     @property
     def status(self) -> CoverageStatus:
@@ -192,7 +215,11 @@ class AreaCoverage:
         deadline (never patrolled and no baseline, AC2) or as_of is past the
         deadline. Exactly at the deadline still counts as COMPLIANT.
         """
-        raise NotImplementedError
+        if self.overdue_at is None:
+            return CoverageStatus.COMPLIANT
+        if self.as_of > self.overdue_at:
+            return CoverageStatus.OVERDUE
+        return CoverageStatus.COMPLIANT
 
     def state(self) -> tuple:
         """The fields that decide whether this area must be published again.
@@ -203,7 +230,12 @@ class AreaCoverage:
         as_of changes on every tick, so including it would republish every area
         every few seconds.
         """
-        raise NotImplementedError
+        return (
+            self.covered_now,
+            self.last_covered_at,
+            self.status,
+            self.current_steward_ids,
+        )
 
 
 # Coverage of one station: one AreaCoverage per patrol area of the station.
