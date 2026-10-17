@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.models.coverage import StationCoverage
 from src.services.coverage.coverage_publisher import CoveragePublisher
 from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.overdue.overdue_tracker import OverdueTracker
+from src.services.overdue_tracker import OverdueTracker
 
 
 # Runs one coverage refresh: compute, log overdue, then publish only stations
