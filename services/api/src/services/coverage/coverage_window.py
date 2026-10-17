@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 
+from src.models.coverage import (
+    AreaCoverage,
+    AreaRef,
+    CoveredTimeSpan,
+    OverdueEpisode,
+    PresenceInterval,
+)
 from src.models.patrol_area import AreaKind
-from src.services.coverage.models.area_coverage import AreaCoverage
-from src.services.coverage.models.area_ref import AreaRef
-from src.services.coverage.models.covered_time_span import CoveredTimeSpan
-from src.services.coverage.models.overdue_episode import OverdueEpisode
-from src.services.coverage.models.presence_interval import PresenceInterval
 
 
 # The patrol completion rule: decides the coverage of one area from its

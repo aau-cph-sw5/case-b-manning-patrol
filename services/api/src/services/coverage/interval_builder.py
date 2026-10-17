@@ -1,5 +1,5 @@
+from src.models.coverage import PresenceInterval
 from src.models.event import Event
-from src.services.coverage.models.presence_interval import PresenceInterval
 
 
 class IntervalBuilder:

@@ -1,6 +1,6 @@
 import asyncio
 
-from src.services.coverage.coverage import StationCoverage
+from src.models.coverage import StationCoverage
 from src.services.coverage.coverage_publisher import CoveragePublisher
 
 

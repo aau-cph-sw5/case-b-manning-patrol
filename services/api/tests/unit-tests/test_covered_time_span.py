@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from src.services.coverage.models.covered_time_span import CoveredTimeSpan
+from src.models.coverage import CoveredTimeSpan
 
 
 def test_touches_returns_true_when_overlap():

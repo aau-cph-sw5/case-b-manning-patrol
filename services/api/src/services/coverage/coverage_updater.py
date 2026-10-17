@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.services.coverage.coverage import StationCoverage
+from src.models.coverage import StationCoverage
 from src.services.coverage.coverage_publisher import CoveragePublisher
 from src.services.coverage.coverage_service import CoverageService
 from src.services.coverage.overdue.overdue_tracker import OverdueTracker
