@@ -117,23 +117,20 @@ class AreaCoverage:
     def overdue_at(self) -> datetime | None:
         if self.covered_now:
             return None
-
-        if self.last_covered_at is None and self.baseline is None:
-            return None
-
-        if self.last_covered_at is None and self.baseline is not None:
+        elif self.last_covered_at is None and self.baseline is not None:
             return self.baseline + self.window
-
-        if self.last_covered_at is not None and self.baseline is None:
+        elif self.last_covered_at is not None and self.baseline is not None:
+            return max(self.last_covered_at, self.baseline) + self.window
+        elif self.last_covered_at is not None and self.baseline is None:
             return self.last_covered_at + self.window
-
-        return None
+        else:
+            return None
 
     @property
     def overdue_by(self) -> timedelta | None:
         if self.overdue_at is None:
             return None
-        return datetime.now() - self.overdue_at
+        return self.as_of - self.overdue_at
 
     @property
     def status(self) -> CoverageStatus:
@@ -162,12 +159,10 @@ class StationCoverage:
 
     @property
     def status(self) -> CoverageStatus:
-        coverage_status = CoverageStatus.COMPLIANT
         for _area in self.areas:
             if _area.status == CoverageStatus.OVERDUE:
-                coverage_status = CoverageStatus.OVERDUE
-                break
-        return coverage_status
+                return CoverageStatus.OVERDUE
+        return CoverageStatus.COMPLIANT
 
     def state(self) -> tuple:
         sorted_areas = sorted(self.areas, key=lambda a: a.area.area_id)
