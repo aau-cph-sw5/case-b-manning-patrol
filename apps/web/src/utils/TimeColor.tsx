@@ -4,12 +4,14 @@ const MIN = 60000 //ms
 const PATROL_INTERVAL_MIN = 60
 
 // minutes until the area must be patrolled again; negative means overdue.
-// a manned area is frozen at the full interval.
+// a manned area is frozen at the full interval. The interval is the
+// upper bound: an area can never have more than 60 minutes left.
 export function remainingMinutes(level: StationLevel, now: number): number {
   if (level.manned) {
     return PATROL_INTERVAL_MIN
   }
-  return PATROL_INTERVAL_MIN - (now - level.lastPatrolAt) / MIN
+  const remaining = PATROL_INTERVAL_MIN - (now - level.lastPatrolAt) / MIN
+  return Math.min(remaining, PATROL_INTERVAL_MIN)
 }
 
 export function formatRemaining(minutes: number): string {

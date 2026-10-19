@@ -1,4 +1,4 @@
-import { STATIONS } from '../data/mockData.tsx'
+import { useStations } from '../hooks/useStations.ts'
 import StationCard from './StationCard.tsx'
 import {
   formatRemaining,
@@ -12,22 +12,32 @@ const ATTENTION_THRESHOLD_MIN = 10
 
 function Dashboard() {
   const now = useNow()
+  const { stations, loading, error } = useStations()
 
-  const attention = STATIONS.flatMap((station) =>
-    station.levels.map((level) => ({
-      code: `${station.code}_${level.label}`,
-      minutes: remainingMinutes(level, now),
-    })),
-  )
+  const attention = stations
+    .flatMap((station) =>
+      station.levels.map((level) => ({
+        code: `${station.code}_${level.label}`,
+        minutes: remainingMinutes(level, now),
+      })),
+    )
     .filter((item) => item.minutes <= ATTENTION_THRESHOLD_MIN)
     .sort((a, b) => a.minutes - b.minutes)
+
+  if (loading) {
+    return <p>Henter stationer...</p>
+  }
+
+  if (error) {
+    return <p>{error}</p>
+  }
 
   return (
     <>
       <h1>Manning Patrol Dashboard</h1>
       <div className="dash">
         <section className="station-grid">
-          {STATIONS.map((station) => (
+          {stations.map((station) => (
             <StationCard key={station.code} station={station} now={now} />
           ))}
         </section>
