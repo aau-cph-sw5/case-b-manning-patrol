@@ -12,7 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from .api.v1.routers import adjustment, positioning_simulator
+from src.api.v2.routers import adjustment
+
+from .api.v1.routers import positioning_simulator
 from .api.v2.routers import health, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
