@@ -1,6 +1,7 @@
 import { STATIONS, ATTENTION } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
-import { timeColorClass} from './StationCard'
+import { timeColorClass} from '../utils/TimeColor.tsx'
+
 
 function Dashboard() {
   return (
