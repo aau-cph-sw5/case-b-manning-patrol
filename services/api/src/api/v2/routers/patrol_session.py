@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
 from src.models.event import EventType
+from src.services.coverage.coverage_updater import CoverageUpdater
 from src.services.producer import MainProducer
 
 router = APIRouter(tags=["positioning-ingestion"])
@@ -28,7 +29,9 @@ class PatrolSessionEvent(BaseModel):
 
 # TODO: Connection needs to return Area
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
-async def connection_event(connection_event: ConnectionEvent, session: SessionDep):
+async def connection_event(
+    connection_event: ConnectionEvent, session: SessionDep, request: Request
+):
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.CONNECT_EVENT,
@@ -37,6 +40,8 @@ async def connection_event(connection_event: ConnectionEvent, session: SessionDe
         device_timestamp=connection_event.timestamp,
         source="API",
     )
+    coverage_updater: CoverageUpdater = request.app.state.coverage_updater
+    await coverage_updater.refresh()
     return event_model
 
 
