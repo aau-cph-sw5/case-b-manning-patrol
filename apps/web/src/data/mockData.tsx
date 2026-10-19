@@ -24,7 +24,7 @@ export const STATIONS: Station[] = [
     name: 'Flintholm',
     levels: [
       { label: 'Platform', lastPatrolAt: Date.now() - 54 * MIN, manned: false },
-      { label: 'Concourse', lastPatrolAt: Date.now() - 65 * MIN, manned: true },
+      { label: 'Concourse', lastPatrolAt: Date.now() - 65 * MIN, manned: false },
     ],
   },
   {
