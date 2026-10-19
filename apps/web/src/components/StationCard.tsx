@@ -1,16 +1,23 @@
 import type { Station } from '../data/mockData'
-import { timeColorClass } from '../utils/TimeColor'
+import {
+  formatRemaining,
+  remainingMinutes,
+  timeColorClass,
+} from '../utils/TimeColor'
 
-function StationCard({ station }: { station: Station }) {
+function StationCard({ station, now }: { station: Station; now: number }) {
   return (
     <article className="card station-card">
       <h2>{station.name}</h2>
       <ul className="levels">
-        {station.levels.map((level) => (
-          <li key={level.label} className={timeColorClass(level.value)}>
-            {level.label}: {level.value}
-          </li>
-        ))}
+        {station.levels.map((level) => {
+          const minutes = remainingMinutes(level, now)
+          return (
+            <li key={level.label} className={timeColorClass(minutes)}>
+              {level.label}: {formatRemaining(minutes)}
+            </li>
+          )
+        })}
       </ul>
     </article>
   )
