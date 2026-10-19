@@ -1,8 +1,16 @@
 from datetime import datetime
+from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import StationCoverageReport
+from src.db.repository.events import get_events
+from src.db.repository.patrol_area import get_patrol_areas
+from src.models.coverage import (
+    AreaCoverageReport,
+    AreaRefference,
+    StationCoverageReport,
+    StewardPatrolInterval,
+)
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 
@@ -11,31 +19,46 @@ from src.services.coverage.interval_builder import IntervalBuilder
 # writes, logs or publishes.
 class CoverageService:
     def __init__(self, builder: IntervalBuilder, rule: CoverageWindow) -> None:
-        """Hold the interval builder and the coverage rule.
-
-        Both are passed in, so tests can supply their own configuration, for
-        example shorter thresholds.
-        """
-        self._builder = builder
+        self._interval_builder = builder
         self._rule = rule
 
     async def compute_coverage_reports(
         self,
         session: AsyncSession,
         now: datetime,
-        baseline: datetime | None = None,
+        shift_start_time: datetime | None = None,
     ) -> list[StationCoverageReport]:
-        """Compute the coverage of every station at now, without changing anything.
+        events = await get_events(session)
+        areas = await get_patrol_areas(session)
 
-        1. Load all events and all patrol areas, once each.
-        2. Build a beacon_id -> AreaRef lookup. Events at unknown beacons are
-           skipped and logged.
-        3. Build the intervals once and group them per area.
-        4. Evaluate every patrol area, including areas with no visits at all,
-           so a never patrolled area shows as OVERDUE instead of disappearing.
-        5. Group the results per station.
+        intervals = self._interval_builder.build(events)
+        intervals_by_beacon: dict[UUID, list[StewardPatrolInterval]] = {}
+        for interval in intervals:
+            intervals_by_beacon.setdefault(interval.beacon_id, []).append(interval)
 
-        Read only: it writes nothing and publishes nothing. baseline is the
-        shift start once shifts exist; None today.
-        """
-        raise NotImplementedError
+        area_reports: list[AreaCoverageReport] = []
+        for area in areas:
+            area_refference = AreaRefference.from_patrol_area(area)
+            area_intervals = (
+                intervals_by_beacon.get(area.beacon_id, [])
+                if area.beacon_id is not None
+                else []
+            )
+            report = self._rule.evaluate(
+                area_refference, area_intervals, shift_start_time, now
+            )
+            area_reports.append(report)
+
+        by_station: dict[str, list[AreaCoverageReport]] = {}
+        for report in area_reports:
+            station_id = report.area.station_id or ""
+            by_station.setdefault(station_id, []).append(report)
+
+        sorted_stations = sorted(by_station.items())
+
+        station_reports = []
+
+        for id, area_reports in sorted_stations:
+            station_reports.append(StationCoverageReport(id, tuple(area_reports)))
+
+        return station_reports
