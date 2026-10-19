@@ -2,7 +2,7 @@
 
 **Status.** Proposed
 **Date.** 2026-10-16
-**Deciders.** Nichlas Christiansen, team 8
+**Deciders.** Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen, team 8
 **Related backlog items.** MET-B-007, MET-B-008, MET-B-009, MET-B-012, MET-B-013, MET-B-014, MET-B-015, MET-B-024
 
 ## Context
@@ -31,9 +31,11 @@ Positive impact
 Potential drawbacks
 
 - Compliance decays with time, not only with events: a level can go from compliant to non-compliant without any new record arriving, as an older patrol slides out of the window. Dashboards and alerts must therefore re-evaluate on a timer, not only on ingestion.
-- The system clock becomes compliance-critical: clock skew between devices and the backend shifts the window.
+
 - Any single observation counts as coverage. It documents presence within the hour, not that a full patrol was performed — a limitation inherited from beacon-based presence assertion (ADR 0002).
 
+- Independent levels add patrol work: a steward assigned to train manning may often cover the platform frequently, and in many cases then have to also return to the concourse solely to satisfy its patrol requirement.   
+ 
 ## Alternatives considered
 
 **Fixed wall-clock hours.** Treat each [hh:00, hh:59] bucket as an hour and require a patrol in every bucket. Rejected: patrols at 14:01 and 15:59 leave a gap of almost two hours yet both buckets pass, which contradicts the intent of hourly patrolling. The rolling window is the stricter reading.
@@ -44,6 +46,4 @@ Potential drawbacks
 
 ## Notes
 
-- Builds on ADR 0002 (presence is asserted automatically from beacon connections) and ADR 0008 (append-only event store as source of truth): a presence record is an event in that store placing a steward at a level.
-- The tolerated gap (ADR 0006) governs when one continuous stay is considered ended; for the rolling-hour check any record inside the window counts, so the gap value does not affect the check.
-- This decision concerns the hourly patrol of station levels. Train manning (≥ 70% of running time) is a separate measure and is not affected by the rolling hour.
+
