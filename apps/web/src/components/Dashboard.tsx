@@ -1,6 +1,6 @@
 import { STATIONS, ATTENTION } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
-import { timeColorClass, PersonIcon } from './StationCard'
+import { timeColorClass} from './StationCard'
 
 function Dashboard() {
   return (
@@ -17,7 +17,6 @@ function Dashboard() {
           <ul className="attention-list">
             {ATTENTION.map((item) => (
               <li key={item.code} className={timeColorClass(item.value)}>
-                {item.person && <PersonIcon />}
                 {item.code} {item.value}
               </li>
             ))}

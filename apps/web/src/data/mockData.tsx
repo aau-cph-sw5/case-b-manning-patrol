@@ -6,14 +6,12 @@ export interface StationLevel {
 export interface Station {
   code: string
   name: string
-  person?: boolean
   levels: StationLevel[]
 }
 
 export interface AttentionItem {
   code: string
   value: string
-  person?: boolean
 }
 
 export const STATIONS: Station[] = [
@@ -25,7 +23,6 @@ export const STATIONS: Station[] = [
   {
     code: 'FLT',
     name: 'Flintholm',
-    person: true,
     levels: [
       { label: 'Platform', value: '6 min' },
       { label: 'Concourse', value: '+5 min' },
@@ -60,7 +57,7 @@ export const STATIONS: Station[] = [
 
 export const ATTENTION: AttentionItem[] = [
   { code: 'FLT_CON', value: '+5 min' },
-  { code: 'FLT_PLAT', value: '6 min', person: true },
+  { code: 'FLT_PLAT', value: '6 min'},
   { code: 'VAN_PLAT', value: '10 min' },
   { code: 'KNG_PLAT2', value: '10 min' },
 ]
