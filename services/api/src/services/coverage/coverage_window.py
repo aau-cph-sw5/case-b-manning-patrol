@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 from src.models.coverage import (
     AreaCoverage,
-    AreaRef,
-    CoveredTimeSpan,
+    AreaRefference,
     OverdueEpisode,
-    PresenceInterval,
+    StewardPatrolInterval,
+    TimeSpan,
 )
 from src.models.patrol_area import AreaKind
 
@@ -38,8 +38,8 @@ class CoverageWindow:
 
     def evaluate(
         self,
-        area: AreaRef,
-        intervals: list[PresenceInterval],
+        area: AreaRefference,
+        intervals: list[StewardPatrolInterval],
         baseline: datetime | None,
         now: datetime,
     ) -> AreaCoverage:
@@ -60,7 +60,7 @@ class CoverageWindow:
         """
         raise NotImplementedError
 
-    def _union(self, spans: list[CoveredTimeSpan]) -> list[CoveredTimeSpan]:
+    def _union(self, spans: list[TimeSpan]) -> list[TimeSpan]:
         """Merge overlapping spans into a sorted list without overlaps.
 
         Sort by start, then walk the list and merge each span into the previous
@@ -71,7 +71,7 @@ class CoverageWindow:
 
     def _gaps(
         self,
-        spans: list[CoveredTimeSpan],
+        spans: list[TimeSpan],
         start: datetime,
         until: datetime,
     ) -> list[OverdueEpisode]:

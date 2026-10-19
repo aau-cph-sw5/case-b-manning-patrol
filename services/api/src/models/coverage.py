@@ -20,33 +20,33 @@ class CoverageStatus(StrEnum):
 
 # Identifies one patrol area. Key for area coverage and for overdue log entries.
 @dataclass(frozen=True)
-class AreaRef:
+class AreaRefference:
     station_id: str | None
     area_id: str
     kind: AreaKind
 
     @staticmethod
-    def from_patrol_area(area: PatrolArea) -> AreaRef:
-        return AreaRef(area.station_id, area.area_id, area.area_kind)
+    def from_patrol_area(area: PatrolArea) -> AreaRefference:
+        return AreaRefference(area.station_id, area.area_id, area.area_kind)
 
 
 # A span of time during which an area counts as covered.
 @dataclass(frozen=True)
-class CoveredTimeSpan:
+class TimeSpan:
     start: datetime
     end: datetime
 
-    def touches(self, other: CoveredTimeSpan) -> bool:
+    def touches(self, other: TimeSpan) -> bool:
         if self.end < other.start:
             return False
         if other.end < self.start:
             return False
         return True
 
-    def merge(self, other: CoveredTimeSpan) -> CoveredTimeSpan:
+    def merge(self, other: TimeSpan) -> TimeSpan:
         if not self.touches(other):
             raise ValueError("Cannot merge non-touching spans")
-        return CoveredTimeSpan(
+        return TimeSpan(
             start=min(self.start, other.start), end=max(self.end, other.end)
         )
 
@@ -54,37 +54,39 @@ class CoveredTimeSpan:
 # One steward's presence at one beacon: a CONNECT and the DISCONNECT or STOP that
 # closed it. ended_at is None while the visit is still open.
 @dataclass(frozen=True)
-class PresenceInterval:
+class StewardPatrolInterval:
     android_id: str
     beacon_id: UUID
     started_at: datetime
     ended_at: datetime | None
 
-    def is_open(self) -> bool:
+    def is_patrolling(self) -> bool:
         return self.ended_at is None
 
-    def duration(self, now: datetime) -> timedelta:
+    def patrol_duration(self, now: datetime) -> timedelta:
         if self.ended_at is not None:
             return self.ended_at - self.started_at
         return now - self.started_at
 
-    def qualifies(self, min_duration: timedelta, now: datetime) -> bool:
-        return self.duration(now) >= min_duration
+    def qualifies_as_patrolled(
+        self, min_qualifying_duration: timedelta, now: datetime
+    ) -> bool:
+        return self.patrol_duration(now) >= min_qualifying_duration
 
-    def qualified_at(self, min_duration: timedelta) -> datetime:
-        return self.started_at + min_duration
+    def qualified_as_patrolled_at(self, min_qualified_duration: timedelta) -> datetime:
+        return self.started_at + min_qualified_duration
 
-    def covered_span(
+    def patrol_span(
         self,
         min_duration: timedelta,
-        window: timedelta,
+        time_until_next_needed_patrol: timedelta,
         now: datetime,
-    ) -> CoveredTimeSpan | None:
-        if not self.qualifies(min_duration, now):
+    ) -> TimeSpan | None:
+        if not self.qualifies_as_patrolled(min_duration, now):
             return None
-        return CoveredTimeSpan(
-            start=self.qualified_at(min_duration),
-            end=(self.ended_at or now) + window,
+        return TimeSpan(
+            start=self.qualified_as_patrolled_at(min_duration),
+            end=(self.ended_at or now) + time_until_next_needed_patrol,
         )
 
 
@@ -104,25 +106,28 @@ class OverdueEpisode:
 
 @dataclass(frozen=True)
 class AreaCoverage:
-    area: AreaRef
+    area: AreaRefference
     last_covered_at: datetime | None
     covered_now: bool
-    baseline: datetime | None
+    shift_start_time: datetime | None
     current_steward_ids: frozenset[str]
     episodes: tuple[OverdueEpisode, ...]
-    window: timedelta
+    time_until_next_needed_patrol: timedelta
     as_of: datetime
 
     @property
     def overdue_at(self) -> datetime | None:
         if self.covered_now:
             return None
-        elif self.last_covered_at is None and self.baseline is not None:
-            return self.baseline + self.window
-        elif self.last_covered_at is not None and self.baseline is not None:
-            return max(self.last_covered_at, self.baseline) + self.window
-        elif self.last_covered_at is not None and self.baseline is None:
-            return self.last_covered_at + self.window
+        elif self.last_covered_at is None and self.shift_start_time is not None:
+            return self.shift_start_time + self.time_until_next_needed_patrol
+        elif self.last_covered_at is not None and self.shift_start_time is not None:
+            return (
+                max(self.last_covered_at, self.shift_start_time)
+                + self.time_until_next_needed_patrol
+            )
+        elif self.last_covered_at is not None and self.shift_start_time is None:
+            return self.last_covered_at + self.time_until_next_needed_patrol
         else:
             return None
 
@@ -133,7 +138,7 @@ class AreaCoverage:
         return self.as_of - self.overdue_at
 
     @property
-    def status(self) -> CoverageStatus:
+    def coverage_status(self) -> CoverageStatus:
         if self.overdue_at is None:
             return CoverageStatus.COMPLIANT
         if self.as_of > self.overdue_at:
@@ -144,7 +149,7 @@ class AreaCoverage:
         return (
             self.covered_now,
             self.last_covered_at,
-            self.status,
+            self.coverage_status,
             self.current_steward_ids,
         )
 
@@ -160,7 +165,7 @@ class StationCoverage:
     @property
     def status(self) -> CoverageStatus:
         for _area in self.areas:
-            if _area.status == CoverageStatus.OVERDUE:
+            if _area.coverage_status == CoverageStatus.OVERDUE:
                 return CoverageStatus.OVERDUE
         return CoverageStatus.COMPLIANT
 
@@ -173,7 +178,7 @@ class StationCoverage:
 # Storage schema is open (ADR-0008).
 @dataclass(frozen=True)
 class OverdueDetected:
-    area: AreaRef
+    area: AreaRefference
     overdue_at: datetime
     detected_at: datetime
     last_covered_at: datetime | None
@@ -196,7 +201,7 @@ class OverdueDetected:
 # Storage schema is open (ADR-0008).
 @dataclass(frozen=True)
 class OverdueCleared:
-    area: AreaRef
+    area: AreaRefference
     overdue_at: datetime
     cleared_at: datetime
     source: str
