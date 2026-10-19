@@ -2,13 +2,13 @@ from datetime import timedelta
 
 import pytest
 
-from src.models.coverage import AreaCoverage, AreaRefference, CoverageStatus
+from src.models.coverage import AreaCoverageReport, AreaRefference, CoverageStatus
 from src.models.patrol_area import AreaKind
 
 
 @pytest.fixture
 def area_coverage_covered_now(now):
-    return AreaCoverage(
+    return AreaCoverageReport(
         area=AreaRefference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
@@ -24,7 +24,7 @@ def area_coverage_covered_now(now):
 
 @pytest.fixture
 def area_coverage_overdue_never_covered(now):
-    return AreaCoverage(
+    return AreaCoverageReport(
         area=AreaRefference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
@@ -40,7 +40,7 @@ def area_coverage_overdue_never_covered(now):
 
 @pytest.fixture
 def area_coverage_overdue_covered(now):
-    return AreaCoverage(
+    return AreaCoverageReport(
         area=AreaRefference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
@@ -56,7 +56,7 @@ def area_coverage_overdue_covered(now):
 
 @pytest.fixture
 def area_coverage_overdue_shift_not_started(now):
-    return AreaCoverage(
+    return AreaCoverageReport(
         area=AreaRefference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import StationCoverage
+from src.models.coverage import StationCoverageReport
 
 
 # Command: appends what the system detected about overdue areas to the overdue
@@ -11,7 +11,7 @@ class OverdueTracker:
     async def track(
         self,
         session: AsyncSession,
-        stations: list[StationCoverage],
+        stations: list[StationCoverageReport],
         now: datetime,
     ) -> None:
         """Record in the overdue log what the system has detected.

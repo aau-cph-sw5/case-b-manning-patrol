@@ -3,17 +3,17 @@ from datetime import timedelta
 import pytest
 
 from src.models.coverage import (
-    AreaCoverage,
+    AreaCoverageReport,
     AreaRefference,
     CoverageStatus,
-    StationCoverage,
+    StationCoverageReport,
 )
 from src.models.patrol_area import AreaKind
 
 
 @pytest.fixture
 def area_coverage_compliant(now):
-    return AreaCoverage(
+    return AreaCoverageReport(
         area=AreaRefference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
@@ -29,7 +29,7 @@ def area_coverage_compliant(now):
 
 @pytest.fixture
 def area_coverage_overdue(now):
-    return AreaCoverage(
+    return AreaCoverageReport(
         area=AreaRefference(
             station_id=None, area_id="platform", kind=AreaKind.PLATFORM
         ),
@@ -45,12 +45,12 @@ def area_coverage_overdue(now):
 
 @pytest.fixture
 def station_compliant(area_coverage_compliant):
-    return StationCoverage("station_1", areas=(area_coverage_compliant,))
+    return StationCoverageReport("station_1", areas=(area_coverage_compliant,))
 
 
 @pytest.fixture
-def station_overdue(area_coverage_overdue) -> StationCoverage:
-    return StationCoverage("station_1", areas=(area_coverage_overdue,))
+def station_overdue(area_coverage_overdue) -> StationCoverageReport:
+    return StationCoverageReport("station_1", areas=(area_coverage_overdue,))
 
 
 def test_status_compliant(station_compliant):

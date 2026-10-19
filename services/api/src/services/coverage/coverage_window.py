@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from src.models.coverage import (
-    AreaCoverage,
+    AreaCoverageReport,
     AreaRefference,
     OverdueEpisode,
     StewardPatrolInterval,
@@ -42,7 +42,7 @@ class CoverageWindow:
         intervals: list[StewardPatrolInterval],
         baseline: datetime | None,
         now: datetime,
-    ) -> AreaCoverage:
+    ) -> AreaCoverageReport:
         """Work out the coverage of one patrol area at now.
 
         intervals are the visits at this area only.

@@ -105,7 +105,7 @@ class OverdueEpisode:
 
 
 @dataclass(frozen=True)
-class AreaCoverage:
+class AreaCoverageReport:
     area: AreaRefference
     last_covered_at: datetime | None
     covered_now: bool
@@ -155,11 +155,11 @@ class AreaCoverage:
 
 
 @dataclass(frozen=True)
-class StationCoverage:
+class StationCoverageReport:
     station_id: str
-    areas: tuple[AreaCoverage, ...]
+    areas: tuple[AreaCoverageReport, ...]
 
-    def areas_of(self, kind: AreaKind) -> tuple[AreaCoverage, ...]:
+    def areas_of(self, kind: AreaKind) -> tuple[AreaCoverageReport, ...]:
         return tuple(area for area in self.areas if area.area.kind == kind)
 
     @property

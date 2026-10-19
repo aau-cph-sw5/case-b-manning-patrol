@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import StationCoverage
+from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_publisher import CoveragePublisher
 from src.services.coverage.coverage_service import CoverageService
 from src.services.overdue_tracker import OverdueTracker
@@ -36,7 +36,7 @@ class CoverageUpdater:
         self._session_factory = session_factory
         self._clock = clock
         self._lock = asyncio.Lock()
-        self._last_published: dict[str, StationCoverage] = {}
+        self._last_published: dict[str, StationCoverageReport] = {}
 
     async def refresh(self) -> None:
         """Bring the dashboards up to date with the latest coverage.
@@ -55,7 +55,7 @@ class CoverageUpdater:
         """
         raise NotImplementedError
 
-    def snapshot(self) -> list[StationCoverage]:
+    def snapshot(self) -> list[StationCoverageReport]:
         """The coverage as last published, for a dashboard that just connected.
 
         Returns last_published as a list. Synchronous, so the stream route can
