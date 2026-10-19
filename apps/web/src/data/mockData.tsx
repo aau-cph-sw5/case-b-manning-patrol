@@ -1,6 +1,9 @@
+const MIN = 60000 //ms
+const shiftStart = Date.now() 
 export interface StationLevel {
   label: string
-  value: string
+  lastPatrolAt: number
+  manned: boolean
 }
 
 export interface Station {
@@ -9,55 +12,44 @@ export interface Station {
   levels: StationLevel[]
 }
 
-export interface AttentionItem {
-  code: string
-  value: string
-}
 
 export const STATIONS: Station[] = [
   {
     code: 'VAN',
     name: 'Vanløse',
-    levels: [{ label: 'Platform', value: '10 min' }],
+    levels: [{ label: 'Platform', lastPatrolAt: shiftStart, manned: false }],
   },
   {
     code: 'FLT',
     name: 'Flintholm',
     levels: [
-      { label: 'Platform', value: '6 min' },
-      { label: 'Concourse', value: '+5 min' },
+      { label: 'Platform', lastPatrolAt: Date.now() - 54 * MIN, manned: false },
+      { label: 'Concourse', lastPatrolAt: Date.now() - 65 * MIN, manned: true },
     ],
   },
   {
     code: 'LIN',
     name: 'Lindevang',
     levels: [
-      { label: 'Platform', value: '48 min' },
-      { label: 'Concourse', value: '45 min' },
+      { label: 'Platform', lastPatrolAt: Date.now(), manned: true },
+      { label: 'Concourse', lastPatrolAt: Date.now() - 15 * MIN, manned: false },
     ],
   },
   {
     code: 'FAS',
     name: 'Fasanvej',
     levels: [
-      { label: 'Platform', value: '49 min' },
-      { label: 'Concourse', value: '31 min' },
+      { label: 'Platform', lastPatrolAt: Date.now() - 11 * MIN, manned: false },
+      { label: 'Concourse', lastPatrolAt: Date.now() - 29 * MIN, manned: false },
     ],
   },
   {
     code: 'KNG',
     name: 'Kongens',
     levels: [
-      { label: 'Platform1', value: '19 min' },
-      { label: 'Platform2', value: '10 min' },
-      { label: 'Concourse', value: '23 min' },
+      { label: 'Platform1', lastPatrolAt: Date.now() - 41 * MIN, manned: false },
+      { label: 'Platform2', lastPatrolAt: Date.now() - 50 * MIN, manned: false },
+      { label: 'Concourse', lastPatrolAt: Date.now() - 37 * MIN, manned: false },
     ],
   },
-]
-
-export const ATTENTION: AttentionItem[] = [
-  { code: 'FLT_CON', value: '+5 min' },
-  { code: 'FLT_PLAT', value: '6 min'},
-  { code: 'VAN_PLAT', value: '10 min' },
-  { code: 'KNG_PLAT2', value: '10 min' },
 ]
