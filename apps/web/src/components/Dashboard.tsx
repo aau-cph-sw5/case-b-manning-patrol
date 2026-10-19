@@ -6,11 +6,9 @@ import {
   timeColorClass,
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
+import { AttentionTime } from '../settings.ts'
 
 import './Dashboard.css'
-
-// areas with this many minutes or less left are listed under ATTENTION
-const ATTENTION_THRESHOLD_MIN = 10
 
 function Dashboard() {
   const now = useNow()
@@ -21,7 +19,7 @@ function Dashboard() {
       minutes: remainingMinutes(level, now),
     })),
   )
-    .filter((item) => item.minutes <= ATTENTION_THRESHOLD_MIN)
+    .filter((item) => item.minutes <= AttentionTime)
     .sort((a, b) => a.minutes - b.minutes)
 
   return (
