@@ -1,11 +1,29 @@
-import { STATIONS, ATTENTION } from '../data/mockData.tsx'
+import { STATIONS } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
-import { timeColorClass} from '../utils/TimeColor.tsx'
+import {
+  formatRemaining,
+  remainingMinutes,
+  timeColorClass,
+} from '../utils/TimeColor.tsx'
+import { useNow } from '../hooks/useNow.ts'
 
 import './Dashboard.css'
 
+// areas with this many minutes or less left are listed under ATTENTION
+const ATTENTION_THRESHOLD_MIN = 10
 
 function Dashboard() {
+  const now = useNow()
+
+  const attention = STATIONS.flatMap((station) =>
+    station.levels.map((level) => ({
+      code: `${station.code}_${level.label}`,
+      minutes: remainingMinutes(level, now),
+    })),
+  )
+    .filter((item) => item.minutes <= ATTENTION_THRESHOLD_MIN)
+    .sort((a, b) => a.minutes - b.minutes)
+
   return (
     <>
       <section className="dashboard-header">
@@ -15,15 +33,15 @@ function Dashboard() {
       <div className="dash">
         <section className="station-grid">
           {STATIONS.map((station) => (
-            <StationCard key={station.code} station={station} />
+            <StationCard key={station.code} station={station} now={now} />
           ))}
         </section>
         <aside className="card attention">
-          <h2>ATTENTION ({ATTENTION.length})</h2>
+          <h2>ATTENTION ({attention.length})</h2>
           <ul className="attention-list">
-            {ATTENTION.map((item) => (
-              <li key={item.code} className={timeColorClass(item.value)}>
-                {item.code}: {item.value}
+            {attention.map((item) => (
+              <li key={item.code} className={timeColorClass(item.minutes)}>
+                {item.code}: {formatRemaining(item.minutes)}
               </li>
             ))}
           </ul>
