@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Station as ApiStation } from '../data/stationsApi'
-import type { Station } from '../data/mockData'
+import type { ApiStation } from '../data/stationsApi'
+import type { Station } from '../data/stationView'
 import { toStationCardData } from '../utils/stations'
 
 const STATIONS_URL = 'http://localhost:8000/api/v2/stations'

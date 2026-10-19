@@ -1,4 +1,4 @@
-import type { Station } from '../data/mockData'
+import type { Station } from '../data/stationView'
 import {
   formatRemaining,
   remainingMinutes,

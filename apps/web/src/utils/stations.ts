@@ -1,5 +1,5 @@
-import type { Station as ApiStation } from '../data/stationsApi'
-import type { Station } from '../data/mockData'
+import type { ApiStation } from '../data/stationsApi'
+import type { Station } from '../data/stationView'
 
 // Placeholder indtil connect/disconnect-events findes: alle områder
 // starter som ikke-patruljeret, timeren tæller ned fra nu.

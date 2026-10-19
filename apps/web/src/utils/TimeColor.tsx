@@ -1,4 +1,4 @@
-import type { StationLevel } from '../data/mockData'
+import type { StationLevel } from '../data/stationView'
 
 const MIN = 60000 //ms
 const PATROL_INTERVAL_MIN = 60

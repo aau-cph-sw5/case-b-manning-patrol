@@ -8,7 +8,7 @@ export interface PatrolArea {
   beacon_id: string
 }
 
-export interface Station {
+export interface ApiStation {
   id: string
   name: string
   patrol_areas: PatrolArea[]

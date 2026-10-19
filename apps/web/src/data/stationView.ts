@@ -1,3 +1,6 @@
+// View-model types for the station dashboard. Built from the API's
+// Station type by toStationCardData in utils/stations.
+
 export interface StationLevel {
   label: string
   beaconId: string
@@ -10,4 +13,3 @@ export interface Station {
   name: string
   levels: StationLevel[]
 }
-
