@@ -163,7 +163,7 @@ class StationCoverage:
         return tuple(area for area in self.areas if area.area.kind == kind)
 
     @property
-    def status(self) -> CoverageStatus:
+    def coverage_status(self) -> CoverageStatus:
         for _area in self.areas:
             if _area.coverage_status == CoverageStatus.OVERDUE:
                 return CoverageStatus.OVERDUE
@@ -185,14 +185,7 @@ class OverdueDetected:
     source: str
 
     @property
-    def entry_id(self) -> str:
-        """A stable id for this entry, the same every time it is computed.
-
-        uuid5 of (station_id, area_id, overdue_at, "DETECTED") with one fixed
-        namespace. The tracker compares it with the ids already in the log, so
-        a repeated refresh or a restart never logs the same episode twice. Two
-        different episodes have different overdue_at values, so different ids.
-        """
+    def stable_entry_id(self) -> str:
         datestring = self.overdue_at.isoformat()
         return f"{self.area.station_id}:{self.area.area_id}:{datestring}:DETECTED"
 
@@ -207,20 +200,9 @@ class OverdueCleared:
     source: str
 
     @property
-    def entry_id(self) -> str:
-        """A stable id for this entry, the same every time it is computed.
-
-        uuid5 of (station_id, area_id, overdue_at, "CLEARED") with the same
-        namespace as OverdueDetected. Shares overdue_at with the matching
-        DETECTED entry, so the pair can be found, but never the same id.
-        """
+    def stable_entry_id(self) -> str:
         datestring = self.overdue_at.isoformat()
         return f"{self.area.station_id}:{self.area.area_id}:{datestring}:CLEARED"
 
     def overdue_for(self) -> timedelta:
-        """How long the area was overdue in total
-
-        cleared_at - overdue_at. Computed from the two stored timestamps
-        instead of being stored, so it can never disagree with them.
-        """
         return self.cleared_at - self.overdue_at

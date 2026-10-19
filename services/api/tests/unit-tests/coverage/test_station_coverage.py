@@ -54,8 +54,8 @@ def station_overdue(area_coverage_overdue) -> StationCoverage:
 
 
 def test_status_compliant(station_compliant):
-    assert station_compliant.status == CoverageStatus.COMPLIANT
+    assert station_compliant.coverage_status == CoverageStatus.COMPLIANT
 
 
 def test_status_overdue(station_overdue):
-    assert station_overdue.status == CoverageStatus.OVERDUE
+    assert station_overdue.coverage_status == CoverageStatus.OVERDUE
