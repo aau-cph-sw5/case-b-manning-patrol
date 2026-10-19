@@ -1,6 +1,6 @@
 import asyncio
 
-from src.models.coverage import StationCoverage
+from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_publisher import CoveragePublisher
 
 
@@ -9,9 +9,9 @@ from src.services.coverage.coverage_publisher import CoveragePublisher
 class SseBroadcaster(CoveragePublisher):
     def __init__(self) -> None:
         """Start with no connected dashboards."""
-        self._subscribers: set[asyncio.Queue[StationCoverage]] = set()
+        self._subscribers: set[asyncio.Queue[StationCoverageReport]] = set()
 
-    def publish(self, changes: list[StationCoverage]) -> None:
+    def publish(self, changes: list[StationCoverageReport]) -> None:
         """Hand each changed station to every connected dashboard.
 
         put_nowait each station into each subscriber's queue. The stream route
@@ -20,7 +20,7 @@ class SseBroadcaster(CoveragePublisher):
         """
         raise NotImplementedError
 
-    def subscribe(self) -> asyncio.Queue[StationCoverage]:
+    def subscribe(self) -> asyncio.Queue[StationCoverageReport]:
         """Register a new dashboard connection.
 
         Creates a queue, adds it to the subscribers and returns it. The stream
@@ -29,7 +29,7 @@ class SseBroadcaster(CoveragePublisher):
         """
         raise NotImplementedError
 
-    def unsubscribe(self, queue: asyncio.Queue[StationCoverage]) -> None:
+    def unsubscribe(self, queue: asyncio.Queue[StationCoverageReport]) -> None:
         """Remove a dashboard connection that has closed.
 
         Drops its queue from the subscribers, so publish stops filling a queue

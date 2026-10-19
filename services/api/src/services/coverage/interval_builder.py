@@ -1,9 +1,9 @@
-from src.models.coverage import PresenceInterval
+from src.models.coverage import StewardPatrolInterval
 from src.models.event import Event
 
 
 class IntervalBuilder:
-    def build(self, events: list[Event]) -> list[PresenceInterval]:
+    def build(self, events: list[Event]) -> list[StewardPatrolInterval]:
         """Turn the stored events into presence intervals, one per visit.
 
         1. Sort the events by device_timestamp (the phone's time), because

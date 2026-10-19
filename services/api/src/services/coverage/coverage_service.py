@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import StationCoverage
+from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 
@@ -19,12 +19,12 @@ class CoverageService:
         self._builder = builder
         self._rule = rule
 
-    async def compute(
+    async def compute_coverage_reports(
         self,
         session: AsyncSession,
         now: datetime,
         baseline: datetime | None = None,
-    ) -> list[StationCoverage]:
+    ) -> list[StationCoverageReport]:
         """Compute the coverage of every station at now, without changing anything.
 
         1. Load all events and all patrol areas, once each.
