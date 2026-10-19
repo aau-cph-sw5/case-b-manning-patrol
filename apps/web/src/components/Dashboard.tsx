@@ -30,7 +30,9 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
     <>
       <section className="dashboard-header">
         <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
-        <div className="overdue-count">Overdue: {overdueCount}</div>
+      <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`}>
+        Overdue: {overdueCount}
+      </div>
       </section>
       <div className="dash">
         <section className="station-grid">

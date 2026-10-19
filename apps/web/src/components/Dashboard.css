@@ -14,10 +14,14 @@
   grid-column: 3;
   justify-self: end;
   padding: 8px 16px;
-  border: 3px solid #d0455e;
+  border: 3px solid #060001;
   border-radius: 8px;
   font-weight: bold;
   margin-right: 20px;
+}
+
+.overdue-count.has-overdue {
+  border-color: #d0455e;
 }
 
 @media (max-width: 700px) {
