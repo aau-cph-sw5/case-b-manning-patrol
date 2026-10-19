@@ -22,11 +22,15 @@ function Dashboard() {
     .filter((item) => item.minutes <= AttentionTime)
     .sort((a, b) => a.minutes - b.minutes)
 
+const overdueCount = STATIONS.flatMap((station) => station.levels)
+  .filter((level) => remainingMinutes(level, now) <= 0)
+  .length
+
   return (
     <>
       <section className="dashboard-header">
         <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
-        <div className="overdue-count">Overdue: 3</div>
+        <div className="overdue-count">Overdue: {overdueCount}</div>
       </section>
       <div className="dash">
         <section className="station-grid">
