@@ -23,7 +23,7 @@ function Dashboard() {
           <ul className="attention-list">
             {ATTENTION.map((item) => (
               <li key={item.code} className={timeColorClass(item.value)}>
-                {item.code} {item.value}
+                {item.code}: {item.value}
               </li>
             ))}
           </ul>
