@@ -13,6 +13,7 @@ def test_list_stations_returns_seeded_station(client, seeded_station_id):
     assert response.status_code == 200
     stations = response.json()
     assert len(stations) == 1
+    assert stations[0]["id"] == "STN-001"
     assert stations[0]["name"] == "Station 01"
 
     assert len(stations[0]["patrol_areas"]) == 1

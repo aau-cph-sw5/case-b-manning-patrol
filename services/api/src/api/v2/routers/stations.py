@@ -20,6 +20,7 @@ class AreaOut(BaseModel):
 
 
 class StationOut(BaseModel):
+    id: str
     name: str
     patrol_areas: list[AreaOut]
 
@@ -35,6 +36,7 @@ async def list_stations(session: SessionDep):
 
     return [
         StationOut(
+            id=station.id,
             name=station.name,
             patrol_areas=[
                 AreaOut(kind=area.area_kind.value, beacon_id=area.beacon_id)
@@ -43,4 +45,5 @@ async def list_stations(session: SessionDep):
             ],
         )
         for station in stations
+        if station.id is not None
     ]
