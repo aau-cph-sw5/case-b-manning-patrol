@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -61,5 +61,27 @@ class CoverageUpdater:
         Returns last_published as a list. Synchronous, so the stream route can
         subscribe and then take the snapshot without anything being published
         in between.
+        """
+        raise NotImplementedError
+
+
+# Refreshes coverage on a timer, because window expiry and a threshold crossed
+# mid-visit produce no event. Meant to run as a lifespan task (not wired yet).
+class ClockTick:
+    def __init__(self, updater: CoverageUpdater, interval: timedelta) -> None:
+        """Hold the updater and how often to refresh.
+
+        interval is passed in, so tests can use a short one.
+        """
+        self._updater = updater
+        self._interval = interval
+
+    async def run(self) -> None:
+        """Refresh coverage on a fixed interval until the app shuts down.
+
+        Loop: call updater.refresh(), then sleep for interval. Needed because
+        two things change coverage without any event arriving: a window running
+        out, and an open visit crossing its threshold. Stops cleanly when the
+        lifespan cancels the task.
         """
         raise NotImplementedError
