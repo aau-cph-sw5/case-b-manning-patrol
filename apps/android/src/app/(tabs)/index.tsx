@@ -5,7 +5,7 @@
 import { useEffect, useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
-import Station from "@/components/Station";
+import Station, { StationListHeader } from "@/components/Station";
 import { SessionSlider } from "@/components/SessionSlider";
 import { MOCK_ANDROID_ID, MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import { MOCK_STATIONS } from "@/fixtures/mockStations";
@@ -48,6 +48,7 @@ export default function Index() {
       />
 
       <View style={styles.stationList}>
+        <StationListHeader />
         {MOCK_STATIONS.map((station) => (
           <Station key={station.id} station={station} startedAt={patrolSession.startedAt} />
         ))}
@@ -108,5 +109,6 @@ const styles = StyleSheet.create({
   },
   stationList: {
     gap: 12,
+    backgroundColor: '#3333',
   },
 });

@@ -6,125 +6,173 @@ import type { StationRecord } from "@/types/station";
 const MAX_STATION_TIME_MS = 60 * 60 * 1000;
 
 type StationProps = {
-    station: StationRecord;
-    startedAt: number | null;
+  station: StationRecord;
+  startedAt: number | null;
+  platformResetAt?: number | null;
+  concourseResetAt?: number | null;
 };
 
-export default function Station({ station, startedAt }: StationProps) {
-    const elapsed = useElapsedTime(startedAt);
-    const minutes = Math.min(60, Math.floor(Math.min(elapsed, MAX_STATION_TIME_MS) / 60_000));
+export function StationListHeader() {
+  return (
+    <View style={styles.header} accessibilityRole="header">
+      <View style={styles.headerDetails}>
+        <Text style={[styles.headerLabel, styles.stationHeaderLabel]}>Station</Text>
+      </View>
+      <View style={styles.headerTimerPanel}>
+        <Text style={styles.headerLabel}>Platform</Text>
+        <Text style={styles.headerLabel}>Concourse</Text>
+      </View>
+    </View>
+  );
+}
 
-    return (
-        <View style={styles.row} accessibilityLabel={`${station.name}, ${minutes} minutes`}>
-            <View style={styles.details}>
-                {station.routeCodes?.length ? (
-                    <View style={styles.routes}>
-                        {station.routeCodes.map((routeCode) => (
-                            <View
-                                key={routeCode}
-                                style={[styles.routeBadge, routeColors[routeCode] ?? styles.routeDefault]}
-                            >
-                                <Text style={styles.routeText}>{routeCode}</Text>
-                            </View>
-                        ))}
-                    </View>
-                ) : null}
-                <View style={styles.stationText}>
-                    <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-                        {station.name}
-                    </Text>
-                    {station.subtitle ? (
-                        <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-                            {station.subtitle}
-                        </Text>
-                    ) : null}
-                </View>
-            </View>
-            <View style={styles.timerPanel}>
-                <Text style={styles.timer} accessibilityLiveRegion="polite">
-                    {String(minutes).padStart(2, "0")} min
-                </Text>
-            </View>
-        </View>
-    );
+export default function Station({
+  station,
+  startedAt,
+  platformResetAt,
+  concourseResetAt,
+}: StationProps) {
+  return (
+    <View style={styles.row} accessibilityLabel={station.name}>
+      <View style={styles.details}>
+        {station.routeCodes?.length ? (
+          <View style={styles.routes}>
+            {station.routeCodes.map((routeCode) => (
+              <View
+                key={routeCode}
+                style={[styles.routeBadge, routeColors[routeCode] ?? styles.routeDefault]}
+              >
+                <Text style={styles.routeText}>{routeCode}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+          {station.name}
+        </Text>
+      </View>
+      <View style={styles.timerPanel}>
+        <AreaTimer startedAt={platformResetAt ?? startedAt} />
+        <View style={styles.timerDivider} />
+        <AreaTimer startedAt={concourseResetAt ?? startedAt} />
+      </View>
+    </View>
+  );
+}
+
+function AreaTimer({ startedAt }: { startedAt: number | null }) {
+  const elapsed = useElapsedTime(startedAt);
+  const minutes = Math.min(60, Math.floor(Math.min(elapsed, MAX_STATION_TIME_MS) / 60_000));
+
+  return (
+    <View style={styles.timerCell} accessibilityLabel={`${minutes} minutes`}>
+      <Text style={styles.timer} accessibilityLiveRegion="polite">
+        {String(minutes).padStart(2, "0")} min
+      </Text>
+    </View>
+  );
 }
 
 const routeColors: Record<string, object> = {
-    M1: stylesRouteBadge("#159f72"),
-    M2: stylesRouteBadge("#e5b400"),
-    M3: stylesRouteBadge("#d90b36"),
+  M1: { backgroundColor: "#159f72" },
+  M2: { backgroundColor: "#e5b400" },
+  M3: { backgroundColor: "#d90b36" },
 };
 
-function stylesRouteBadge(backgroundColor: string) {
-    return { backgroundColor };
-}
-
 const styles = StyleSheet.create({
-    row: {
-        height: 84,
-        flexDirection: "row",
-        overflow: "hidden",
-        borderWidth: 2,
-        borderColor: "#ed2224",
-        borderRadius: 17,
-        backgroundColor: "#ffffff",
-    },
-    details: {
-        flex: 1,
-        minWidth: 0,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        paddingHorizontal: 12,
-    },
-    routes: {
-        width: 52,
-        flexDirection: "row",
-        flexWrap: "wrap",
-        alignContent: "center",
-        justifyContent: "center",
-        gap: 4,
-    },
-    routeBadge: {
-        width: 24,
-        height: 24,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 12,
-    },
-    routeDefault: {
-        backgroundColor: "#686868",
-    },
-    routeText: {
-        color: "#ffffff",
-        fontSize: 9,
-        fontWeight: "700",
-    },
-    stationText: {
-        flex: 1,
-        minWidth: 0,
-        gap: 2,
-    },
-    name: {
-        color: "#252525",
-        fontSize: 16,
-        fontWeight: "700",
-    },
-    subtitle: {
-        color: "#777777",
-        fontSize: 11,
-    },
-    timerPanel: {
-        width: 116,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#e9282b",
-    },
-    timer: {
-        color: "#ffffff",
-        fontSize: 21,
-        fontWeight: "700",
-        fontVariant: ["tabular-nums"],
-    },
+  header: {
+    height: 28,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerDetails: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 10,
+  },
+  headerTimerPanel: {
+    width: 164,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerLabel: {
+    flex: 1,
+    color: "#666666",
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  stationHeaderLabel: {
+    textAlign: "left",
+  },
+  row: {
+    height: 84,
+    flexDirection: "row",
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#ed2224",
+    borderRadius: 17,
+    backgroundColor: "#ffffff",
+  },
+  details: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+  },
+  routes: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 3,
+  },
+  routeBadge: {
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9,
+  },
+  routeDefault: {
+    backgroundColor: "#686868",
+  },
+  routeText: {
+    color: "#ffffff",
+    fontSize: 7,
+    fontWeight: "700",
+  },
+  name: {
+    color: "#252525",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  timerPanel: {
+    width: 164,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e9282b",
+  },
+  timerCell: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  timerDivider: {
+    width: 1,
+    height: 48,
+    backgroundColor: "rgba(255, 255, 255, 0.45)",
+  },
+  timer: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
+  },
 });
 
