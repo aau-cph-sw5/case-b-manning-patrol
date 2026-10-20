@@ -28,3 +28,23 @@ export function StationScreen() {
     return null;
 }
 
+interface Area {
+    type: string
+    lastConnected: Date
+    status: string
+    timeTillOverdue: Date
+    line: string
+}
+
+interface Station {
+    name: string
+    areas: Area[]
+}
+
+interface StationOverview {
+    stations: Station[]
+}
+
+function extractData(data: StationOverview) {
+
+}
