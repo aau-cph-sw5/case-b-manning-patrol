@@ -14,6 +14,7 @@ graph TD
 ## Endpoints
 
 - `GET api/v2/dashboard/stream` - Server-Sent Events stream of [Dashboard] updates
+- `GET api/v2/config/at-risk-threshold` - At-risk threshold configuration ([AtRiskThreshold])
 
 ## Implementation Notes
 
@@ -56,3 +57,6 @@ data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 - `total_time_secs`: integer
 - `manned_time_secs`: integer
 - `current_steward_id`: UUID | null
+
+### AtRiskThreshold
+- `at_risk_threshold_secs`: integer — seconds before an area becomes overdue when it is considered at-risk

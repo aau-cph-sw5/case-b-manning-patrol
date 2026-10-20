@@ -12,6 +12,9 @@
   `TrainResponse` removed.
 - Positioning Interface: `Station.slug` and `Station.station_name` replaced by
   `name`.
+- Positioning Interface: added `GET /api/v2/config/at-risk-threshold` returning
+  `AtRiskThreshold` with `at_risk_threshold_secs` — how much time must remain
+  before an area becomes overdue for it to be considered at-risk.
 - Positioning Interface: `StationArea` replaced by `Area` with `area_id`,
   `name`, `line`, `area_type`, `covered_now` and `overdue_at`. `beacon_id`,
   `slug`, `last_manned_at`, `current_steward_id` and `status` removed.

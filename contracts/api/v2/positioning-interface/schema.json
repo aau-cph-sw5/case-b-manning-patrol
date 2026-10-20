@@ -12,6 +12,34 @@
 		}
 	],
 	"paths": {
+		"/api/v2/config/at-risk-threshold": {
+			"get": {
+				"summary": "Get at-risk threshold",
+				"description": "Returns how much time must remain before an area becomes overdue for the area to be considered at-risk. Clients use this to show warning states before an area turns overdue.",
+				"responses": {
+					"200": {
+						"description": "At-risk threshold configuration.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AtRiskThreshold"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v2/dashboard/stream": {
 			"get": {
 				"summary": "Subscribe to dashboard updates",
@@ -177,7 +205,18 @@
 				},
 				"required": ["stations", "trains", "time"]
 			},
-			"Error": {
+			"AtRiskThreshold": {
+			"type": "object",
+			"properties": {
+				"at_risk_threshold_secs": {
+					"type": "integer",
+					"description": "Seconds before an area becomes overdue when it is considered at-risk. E.g. 900 means an area is at-risk when less than 15 minutes remain until overdue_at.",
+					"example": 900
+				}
+			},
+			"required": ["at_risk_threshold_secs"]
+		},
+		"Error": {
 				"type": "object",
 				"properties": {
 					"code": {
