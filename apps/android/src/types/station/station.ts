@@ -1,21 +1,28 @@
-/* 
-Initial Station and StationArea type
-Might need to be changed since readme and actual schema are conflicting 
-*/
-type UUID = string ;
-type Area = "platform" | "concourse";
+import * as z from "zod";
 
-type StationArea = {
-    beacon_id: UUID 
-    slug: string
-    last_manned_at: Date 
-    current_steward_id: UUID[]
-    area_type: Area  
-};
 
-export type Station = {
-    station_id: UUID
-    slug: string 
-    areas: StationArea[]
-    station_name: string 
-};
+export const AreaSchema = z.object({
+    areaId: z.string(),
+    name: z.string(),
+    line: z.string(),
+    areaType: z.enum(["platform", "concourse"]),
+    status: z.enum(["compliant", "overdue"]),
+    coveredNow: z.boolean(),
+    overdueAt: z.date().nullable(),
+})
+
+export const StationSchema = z.object({
+    name: z.string(),
+    areas: AreaSchema.array(),
+})
+
+export const StationOverviewSchema = z.object({
+    stations: StationSchema.array(),
+})
+
+export type Area = z.infer<typeof AreaSchema>;
+export type Station = z.infer<typeof StationSchema>;
+export type StationOverview = z.infer<typeof StationOverviewSchema>;
+
+
+

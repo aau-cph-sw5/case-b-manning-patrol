@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { connectToStationUpdates } from "../api/stationEventStream";
+import { Station, type StationOverview } from "../types/station/station";
 
 export function StationScreen() {
-    const [stationData, setStationData] = useState<string[]>([]);
+    const [stationData, setStationData] = useState<StationOverview>();
 
     useEffect(() => {
         const disconnect = connectToStationUpdates(
         (data) => {
             console.log("Received station update:", data);
 
-            setStationData((currentData) => [
-                ...currentData, data,
-            ])
-            //Add handling of data here
+            setStationData(data);
         },
+
         (error) => {
             console.error("SSE error:", error);
             //Add error handling here
@@ -28,23 +27,3 @@ export function StationScreen() {
     return null;
 }
 
-interface Area {
-    type: string
-    lastConnected: Date
-    status: string
-    timeTillOverdue: Date
-    line: string
-}
-
-interface Station {
-    name: string
-    areas: Area[]
-}
-
-interface StationOverview {
-    stations: Station[]
-}
-
-function extractData(data: StationOverview) {
-
-}
