@@ -4,7 +4,12 @@ from uuid import UUID, uuid4
 from fastapi.exceptions import RequestValidationError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.repository.events import get_event, insert_adjustment, insert_event
+from src.db.repository.events import (
+    get_event,
+    get_open_connections,
+    insert_adjustment,
+    insert_event,
+)
 from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 
 
@@ -33,6 +38,32 @@ class MainProducer:
 
         await insert_event(session, event_model)
         return event_model
+
+    @staticmethod
+    async def close_open_connections(
+        session: AsyncSession,
+        android_id: UUID,
+        device_timestamp: datetime,
+        source: str,
+    ) -> list[EventModel]:
+        open_connections = await get_open_connections(session, android_id)
+        pending_closures = [
+            (connection.android_id, connection.beacon_id)
+            for connection in open_connections
+        ]
+        closed_connections: list[EventModel] = []
+        for connection_android_id, connection_beacon_id in pending_closures:
+            closed_connections.append(
+                await MainProducer.append_event(
+                    session=session,
+                    event_type=EventType.DISCONNECT_EVENT,
+                    android_id=connection_android_id,
+                    beacon_id=connection_beacon_id,
+                    device_timestamp=device_timestamp,
+                    source=source,
+                )
+            )
+        return closed_connections
 
     @staticmethod
     async def append_adjustment(

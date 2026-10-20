@@ -138,7 +138,7 @@
 		"api/v2/patrol-session/stop": {
 			"post": {
 				"summary": "Report patrol session stopped",
-				"description": "Sent when user clicks a button in order to stop patrol session on the Android device.",
+				"description": "Sent when user clicks a button in order to stop patrol session on the Android device. The server also closes any open connections for this android_id by appending a disconnect event for every connect event that has no matching disconnect, using this stop timestamp.",
 				"requestBody": {
 					"required": true,
 					"content": {
