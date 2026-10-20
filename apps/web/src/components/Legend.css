@@ -1,0 +1,33 @@
+.legend-box {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+  background: var(--social-bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.legend-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.text-green {
+  color: #28a745 !important;
+}
+
+.text-yellow {
+  color: #ffc107 !important;
+}
+
+.text-red {
+  color: #dc3545 !important;
+}

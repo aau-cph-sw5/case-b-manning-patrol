@@ -7,8 +7,7 @@ import {
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
 import { AttentionTime } from '../settings.ts'
-
-import './Dashboard.css'
+import Legend from './Legend.tsx'
 
 function Dashboard() {
   const now = useNow()
@@ -28,6 +27,7 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
 
   return (
     <>
+      <Legend />
       <section className="dashboard-header">
         <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
       <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`}>
