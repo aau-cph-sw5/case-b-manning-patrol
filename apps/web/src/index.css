@@ -167,7 +167,14 @@ code {
   display: grid;
 }
 
-.levels li,
+.levels li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  padding: 6px 8px;
+}
+
 .attention-list li {
   border-bottom: 1px solid var(--border);
   padding: 6px 8px;

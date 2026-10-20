@@ -1,4 +1,7 @@
-import type { StationLevel } from '../data/mockData'
+import { AttentionTime } from "../settings"
+import type { StationLevel } from "../data/mockData"
+
+export type TimeColor = 'row-green' | 'row-yellow' | 'row-red'
 
 const MIN = 60000 //ms
 const PATROL_INTERVAL_MIN = 60
@@ -23,7 +26,7 @@ export function timeColorClass(minutes: number): string {
   if (minutes < 0) {
     return 'row-red'
   }
-  return minutes > 10 ? 'row-green' : 'row-yellow'
+  return minutes > AttentionTime ? 'row-green' : 'row-yellow'
 }
 
 export default timeColorClass

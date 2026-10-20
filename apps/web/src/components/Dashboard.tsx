@@ -6,9 +6,9 @@ import {
   timeColorClass,
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
+import { AttentionTime } from '../settings.ts'
 
-// areas with this many minutes or less left are listed under ATTENTION
-const ATTENTION_THRESHOLD_MIN = 10
+import './Dashboard.css'
 
 function Dashboard() {
   const now = useNow()
@@ -19,12 +19,21 @@ function Dashboard() {
       minutes: remainingMinutes(level, now),
     })),
   )
-    .filter((item) => item.minutes <= ATTENTION_THRESHOLD_MIN)
+    .filter((item) => item.minutes <= AttentionTime)
     .sort((a, b) => a.minutes - b.minutes)
+
+const overdueCount = STATIONS.flatMap((station) => station.levels)
+  .filter((level) => remainingMinutes(level, now) <= 0)
+  .length
 
   return (
     <>
-      <h1>Manning Patrol Dashboard</h1>
+      <section className="dashboard-header">
+        <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
+      <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`}>
+        OVERDUE ({overdueCount})
+      </div>
+      </section>
       <div className="dash">
         <section className="station-grid">
           {STATIONS.map((station) => (
@@ -36,7 +45,7 @@ function Dashboard() {
           <ul className="attention-list">
             {attention.map((item) => (
               <li key={item.code} className={timeColorClass(item.minutes)}>
-                {item.code} {formatRemaining(item.minutes)}
+                {item.code}: {formatRemaining(item.minutes)}
               </li>
             ))}
           </ul>

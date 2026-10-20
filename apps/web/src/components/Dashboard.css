@@ -1,0 +1,44 @@
+.dashboard-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin: 10px 0 16px;
+}
+
+.dashboard-title {
+  grid-column: 2;
+  font-size: 56px;
+}
+
+.overdue-count {
+  grid-column: 3;
+  justify-self: end;
+  padding: 8px 16px;
+  border: 3px solid #060001;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+.overdue-count.has-overdue {
+  border-color: #d0455e;
+}
+
+@media (max-width: 700px) {
+  .dashboard-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 12px;
+  }
+
+  .dashboard-title,
+  .overdue-count {
+    grid-column: 1;
+    justify-self: center;
+  }
+
+  .dashboard-title {
+    font-size: 36px;
+    text-align: center;
+  }
+}
