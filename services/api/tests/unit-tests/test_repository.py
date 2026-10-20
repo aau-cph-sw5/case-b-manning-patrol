@@ -1,5 +1,5 @@
 from collections.abc import AsyncGenerator
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -175,6 +175,57 @@ async def test_get_events_returns_all_inserted_events(session):
     result = await events.get_events(session)
 
     assert {e.event_id for e in result} == expected_ids
+
+
+@pytest.mark.asyncio
+async def test_reconnect_to_same_beacon_is_stored_as_new_event(session):
+    connect = make_event(event_type=EventType.CONNECT_EVENT)
+    disconnect = make_event(
+        event_type=EventType.DISCONNECT_EVENT,
+        device_timestamp=TIMESTAMP + timedelta(minutes=3),
+    )
+    reconnect = make_event(
+        event_type=EventType.CONNECT_EVENT,
+        device_timestamp=TIMESTAMP + timedelta(minutes=5),
+    )
+
+    for event in (connect, disconnect, reconnect):
+        await events.insert_event(session, event)
+    result = sorted(await events.get_events(session), key=lambda e: e.device_timestamp)
+
+    assert [e.event_type for e in result] == [
+        EventType.CONNECT_EVENT,
+        EventType.DISCONNECT_EVENT,
+        EventType.CONNECT_EVENT,
+    ]
+    assert {(e.android_id, e.beacon_id) for e in result} == {
+        (connect.android_id, connect.beacon_id),
+    }
+    assert result[0].event_id != result[2].event_id
+    assert result[2].device_timestamp == TIMESTAMP + timedelta(minutes=5)
+
+
+@pytest.mark.asyncio
+async def test_event_recieved_after_stop_still_stored(session):
+    start = make_event(event_type=EventType.START_EVENT)
+    stop = make_event(
+        event_type=EventType.STOP_EVENT,
+        device_timestamp=TIMESTAMP + timedelta(minutes=5),
+        server_timestamp=TIMESTAMP + timedelta(minutes=5),
+    )
+    connection_event = make_event(
+        event_type=EventType.CONNECT_EVENT,
+        device_timestamp=TIMESTAMP + timedelta(minutes=3),
+        server_timestamp=TIMESTAMP + timedelta(minutes=7),
+    )
+
+    for event in (start, stop, connection_event):
+        await events.insert_event(session, event)
+    # This query is supposed to mock how a query to build a report could be made based
+    # on ordering of the device timestamp
+    result = sorted(await events.get_events(session), key=lambda e: e.device_timestamp)
+    connection = result[1]
+    assert connection.device_timestamp == connection_event.device_timestamp
 
 
 @pytest.mark.asyncio

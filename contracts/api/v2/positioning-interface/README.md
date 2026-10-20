@@ -1,62 +1,62 @@
 # Positioning Interface API
 
-Backend API contract for station and train presence positioning data. Consumed by the Web UI dashboard and reporting services.
+Backend API contract for station and train presence positioning data. Consumed by the control room dashboard (Web UI) and the steward Android app.
 
 ## Architecture
 
 ```mermaid
 graph TD
-    WebUI[Web UI\nReact] -->|"GET api/v2/dashboard"| RestAPI
-    WebUI -->|"GET api/v2/stations/{stationID}"| RestAPI
-    WebUI -->|"GET api/v2/trains/{trainID}"| RestAPI
-    WebUI -.->|"WS /stationUpdate"| RestAPI
-    WebUI -.->|"WS /trainUpdate"| RestAPI
+    WebUI[Control room\nReact] -.->|"SSE api/v2/dashboard/stream"| RestAPI
+    Android[Steward app\nExpo] -.->|"SSE api/v2/dashboard/stream"| RestAPI
     RestAPI[RestAPI] --> Backend[Backend\npython]
 ```
 
 ## Endpoints
 
-- `GET api/v2/dashboard` - Returns every station and train ([DashboardResponse])
-- `GET api/v2/stations/{stationID}` - Returns a single station and its areas ([StationResponse])
-- `GET api/v2/trains/{trainID}` - Returns a single train ([TrainResponse])
-- `WS /stationUpdate` - Live push of a [StationResponse] whenever a station's manning state changes
-- `WS /trainUpdate` - Live push of a [TrainResponse] whenever a train's manning state changes
+- `GET api/v2/dashboard/stream` - Server-Sent Events stream of [Dashboard] updates
+- `GET api/v2/config/at-risk-threshold` - At-risk threshold configuration ([AtRiskThreshold])
 
 ## Implementation Notes
 
-`/stationUpdate` and `/trainUpdate` are WebSocket channels, not polled REST resources. The backend pushes the same payload shape as the corresponding `GET` endpoint whenever a connection event (see the Positioning Ingestion contract) changes who is manning a station area or train, replacing v1's pollable `/observation-events` stream.
+`/api/v2/dashboard/stream` is a Server-Sent Events (SSE) stream (`text/event-stream`), not a WebSocket and not a polled REST resource. Every message is an SSE event named `dashboard` whose `data` is a JSON-encoded `Dashboard`:
 
-The exact relationship between `StationResponse`/`TrainResponse` and the underlying `Station`/`Train` entities is intentionally left open for a later sprint — this contract fixes the interface, not the implementation.
+```
+event: dashboard
+data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
+```
+
+- The first event after connecting contains every station and train, so clients need no separate initial fetch.
+- Later events contain only the stations and trains whose state changed. Clients replace their copy of each station by `station_id` and each train by `train_id`.
+- `time` is when the server sent the event.
+- `overdue_at` is a point in time, not a duration. Clients count down to it themselves, so the server does not push an event every second.
+- Browsers reconnect an SSE stream automatically. After a reconnect the first event is again the full dashboard.
 
 ## Data Models
 
-### Train
-- `train_id`: UUID
-- `beacon_id`: UUID
-- `slug`: string
-- `total_time_secs`: integer
-- `manned_time_secs`: integer
-- `current_steward_id`: steward_id[]
+### Dashboard
+- `stations`: Station[]
+- `trains`: Train[]
+- `time`: Date — when the server sent this event
 
 ### Station
 - `station_id`: UUID
-- `slug`: string
-- `areas`: StationArea[]
-- `station_name`: string
+- `name`: string
+- `areas`: Area[]
 
-### StationArea
-- `beacon_id`: UUID
-- `slug`: string
-- `last_manned_at`: Date
-- `current_steward_id`: steward_id[]
+### Area
+- `area_id`: string
+- `name`: string
+- `line`: string
 - `area_type`: enum `"platform"` | `"concourse"`
+- `covered_now`: boolean
+- `overdue_at`: Date | null — when the area becomes (or became) overdue; null while covered now or when never patrolled
 
-### DashboardResponse
-- `stations`: Station[]
-- `trains`: Train[]
+### Train
+- `train_id`: UUID
+- `slug`: string
+- `total_time_secs`: integer
+- `manned_time_secs`: integer
+- `current_steward_id`: UUID | null
 
-### StationResponse
-- Same shape as `Station`
-
-### TrainResponse
-- Same shape as `Train`
+### AtRiskThreshold
+- `at_risk_threshold_secs`: integer — seconds before an area becomes overdue when it is considered at-risk
