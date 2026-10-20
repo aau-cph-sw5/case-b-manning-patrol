@@ -107,12 +107,6 @@
 						"description": "Kind of area. Decides how long a visit must last to count as a patrol.",
 						"example": "platform"
 					},
-					"status": {
-						"type": "string",
-						"enum": ["compliant", "overdue"],
-						"description": "Whether the area has been patrolled within the required window.",
-						"example": "compliant"
-					},
 					"covered_now": {
 						"type": "boolean",
 						"description": "True while a steward is patrolling the area right now.",
@@ -122,19 +116,18 @@
 						"type": "string",
 						"format": "date-time",
 						"nullable": true,
-						"description": "The moment the area becomes overdue (or became overdue, when status is overdue). Clients count down to it themselves between events. Null when covered_now is true, or when the area has never been patrolled and so has no deadline. UTC in ISO 8601 with offset.",
+						"description": "The moment the area becomes overdue (or became overdue). Clients count down to it themselves between events. Null when covered_now is true, or when the area has never been patrolled and so has no deadline. UTC in ISO 8601 with offset.",
 						"example": "2026-09-21T11:00:00+00:00"
 					}
 				},
-				"required": [
-					"area_id",
-					"name",
-					"line",
-					"area_type",
-					"status",
-					"covered_now",
-					"overdue_at"
-				]
+			"required": [
+				"area_id",
+				"name",
+				"line",
+				"area_type",
+				"covered_now",
+				"overdue_at"
+			]
 			},
 			"Station": {
 				"type": "object",

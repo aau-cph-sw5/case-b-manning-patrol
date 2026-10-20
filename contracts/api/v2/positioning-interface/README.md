@@ -47,7 +47,6 @@ data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 - `name`: string
 - `line`: string
 - `area_type`: enum `"platform"` | `"concourse"`
-- `status`: enum `"compliant"` | `"overdue"`
 - `covered_now`: boolean
 - `overdue_at`: Date | null — when the area becomes (or became) overdue; null while covered now or when never patrolled
 

@@ -13,9 +13,8 @@
 - Positioning Interface: `Station.slug` and `Station.station_name` replaced by
   `name`.
 - Positioning Interface: `StationArea` replaced by `Area` with `area_id`,
-  `name`, `line`, `area_type`, `status` (`compliant` | `overdue`),
-  `covered_now` and `overdue_at`. `beacon_id`, `slug`, `last_manned_at` and
-  `current_steward_id` removed.
+  `name`, `line`, `area_type`, `covered_now` and `overdue_at`. `beacon_id`,
+  `slug`, `last_manned_at`, `current_steward_id` and `status` removed.
 - `POST /api/v2/patrol-session/stop` now also closes open connections: the
   server appends a disconnect event (stamped with the stop `timestamp`) for
   every connect event of that `android_id` that has no matching disconnect,
