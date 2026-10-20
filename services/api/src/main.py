@@ -4,7 +4,9 @@ Manning Patrol Backend
 Main FastAPI application.
 """
 
+import asyncio
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -12,6 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.models.patrol_area import AreaKind
+from src.services.coverage.clock_tick import ClockTick
+from src.services.coverage.coverage_service import CoverageService
+from src.services.coverage.coverage_updater import CoverageUpdater
+from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.interval_builder import IntervalBuilder
+from src.services.coverage.sse_broadcaster import SseBroadcaster
+from src.services.overdue_tracker import OverdueTracker
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import health, positioning_simulator
@@ -28,7 +38,33 @@ async def lifespan(app: FastAPI):
     await init_db()
     async with AsyncSession(engine) as session:
         await load_stations(session)
+
+    builder = IntervalBuilder()
+    rule = CoverageWindow(
+        window=timedelta(minutes=60),
+        min_durations={
+            AreaKind.PLATFORM: timedelta(seconds=4),
+            AreaKind.CONCOURSE: timedelta(minutes=10),
+        },
+    )
+    sse_broadcaster = SseBroadcaster()
+    overdue_tracker = OverdueTracker()
+    service = CoverageService(builder, rule)
+    coverage_updater = CoverageUpdater(
+        service=service,
+        tracker=overdue_tracker,
+        publisher=sse_broadcaster,
+        session_factory=lambda: AsyncSession(engine),
+        clock=lambda: datetime.now(UTC),
+    )
+
+    tick = asyncio.create_task(ClockTick(coverage_updater, timedelta(seconds=5)).run())
+
+    app.state.coverage_updater = coverage_updater
+    app.state.sse_broadcaster = sse_broadcaster
+
     yield
+    tick.cancel()
     await engine.dispose()
 
 

@@ -18,6 +18,18 @@ from src.models.patrol_area import AreaKind
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
+
+class _StubCoverageUpdater:
+    """Stands in for CoverageUpdater: the coverage pipeline is a skeleton
+    (compute/track raise NotImplementedError), so a real refresh would fail.
+    Tests only need the attribute to exist on app.state."""
+
+    async def refresh(self) -> None:
+        return None
+
+
+app.state.coverage_updater = _StubCoverageUpdater()
+
 SEEDED_STATION_ID = "STN-001"
 SEEDED_BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
 
