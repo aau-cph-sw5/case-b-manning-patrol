@@ -1,6 +1,14 @@
-export type StationRecord = {
-  id: string;
+export type AreaType = "Platform" | "Concourse";
+
+export type Area = {
+  type: AreaType;
+  timeTillOverdue: number;
+  line: string;
   name: string;
-  subtitle?: string;
-  routeCodes?: string[];
+  coveredNow: boolean;
+};
+
+export type StationRecord = {
+  name: string;
+  areas: Area[];
 };

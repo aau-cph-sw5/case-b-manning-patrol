@@ -1,15 +1,17 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { useElapsedTime } from "@/hooks/useElapsedTime";
-import type { StationRecord } from "@/types/station";
-
-const MAX_STATION_TIME_MS = 60 * 60 * 1000;
+import {
+  areaStatus,
+  formatCountdown,
+  mostUrgentArea,
+  remainingMs,
+  type AreaStatus,
+} from "@/utils/areaStatus";
+import type { Area, StationRecord } from "@/types/station";
 
 type StationProps = {
   station: StationRecord;
-  startedAt: number | null;
-  platformResetAt?: number | null;
-  concourseResetAt?: number | null;
+  now: number;
 };
 
 export function StationListHeader() {
@@ -26,23 +28,20 @@ export function StationListHeader() {
   );
 }
 
-export default function Station({
-  station,
-  startedAt,
-  platformResetAt,
-  concourseResetAt,
-}: StationProps) {
+export default function Station({ station, now }: StationProps) {
+  const lines = [...new Set(station.areas.map((area) => area.line))];
+
   return (
     <View style={styles.row} accessibilityLabel={station.name}>
       <View style={styles.details}>
-        {station.routeCodes?.length ? (
+        {lines.length ? (
           <View style={styles.routes}>
-            {station.routeCodes.map((routeCode) => (
+            {lines.map((line) => (
               <View
-                key={routeCode}
-                style={[styles.routeBadge, routeColors[routeCode] ?? styles.routeDefault]}
+                key={line}
+                style={[styles.routeBadge, routeColors[line] ?? styles.routeDefault]}
               >
-                <Text style={styles.routeText}>{routeCode}</Text>
+                <Text style={styles.routeText}>{line}</Text>
               </View>
             ))}
           </View>
@@ -52,23 +51,47 @@ export default function Station({
         </Text>
       </View>
       <View style={styles.timerPanel}>
-        <AreaTimer startedAt={platformResetAt ?? startedAt} />
+        <AreaTimer area={mostUrgentArea(station.areas, "Platform")} now={now} />
         <View style={styles.timerDivider} />
-        <AreaTimer startedAt={concourseResetAt ?? startedAt} />
+        <AreaTimer area={mostUrgentArea(station.areas, "Concourse")} now={now} />
       </View>
     </View>
   );
 }
 
-function AreaTimer({ startedAt }: { startedAt: number | null }) {
-  const elapsed = useElapsedTime(startedAt);
-  const minutes = Math.min(60, Math.floor(Math.min(elapsed, MAX_STATION_TIME_MS) / 60_000));
+// one deadline cell. the colour carries the risk (AC 1) and the caption says why
+// a level needs no round right now: someone else is patrolling it (AC 2).
+function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
+  if (!area) {
+    return (
+      <View style={[styles.timerCell, styles.missing]}>
+        <Text style={styles.timer}>--</Text>
+      </View>
+    );
+  }
+
+  const remaining = remainingMs(area.timeTillOverdue, now);
+
+  if (area.coveredNow) {
+    return (
+      <View style={[styles.timerCell, styles.covered]}>
+        <Text style={styles.timer}>{formatCountdown(remaining)}</Text>
+        <Text style={styles.caption}>Patrolled</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.timerCell} accessibilityLabel={`${minutes} minutes`}>
+    <View
+      style={[styles.timerCell, statusColors[areaStatus(remaining)]]}
+      accessibilityLabel={`${area.name} ${formatCountdown(remaining)}`}
+    >
       <Text style={styles.timer} accessibilityLiveRegion="polite">
-        {String(minutes).padStart(2, "0")} min
+        {formatCountdown(remaining)}
       </Text>
+      {areaStatus(remaining) === "overdue" ? (
+        <Text style={styles.caption}>Overdue</Text>
+      ) : null}
     </View>
   );
 }
@@ -77,6 +100,12 @@ const routeColors: Record<string, object> = {
   M1: { backgroundColor: "#159f72" },
   M2: { backgroundColor: "#e5b400" },
   M3: { backgroundColor: "#d90b36" },
+};
+
+const statusColors: Record<AreaStatus, object> = {
+  fresh: { backgroundColor: "#159f72" },
+  due: { backgroundColor: "#e5a800" },
+  overdue: { backgroundColor: "#d90b36" },
 };
 
 const styles = StyleSheet.create({
@@ -152,9 +181,9 @@ const styles = StyleSheet.create({
   timerPanel: {
     width: 164,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "stretch",
     justifyContent: "center",
-    backgroundColor: "#e9282b",
+    backgroundColor: "#f0f0f0",
   },
   timerCell: {
     flex: 1,
@@ -163,9 +192,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
   },
+  covered: {
+    backgroundColor: "#686868",
+  },
+  missing: {
+    backgroundColor: "#d8d8d8",
+  },
   timerDivider: {
     width: 1,
-    height: 48,
     backgroundColor: "rgba(255, 255, 255, 0.45)",
   },
   timer: {
@@ -174,5 +208,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
+  caption: {
+    color: "#ffffff",
+    fontSize: 8,
+    fontWeight: "700",
+  },
 });
-
