@@ -6,6 +6,7 @@ from uuid import UUID
 
 import pytest
 import pytest_asyncio
+from fastapi import Request
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
@@ -16,6 +17,7 @@ from src.api.v2.routers.patrol_session import (
     patrol_session_stop_event,
 )
 from src.db.repository import events
+from src.main import app
 from src.models.event import EventType
 from src.services.producer import MainProducer
 
@@ -130,6 +132,7 @@ async def test_patrol_session_stop_closes_open_connections(db_session):
     stop_event = await patrol_session_stop_event(
         PatrolSessionEvent(android_id=STEWART_ANDROID_ID, timestamp=stopped_at),
         db_session,
+        Request(scope={"type": "http", "app": app}),
     )
 
     assert stop_event.event_type == EventType.STOP_EVENT
