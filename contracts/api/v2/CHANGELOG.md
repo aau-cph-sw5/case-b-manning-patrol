@@ -1,6 +1,23 @@
 # Changelog
 
 ## v2.0.1 - Initial draft (unpublished)
+- Positioning Interface: replaced `GET /api/v2/dashboard`,
+  `GET /api/v2/stations/{stationID}`, `GET /api/v2/trains/{trainID}`,
+  `WS /stationUpdate` and `WS /trainUpdate` with a single SSE stream,
+  `GET /api/v2/dashboard/stream`, consumed by the control room and the Android
+  app. The first event holds the full dashboard; later events hold only the
+  changed stations and trains.
+- Positioning Interface: `DashboardResponse` renamed to `Dashboard` and given a
+  `time` field (when the event was sent). `StationResponse` and
+  `TrainResponse` removed.
+- Positioning Interface: `Station.slug` and `Station.station_name` replaced by
+  `name`.
+- Positioning Interface: added `GET /api/v2/config/at-risk-threshold` returning
+  `AtRiskThreshold` with `at_risk_threshold_secs` — how much time must remain
+  before an area becomes overdue for it to be considered at-risk.
+- Positioning Interface: `StationArea` replaced by `Area` with `area_id`,
+  `name`, `line`, `area_type`, `covered_now` and `overdue_at`. `beacon_id`,
+  `slug`, `last_manned_at`, `current_steward_id` and `status` removed.
 - `POST /api/v2/patrol-session/stop` now also closes open connections: the
   server appends a disconnect event (stamped with the stop `timestamp`) for
   every connect event of that `android_id` that has no matching disconnect,
