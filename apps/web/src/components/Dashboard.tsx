@@ -35,7 +35,7 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
       </section>
       <div className="dash">
         <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
-          OVERDUE ({overdueCount})
+          Overskredet ({overdueCount})
         </div>
         <section className="station-grid">
           {STATIONS.map((station) => (
