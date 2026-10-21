@@ -10,8 +10,8 @@ from src.services.coverage.coverage_service import CoverageService
 from src.services.overdue_tracker import OverdueTracker
 
 
-# Runs one coverage refresh: compute, log overdue, then publish only stations
-# that changed. Called by ingestion and by ClockTick, one refresh at a time.
+# Runs one coverage refresh: compute, log overdue, then publish the full
+# coverage. Called by ingestion and by ClockTick, one refresh at a time.
 class CoverageUpdater:
     def __init__(
         self,
@@ -27,8 +27,8 @@ class CoverageUpdater:
         refresh can run after the request that triggered it has closed its own
         session. clock returns the current time; passing it in lets tests
         control time. The lock makes sure only one refresh runs at a time, and
-        last_published remembers what each station looked like when it was
-        last pushed.
+        last_published remembers the latest coverage of each station, so
+        snapshot() can serve a dashboard that connects between refreshes.
         """
         self._service = service
         self._tracker = tracker
@@ -47,13 +47,20 @@ class CoverageUpdater:
            could let an older now run after a newer one and publish an
            outdated state.
         3. Open a session, compute the coverage, then let the tracker log
-           overdue changes. Logging comes first, so anything pushed as overdue
-           is already in the log.
-        4. With no await in between: compare each station's state() with
-           last_published, update last_published and publish only the stations
-           that changed.
+           overdue changes and commit, so anything pushed as overdue is
+           already durably in the log.
+        4. With no await in between: remember the coverage in last_published
+           and publish it in full, the same payload a dashboard receives on
+           connect.
         """
-        raise NotImplementedError
+        async with self._lock:
+            now = self._clock()
+            async with self._session_factory() as session:
+                reports = await self._service.compute_coverage_reports(session, now)
+                await self._tracker.track(session, reports, now)
+                await session.commit()
+            self._last_published = {report.station_id: report for report in reports}
+            self._publisher.publish(reports)
 
     def snapshot(self) -> list[StationCoverageReport]:
         """The coverage as last published, for a dashboard that just connected.
@@ -62,11 +69,11 @@ class CoverageUpdater:
         subscribe and then take the snapshot without anything being published
         in between.
         """
-        raise NotImplementedError
+        return list(self._last_published.values())
 
 
 # Refreshes coverage on a timer, because window expiry and a threshold crossed
-# mid-visit produce no event. Meant to run as a lifespan task (not wired yet).
+# mid-visit produce no event. Runs as the lifespan task started in main.py.
 class ClockTick:
     def __init__(self, updater: CoverageUpdater, interval: timedelta) -> None:
         """Hold the updater and how often to refresh.
@@ -84,4 +91,6 @@ class ClockTick:
         out, and an open visit crossing its threshold. Stops cleanly when the
         lifespan cancels the task.
         """
-        raise NotImplementedError
+        while True:
+            await self._updater.refresh()
+            await asyncio.sleep(self._interval.total_seconds())

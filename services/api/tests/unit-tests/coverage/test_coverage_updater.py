@@ -6,6 +6,17 @@ from datetime import timedelta
 from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
 
 
+class FakeSession:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc_info):
+        return None
+
+    async def commit(self):
+        pass
+
+
 class FakeService:
     def __init__(self):
         self.reports = []
@@ -47,10 +58,10 @@ def make_updater(clock_times):
     publisher = FakePublisher(events)
     return (
         CoverageUpdater(
-            service=service,
-            tracker=tracker,
+            service=service,  # ty: ignore[invalid-argument-type]
+            tracker=tracker,  # ty: ignore[invalid-argument-type]
             publisher=publisher,
-            session_factory=lambda: object(),
+            session_factory=lambda: FakeSession(),  # ty: ignore[invalid-argument-type]
             clock=FakeClock(clock_times),
         ),
         service,
@@ -157,7 +168,10 @@ async def test_clock_tick_refreshes_until_cancelled():
             self.refreshes += 1
 
     fake_updater = FakeTickUpdater()
-    tick = ClockTick(fake_updater, interval=timedelta(milliseconds=10))
+    tick = ClockTick(
+        fake_updater,  # ty: ignore[invalid-argument-type]
+        interval=timedelta(milliseconds=10),
+    )
     task = asyncio.create_task(tick.run())
     try:
         await asyncio.sleep(0.05)
