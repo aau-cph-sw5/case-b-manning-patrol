@@ -2,16 +2,20 @@
 // start opens the patrol session and starts the mock beacon scan at once; swiping stop ends both.
 // every event the scanner produces prints in the terminal and is forwarded to the
 // backend as it arrives.
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import Station, { StationListHeader } from "@/components/Station";
 import { SessionSlider } from "@/components/SessionSlider";
+import TopNavBar from "@/components/TopNavBar";
 import { MOCK_ANDROID_ID, MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import { MOCK_STATIONS } from "@/fixtures/mockStations";
 import { useBeaconScanner } from "@/hooks/useBeaconScanner";
 import { usePatrolSession } from "@/hooks/usePatrolSession";
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
+import type { LineGroup } from "@/types/station";
+import { LINE_GROUPS } from "@/types/station";
+import { stationServesLineGroup } from "@/utils/stationLineGroup";
 
 export default function Index() {
   // one scanner for the lifetime of the screen, so start/stop always talks to the same one
@@ -27,6 +31,13 @@ export default function Index() {
   const { state: patrolSession, start, stop } = usePatrolSession();
   const { start: startScan, stop: stopScan } = useBeaconScanner(scanner);
 
+  // the selected line-group filter; starts on the first group and never clears
+  const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0]);
+  const visibleStations = useMemo(
+    () => MOCK_STATIONS.filter((station) => stationServesLineGroup(station, lineGroup)),
+    [lineGroup],
+  );
+
   // the scan is the session's: it runs exactly while the patrol session is active (AC 1). the patrol session
   // is only active once the backend accepted the start, so a rejected start scans nothing.
   useEffect(() => {
@@ -38,44 +49,25 @@ export default function Index() {
   }, [patrolSession.status, startScan, stopScan]);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <SessionSlider
-        status={patrolSession.status}
-        startedAt={patrolSession.startedAt}
-        error={patrolSession.error}
-        onStart={start}
-        onStop={stop}
-      />
+    <View style={styles.screen}>
+      <TopNavBar selected={lineGroup} onSelect={setLineGroup} />
+      <ScrollView contentContainerStyle={styles.content}>
+        <SessionSlider
+          status={patrolSession.status}
+          startedAt={patrolSession.startedAt}
+          error={patrolSession.error}
+          onStart={start}
+          onStop={stop}
+        />
 
-      <View style={styles.stationList}>
-        <StationListHeader />
-        {MOCK_STATIONS.map((station) => (
-          <Station key={station.id} station={station} startedAt={patrolSession.startedAt} />
-        ))}
-      </View>
-
-      {/* <Text style={styles.section}>
-        {scan.scanning ? "Scanning (mock)" : "Not scanning"}
-      </Text>
-
-      <Text style={styles.subsection}>Connected beacons</Text>
-      {scan.connectedBeaconIds.length === 0 ? (
-        <Text style={styles.empty}>None</Text>
-      ) : (
-        scan.connectedBeaconIds.map((beaconId) => (
-          <Text key={beaconId} style={styles.beacon}>
-            {beaconId}
-          </Text>
-        ))
-      )}
-
-      <Text style={styles.subsection}>Recent events (BeaconConnectionEvents)</Text>
-      {scan.recentEvents.map((event) => (
-        <Text key={`${event.timestamp}-${event.beacon_id}`} style={styles.event}>
-          {event.event === "CONNECTED" ? "+" : "-"} {event.beacon_id} at {event.timestamp}
-        </Text>
-      ))} */}
-    </ScrollView>
+        <View style={styles.stationList}>
+          <StationListHeader />
+          {visibleStations.map((station) => (
+            <Station key={station.id} station={station} startedAt={patrolSession.startedAt} />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -87,25 +79,6 @@ const styles = StyleSheet.create({
   content: {
     gap: 12,
     padding: 16,
-  },
-  section: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  subsection: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  empty: {
-    fontSize: 14,
-    color: "gray",
-  },
-  beacon: {
-    fontSize: 14,
-  },
-  event: {
-    fontSize: 12,
-    fontFamily: undefined,
   },
   stationList: {
     gap: 12,

@@ -11,7 +11,7 @@ export const MOCK_STATIONS: StationRecord[] = [
     id: "kongens-nytorv",
     name: "Kongens Nytorv",
     subtitle: "Perron og stationsområde",
-    routeCodes: ["M1", "M2", "M3"],
+    routeCodes: ["M1", "M2", "M3", "M4"],
   },
   {
     id: "norrebro",
