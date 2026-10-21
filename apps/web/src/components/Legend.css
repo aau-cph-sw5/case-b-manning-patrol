@@ -18,6 +18,8 @@
   display: flex !important;
   align-items: center !important;
   gap: 0.5rem !important;
+  justify-content: space-between !important;
+  width: 100% !important;
 }
 
 .text-green {
@@ -30,4 +32,31 @@
 
 .text-red {
   color: #dc3545 !important;
+}
+
+.edit-button {
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin-left: 0.5rem !important;
+  color: var(--text) !important;
+}
+
+.edit-button:hover {
+  color: var(--text-h) !important;
+}
+
+.edit-input {
+  width: 60px !important;
+  padding: 0.25rem !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  text-align: center !important;
+}
+
+.edit-input:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
 }

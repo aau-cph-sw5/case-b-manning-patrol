@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { STATIONS } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
 import {
@@ -11,6 +12,7 @@ import Legend from './Legend.tsx'
 
 function Dashboard() {
   const now = useNow()
+  const [attentionTime, setAttentionTime] = useState<number>(AttentionTime)
 
   const attention = STATIONS.flatMap((station) =>
     station.levels.map((level) => ({
@@ -18,7 +20,7 @@ function Dashboard() {
       minutes: remainingMinutes(level, now),
     })),
   )
-    .filter((item) => item.minutes <= AttentionTime)
+    .filter((item) => item.minutes <= attentionTime)
     .sort((a, b) => a.minutes - b.minutes)
 
 const overdueCount = STATIONS.flatMap((station) => station.levels)
@@ -28,23 +30,23 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
   return (
     <>
       <section className="dashboard-header">
-        <Legend />
+        <Legend attentionTime={attentionTime} onAttentionTimeChange={setAttentionTime} />
         <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
-      <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`}>
-        OVERDUE ({overdueCount})
-      </div>
       </section>
       <div className="dash">
+        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
+          OVERDUE ({overdueCount})
+        </div>
         <section className="station-grid">
           {STATIONS.map((station) => (
-            <StationCard key={station.code} station={station} now={now} />
+            <StationCard key={station.code} station={station} now={now} attentionTime={attentionTime} />
           ))}
         </section>
         <aside className="card attention">
           <h2>ATTENTION ({attention.length})</h2>
           <ul className="attention-list">
             {attention.map((item) => (
-              <li key={item.code} className={timeColorClass(item.minutes)}>
+              <li key={item.code} className={timeColorClass(item.minutes, attentionTime)}>
                 {item.code}: {formatRemaining(item.minutes)}
               </li>
             ))}
