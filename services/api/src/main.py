@@ -15,9 +15,8 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.models.patrol_area import AreaKind
-from src.services.coverage.clock_tick import ClockTick
 from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_updater import CoverageUpdater
+from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 from src.services.coverage.sse_broadcaster import SseBroadcaster
