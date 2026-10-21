@@ -73,8 +73,6 @@ function AreaTimer({ startedAt }: { startedAt: number | null }) {
   );
 }
 
-// line colors used across the app, keyed by route code: the filter pills and the
-// station row badges both read from here. palette follows the app mockups.
 export const routeColors: Record<string, object> = {
   M1: { backgroundColor: "#2ecc71" },
   M2: { backgroundColor: "#f1c40f" },

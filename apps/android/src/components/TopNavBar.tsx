@@ -9,8 +9,6 @@ type TopNavBarProps = {
   onSelect: (lineGroup: LineGroup) => void;
 };
 
-// the patrol screen's top bar: metro brand on a deep red band, with the line
-// filter pills inside the white card.
 export default function TopNavBar({ selected, onSelect }: TopNavBarProps) {
   return (
     <SafeAreaView edges={["top"]} style={styles.bar}>

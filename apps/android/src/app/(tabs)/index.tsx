@@ -1,7 +1,3 @@
-// the steward's patrol screen. the session slider drives everything below it: swiping
-// start opens the patrol session and starts the mock beacon scan at once; swiping stop ends both.
-// every event the scanner produces prints in the terminal and is forwarded to the
-// backend as it arrives.
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -18,8 +14,6 @@ import { LINE_GROUPS } from "@/types/station";
 import { stationServesLineGroup } from "@/utils/stationLineGroup";
 
 export default function Index() {
-  // one scanner for the lifetime of the screen, so start/stop always talks to the same one
-  
   const scanner = useMemo(
     () =>
       createMockBeaconScanner({
@@ -31,15 +25,12 @@ export default function Index() {
   const { state: patrolSession, start, stop } = usePatrolSession();
   const { start: startScan, stop: stopScan } = useBeaconScanner(scanner);
 
-  // the selected line-group filter; starts on the first group and never clears
   const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0]);
   const visibleStations = useMemo(
     () => MOCK_STATIONS.filter((station) => stationServesLineGroup(station, lineGroup)),
     [lineGroup],
   );
 
-  // the scan is the session's: it runs exactly while the patrol session is active (AC 1). the patrol session
-  // is only active once the backend accepted the start, so a rejected start scans nothing.
   useEffect(() => {
     if (patrolSession.status === "active") {
       startScan();

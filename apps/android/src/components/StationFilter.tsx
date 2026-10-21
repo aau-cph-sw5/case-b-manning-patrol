@@ -18,8 +18,6 @@ type StationFilterProps = {
 const SEGMENT_WIDTH = 78;
 const SEGMENT_HEIGHT = 40;
 
-// a segmented control: one button per line group in a shared track. tapping a
-// segment slides the red thumb over to it.
 export default function StationFilter({ selected, onSelect }: StationFilterProps) {
   const thumbX = useSharedValue(0);
 

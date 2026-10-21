@@ -3,15 +3,12 @@ import type { BottomTabBarProps } from "expo-router/build/react-navigation/botto
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// icon per tab, keyed by route name
 const TAB_ICONS: Record<string, React.ComponentProps<typeof Feather>["name"]> = {
   dataTransparency: "settings",
   index: "home",
   patrolHistory: "folder",
 };
 
-// the floating bottom bar: deep red rounded band, one icon per tab, the active
-// tab sits in a solid metro red button.
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.bar}>
