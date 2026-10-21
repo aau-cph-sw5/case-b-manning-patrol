@@ -34,7 +34,9 @@ class CoverageWindow:
         Looks the kind up in min_durations. A kind without a configured
         threshold is a configuration error, not something to guess.
         """
-        raise NotImplementedError
+        if kind not in self._min_durations:
+            raise KeyError(f"No min_duration configured for {kind}")
+        return self._min_durations[kind]
 
     def evaluate(
         self,
@@ -58,7 +60,44 @@ class CoverageWindow:
 
         The same inputs and the same now always give the same result (AC5).
         """
-        raise NotImplementedError
+        minimum = self.min_duration(area.kind)
+
+        spans: list[TimeSpan] = []
+        for interval in intervals:
+            span = interval.patrol_span(minimum, self._window, now)
+            if span is not None:
+                spans.append(span)
+        if baseline is not None:
+            spans.append(TimeSpan(start=baseline, end=baseline + self._window))
+
+        merged = self._union(spans)
+        start = merged[0].start if merged else now
+        episodes = tuple(self._gaps(merged, start, now))
+
+        finished_qualifying = [
+            interval.ended_at
+            for interval in intervals
+            if interval.ended_at is not None
+            and interval.qualifies_as_patrolled(minimum, now)
+        ]
+        covered_now = any(
+            interval.is_patrolling() and interval.qualifies_as_patrolled(minimum, now)
+            for interval in intervals
+        )
+        current_steward_ids = frozenset(
+            interval.android_id for interval in intervals if interval.is_patrolling()
+        )
+
+        return AreaCoverageReport(
+            area=area,
+            last_covered_at=max(finished_qualifying) if finished_qualifying else None,
+            covered_now=covered_now,
+            shift_start_time=baseline,
+            current_steward_ids=current_steward_ids,
+            episodes=episodes,
+            time_until_next_needed_patrol=self._window,
+            as_of=now,
+        )
 
     def _union(self, spans: list[TimeSpan]) -> list[TimeSpan]:
         """Merge overlapping spans into a sorted list without overlaps.
@@ -67,7 +106,13 @@ class CoverageWindow:
         one while they touch. The result shows exactly when the area was
         covered, which makes the gaps easy to find.
         """
-        raise NotImplementedError
+        merged: list[TimeSpan] = []
+        for span in sorted(spans, key=lambda span: span.start):
+            if merged and merged[-1].touches(span):
+                merged[-1] = merged[-1].merge(span)
+            else:
+                merged.append(span)
+        return merged
 
     def _gaps(
         self,
@@ -84,4 +129,16 @@ class CoverageWindow:
         the first covered moment, so time before the first patrol is never an
         episode.
         """
-        raise NotImplementedError
+        episodes: list[OverdueEpisode] = []
+        for current, following in zip(spans, spans[1:], strict=False):
+            if current.end >= following.start:
+                continue
+            overdue_at = max(current.end, start)
+            if overdue_at >= following.start:
+                continue
+            episodes.append(
+                OverdueEpisode(overdue_at=overdue_at, cleared_at=following.start)
+            )
+        if spans and spans[-1].end < until:
+            episodes.append(OverdueEpisode(overdue_at=spans[-1].end, cleared_at=None))
+        return episodes
