@@ -1,7 +1,15 @@
 import { AttentionTime } from "../settings"
 import type { StationLevel } from "../data/mockData"
+import { BsEmojiFrown, BsEmojiNeutral, BsEmojiSmile } from 'react-icons/bs'
+import type { IconType } from 'react-icons'
 
 export type TimeColor = 'row-green' | 'row-yellow' | 'row-red'
+
+export const STATUS_ICONS: Record<TimeColor, IconType> = {
+  'row-green': BsEmojiSmile,
+  'row-yellow': BsEmojiNeutral,
+  'row-red': BsEmojiFrown,
+}
 
 const MIN = 60000 //ms
 const PATROL_INTERVAL_MIN = 60
