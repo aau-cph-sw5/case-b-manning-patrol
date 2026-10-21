@@ -25,10 +25,16 @@ def test_publish_reaches_every_subscriber(station_report, now):
         ]
     )
 
-    assert first.qsize() == 2
-    assert second.qsize() == 2
-    assert first.get_nowait().station_id == "marmorkirken"
-    assert second.get_nowait().station_id == "kongens-nytorv"
+    assert first.qsize() == 1
+    assert second.qsize() == 1
+    assert [r.station_id for r in first.get_nowait()] == [
+        "marmorkirken",
+        "kongens-nytorv",
+    ]
+    assert [r.station_id for r in second.get_nowait()] == [
+        "marmorkirken",
+        "kongens-nytorv",
+    ]
 
 
 def test_unsubscribed_dashboard_stops_receiving(station_report, now):
