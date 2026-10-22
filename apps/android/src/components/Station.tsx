@@ -73,10 +73,11 @@ function AreaTimer({ startedAt }: { startedAt: number | null }) {
   );
 }
 
-const routeColors: Record<string, object> = {
-  M1: { backgroundColor: "#159f72" },
-  M2: { backgroundColor: "#e5b400" },
-  M3: { backgroundColor: "#d90b36" },
+export const routeColors: Record<string, object> = {
+  M1: { backgroundColor: "#2ecc71" },
+  M2: { backgroundColor: "#f1c40f" },
+  M3: { backgroundColor: "#e91e63" },
+  M4: { backgroundColor: "#3498db" },
 };
 
 const styles = StyleSheet.create({
