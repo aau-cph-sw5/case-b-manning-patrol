@@ -26,6 +26,7 @@ export function createMockStations(now: number): StationRecord[] {
   return [
     {
       name: "Kongens Nytorv",
+      routeCodes: ["M1", "M2"],
       areas: [
         area("Platform", "Perron 1-2", "M1", -3),
         area("Concourse", "Stationsområde", "M2", 42),
@@ -33,6 +34,7 @@ export function createMockStations(now: number): StationRecord[] {
     },
     {
       name: "Frederiksberg",
+      routeCodes: ["M1", "M2", "M3", "M4"],
       areas: [
         area("Platform", "Perron", "M1", 37),
         area("Concourse", "Stationsområde", "M3", 8),
@@ -40,6 +42,7 @@ export function createMockStations(now: number): StationRecord[] {
     },
     {
       name: "Nørrebro",
+      routeCodes: ["M3", "M4"],
       areas: [
         area("Platform", "Perron 1", "M3", 55),
         area("Platform", "Perron 2", "M3", 26),
@@ -48,6 +51,7 @@ export function createMockStations(now: number): StationRecord[] {
     },
     {
       name: "Islands Brygge",
+      routeCodes: ["M1", "M2"],
       areas: [
         area("Platform", "Perron", "M1", 25, true),
         area("Concourse", "Stationsområde", "M2", 58),

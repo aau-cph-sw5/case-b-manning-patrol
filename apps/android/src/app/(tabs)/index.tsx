@@ -16,8 +16,7 @@ import { usePatrolSession } from "@/hooks/usePatrolSession";
 import { useStations } from "@/hooks/useStations";
 import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
 import { sortStationsByUrgency } from "@/utils/areaStatus";
-import type { LineGroup } from "@/types/station";
-import { LINE_GROUPS } from "@/types/station";
+import { LINE_GROUPS, type LineGroup } from "@/types/station";
 import { stationServesLineGroup } from "@/utils/stationLineGroup";
 
 
@@ -44,8 +43,8 @@ export default function Index() {
 
   const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0]);
   const visibleStations = useMemo(
-    () => MOCK_STATIONS.filter((station) => stationServesLineGroup(station, lineGroup)),
-    [lineGroup],
+    () => stations.filter((station) => stationServesLineGroup(station, lineGroup)),
+    [stations, lineGroup],
   );
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function Index() {
     }
   }, [patrolSession.status, startScan, stopScan]);
 
-  const round = sortStationsByUrgency(stations, now);
+  const round = sortStationsByUrgency(visibleStations, now);
 
   return (
     <View style={styles.screen}>
