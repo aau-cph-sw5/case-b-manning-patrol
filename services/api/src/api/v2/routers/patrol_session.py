@@ -46,7 +46,9 @@ async def connection_event(
 
 
 @router.post("/connection/disconnect", status_code=status.HTTP_201_CREATED)
-async def disconnection_event(connection_event: ConnectionEvent, session: SessionDep):
+async def disconnection_event(
+    connection_event: ConnectionEvent, session: SessionDep, request: Request
+):
     event_model = await MainProducer.append_event(
         session=session,
         event_type=EventType.DISCONNECT_EVENT,
@@ -55,12 +57,14 @@ async def disconnection_event(connection_event: ConnectionEvent, session: Sessio
         device_timestamp=connection_event.timestamp,
         source="API",
     )
+    coverage_updater: CoverageUpdater = request.app.state.coverage_updater
+    await coverage_updater.refresh()
     return event_model
 
 
 @router.post("/patrol-session/start", status_code=status.HTTP_201_CREATED)
 async def patrol_session_start_event(
-    patrol_session_event: PatrolSessionEvent, session: SessionDep
+    patrol_session_event: PatrolSessionEvent, session: SessionDep, request: Request
 ):
     event_model = await MainProducer.append_event(
         session=session,
@@ -69,12 +73,14 @@ async def patrol_session_start_event(
         device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
+    coverage_updater: CoverageUpdater = request.app.state.coverage_updater
+    await coverage_updater.refresh()
     return event_model
 
 
 @router.post("/patrol-session/stop", status_code=status.HTTP_201_CREATED)
 async def patrol_session_stop_event(
-    patrol_session_event: PatrolSessionEvent, session: SessionDep
+    patrol_session_event: PatrolSessionEvent, session: SessionDep, request: Request
 ):
     event_model = await MainProducer.append_event(
         session=session,
@@ -89,4 +95,6 @@ async def patrol_session_stop_event(
         device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
+    coverage_updater: CoverageUpdater = request.app.state.coverage_updater
+    await coverage_updater.refresh()
     return event_model

@@ -15,9 +15,8 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.models.patrol_area import AreaKind
-from src.services.coverage.clock_tick import ClockTick
 from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_updater import CoverageUpdater
+from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 from src.services.coverage.sse_broadcaster import SseBroadcaster
@@ -25,7 +24,7 @@ from src.services.overdue_tracker import OverdueTracker
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import health, positioning_simulator
-from .api.v2.routers import adjustment, patrol_session
+from .api.v2.routers import adjustment, coverage_stream, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
 
@@ -98,6 +97,7 @@ app.add_middleware(
 app.include_router(health.router, prefix=API_PREFIX_V1)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(coverage_stream.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
 
