@@ -1,7 +1,3 @@
-"""
-Value objects for patrol coverage and the overdue log (MET-B-007)
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,25 +8,22 @@ from uuid import UUID
 from src.models.patrol_area import AreaKind, PatrolArea
 
 
-# Whether an area, or a whole station, has been patrolled within the window.
 class CoverageStatus(StrEnum):
     COMPLIANT = "compliant"
     OVERDUE = "overdue"
 
 
-# Identifies one patrol area. Key for area coverage and for overdue log entries.
 @dataclass(frozen=True)
-class AreaRefference:
+class AreaReference:
     station_id: str | None
     area_id: str
     kind: AreaKind
 
     @staticmethod
-    def from_patrol_area(area: PatrolArea) -> AreaRefference:
-        return AreaRefference(area.station_id, area.area_id, area.area_kind)
+    def from_patrol_area(area: PatrolArea) -> AreaReference:
+        return AreaReference(area.station_id, area.area_id, area.area_kind)
 
 
-# A span of time during which an area counts as covered.
 @dataclass(frozen=True)
 class TimeSpan:
     start: datetime
@@ -51,11 +44,9 @@ class TimeSpan:
         )
 
 
-# One steward's presence at one beacon: a CONNECT and the DISCONNECT or STOP that
-# closed it. ended_at is None while the visit is still open.
 @dataclass(frozen=True)
 class StewardPatrolInterval:
-    android_id: str
+    android_id: UUID
     beacon_id: UUID
     started_at: datetime
     ended_at: datetime | None
@@ -73,19 +64,19 @@ class StewardPatrolInterval:
     ) -> bool:
         return self.patrol_duration(now) >= min_qualifying_duration
 
-    def qualified_as_patrolled_at(self, min_qualified_duration: timedelta) -> datetime:
-        return self.started_at + min_qualified_duration
+    def qualified_as_patrolled_at(self, min_qualifying_duration: timedelta) -> datetime:
+        return self.started_at + min_qualifying_duration
 
     def patrol_span(
         self,
-        min_duration: timedelta,
+        min_qualifying_duration: timedelta,
         time_until_next_needed_patrol: timedelta,
         now: datetime,
     ) -> TimeSpan | None:
-        if not self.qualifies_as_patrolled(min_duration, now):
+        if not self.qualifies_as_patrolled(min_qualifying_duration, now):
             return None
         return TimeSpan(
-            start=self.qualified_as_patrolled_at(min_duration),
+            start=self.qualified_as_patrolled_at(min_qualifying_duration),
             end=(self.ended_at or now) + time_until_next_needed_patrol,
         )
 
@@ -106,11 +97,11 @@ class OverdueEpisode:
 
 @dataclass(frozen=True)
 class AreaCoverageReport:
-    area: AreaRefference
+    area: AreaReference
     last_covered_at: datetime | None
     covered_now: bool
     shift_start_time: datetime | None
-    current_steward_ids: frozenset[str]
+    current_steward_ids: frozenset[UUID]
     episodes: tuple[OverdueEpisode, ...]
     time_until_next_needed_patrol: timedelta
     as_of: datetime
@@ -174,11 +165,9 @@ class StationCoverageReport:
         return tuple(area.state() for area in sorted_areas)
 
 
-# Log entry: the system saw an area become overdue. Append-only.
-# Storage schema is open (ADR-0008).
 @dataclass(frozen=True)
 class OverdueDetected:
-    area: AreaRefference
+    area: AreaReference
     overdue_at: datetime
     detected_at: datetime
     last_covered_at: datetime | None
@@ -190,11 +179,9 @@ class OverdueDetected:
         return f"{self.area.station_id}:{self.area.area_id}:{datestring}:DETECTED"
 
 
-# Log entry: an overdue episode for an area was cleared. Append-only.
-# Storage schema is open (ADR-0008).
 @dataclass(frozen=True)
 class OverdueCleared:
-    area: AreaRefference
+    area: AreaReference
     overdue_at: datetime
     cleared_at: datetime
     source: str

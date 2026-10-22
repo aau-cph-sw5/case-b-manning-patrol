@@ -53,7 +53,7 @@ def stop(seconds: int, android_id: UUID = STEWARD_1) -> Event:
     return make_event(EventType.STOP_EVENT, seconds, android_id, beacon_id=None)
 
 
-def spans(intervals) -> set[tuple[str, UUID, datetime, datetime | None]]:
+def spans(intervals) -> set[tuple[UUID, UUID, datetime, datetime | None]]:
     return {(i.android_id, i.beacon_id, i.started_at, i.ended_at) for i in intervals}
 
 
@@ -69,13 +69,13 @@ def test_no_events_gives_no_intervals(builder):
 def test_connect_then_disconnect_gives_one_closed_interval(builder):
     intervals = builder.build([connect(0), disconnect(30)])
 
-    assert spans(intervals) == {(str(STEWARD_1), STATION_2, at(0), at(30))}
+    assert spans(intervals) == {(STEWARD_1, STATION_2, at(0), at(30))}
 
 
 def test_events_are_sorted_by_device_timestamp(builder):
     intervals = builder.build([disconnect(30), connect(0)])
 
-    assert spans(intervals) == {(str(STEWARD_1), STATION_2, at(0), at(30))}
+    assert spans(intervals) == {(STEWARD_1, STATION_2, at(0), at(30))}
 
 
 def test_blip_gives_two_separate_intervals(builder):
@@ -89,8 +89,8 @@ def test_blip_gives_two_separate_intervals(builder):
     )
 
     assert spans(intervals) == {
-        (str(STEWARD_1), STATION_4, at(0), at(60)),
-        (str(STEWARD_1), STATION_4, at(67), at(600)),
+        (STEWARD_1, STATION_4, at(0), at(60)),
+        (STEWARD_1, STATION_4, at(67), at(600)),
     }
 
 
@@ -100,8 +100,8 @@ def test_connect_without_disconnect_stays_open(builder):
     )
 
     assert spans(intervals) == {
-        (str(STEWARD_1), STATION_4, at(0), None),
-        (str(STEWARD_1), STATION_2, at(10), None),
+        (STEWARD_1, STATION_4, at(0), None),
+        (STEWARD_1, STATION_2, at(10), None),
     }
     assert all(interval.is_patrolling() for interval in intervals)
 
@@ -117,8 +117,8 @@ def test_overlapping_beacons_for_one_steward(builder):
     )
 
     assert spans(intervals) == {
-        (str(STEWARD_1), TRAIN_50, at(0), at(30)),
-        (str(STEWARD_1), STATION_2, at(10), at(20)),
+        (STEWARD_1, TRAIN_50, at(0), at(30)),
+        (STEWARD_1, STATION_2, at(10), at(20)),
     }
 
 
@@ -133,8 +133,8 @@ def test_stop_closes_all_open_visits_of_that_steward(builder):
     )
 
     assert spans(intervals) == {
-        (str(STEWARD_1), STATION_2, at(10), at(100)),
-        (str(STEWARD_1), TRAIN_50, at(20), at(100)),
+        (STEWARD_1, STATION_2, at(10), at(100)),
+        (STEWARD_1, TRAIN_50, at(20), at(100)),
     }
 
 
@@ -148,15 +148,15 @@ def test_stop_leaves_other_stewards_open(builder):
     )
 
     assert spans(intervals) == {
-        (str(STEWARD_1), STATION_2, at(0), at(100)),
-        (str(STEWARD_2), STATION_2, at(5), None),
+        (STEWARD_1, STATION_2, at(0), at(100)),
+        (STEWARD_2, STATION_2, at(5), None),
     }
 
 
 def test_disconnect_after_stop_is_ignored(builder):
     intervals = builder.build([connect(0), stop(100), disconnect(120)])
 
-    assert spans(intervals) == {(str(STEWARD_1), STATION_2, at(0), at(100))}
+    assert spans(intervals) == {(STEWARD_1, STATION_2, at(0), at(100))}
 
 
 def test_start_alone_gives_no_intervals(builder):
@@ -174,8 +174,8 @@ def test_two_stewards_at_the_same_beacon_at_once(builder):
     )
 
     assert spans(intervals) == {
-        (str(STEWARD_1), STATION_2, at(0), at(20)),
-        (str(STEWARD_2), STATION_2, at(10), at(40)),
+        (STEWARD_1, STATION_2, at(0), at(20)),
+        (STEWARD_2, STATION_2, at(10), at(40)),
     }
 
 
@@ -186,7 +186,7 @@ def test_disconnect_without_connect_is_ignored(builder):
 def test_second_connect_keeps_the_first_start(builder):
     intervals = builder.build([connect(0), connect(10), disconnect(30)])
 
-    assert spans(intervals) == {(str(STEWARD_1), STATION_2, at(0), at(30))}
+    assert spans(intervals) == {(STEWARD_1, STATION_2, at(0), at(30))}
 
 
 def test_connect_without_beacon_is_skipped_and_logged(builder, caplog):

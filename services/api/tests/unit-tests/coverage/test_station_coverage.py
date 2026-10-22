@@ -1,20 +1,24 @@
 from datetime import timedelta
+from uuid import UUID
 
 import pytest
 
 from src.models.coverage import (
     AreaCoverageReport,
-    AreaRefference,
+    AreaReference,
     CoverageStatus,
     StationCoverageReport,
 )
 from src.models.patrol_area import AreaKind
 
+STEWARD_1 = UUID("00000000-0000-0000-0000-000000000001")
+STEWARD_2 = UUID("00000000-0000-0000-0000-000000000002")
+
 
 @pytest.fixture
 def area_coverage_compliant(now):
     return AreaCoverageReport(
-        area=AreaRefference(
+        area=AreaReference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
         covered_now=True,
@@ -23,23 +27,21 @@ def area_coverage_compliant(now):
         episodes=(),
         time_until_next_needed_patrol=timedelta(minutes=30),
         as_of=now,
-        current_steward_ids=frozenset(["steward1", "steward2"]),
+        current_steward_ids=frozenset([STEWARD_1, STEWARD_2]),
     )
 
 
 @pytest.fixture
 def area_coverage_overdue(now):
     return AreaCoverageReport(
-        area=AreaRefference(
-            station_id=None, area_id="platform", kind=AreaKind.PLATFORM
-        ),
+        area=AreaReference(station_id=None, area_id="platform", kind=AreaKind.PLATFORM),
         covered_now=False,
         last_covered_at=None,
         shift_start_time=now - timedelta(minutes=15),
         episodes=(),
         time_until_next_needed_patrol=timedelta(minutes=5),
         as_of=now,
-        current_steward_ids=frozenset(["steward1", "steward2"]),
+        current_steward_ids=frozenset([STEWARD_1, STEWARD_2]),
     )
 
 

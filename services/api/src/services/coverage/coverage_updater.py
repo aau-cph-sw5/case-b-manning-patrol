@@ -13,8 +13,6 @@ from src.services.overdue_tracker import OverdueTracker
 logger = logging.getLogger(__name__)
 
 
-# Runs one coverage refresh: compute, log overdue, then publish the full
-# coverage. Called by ingestion and by ClockTick, one refresh at a time.
 class CoverageUpdater:
     def __init__(
         self,
@@ -24,68 +22,35 @@ class CoverageUpdater:
         session_factory: Callable[[], AsyncSession],
         clock: Callable[[], datetime],
     ) -> None:
-        """Hold everything one refresh needs.
-
-        session_factory opens a fresh database session per refresh, because a
-        refresh can run after the request that triggered it has closed its own
-        session. clock returns the current time; passing it in lets tests
-        control time. The lock makes sure only one refresh runs at a time, and
-        last_published remembers the latest coverage of each station, so
-        snapshot() can serve a dashboard that connects between refreshes.
-        """
         self._service = service
         self._tracker = tracker
         self._publisher = publisher
         self._session_factory = session_factory
         self._clock = clock
         self._lock = asyncio.Lock()
-        self._last_published: dict[str, StationCoverageReport] = {}
+        self._last_published: list[StationCoverageReport] = []
 
     async def refresh(self) -> None:
-        """Bring the dashboards up to date with the latest coverage.
-
-        Called after each new event (AC1) and on every clock tick.
-        1. Take the lock, so two refreshes never run at once.
-        2. Only then read the clock. Reading it before waiting for the lock
-           could let an older now run after a newer one and publish an
-           outdated state.
-        3. Open a session, compute the coverage, then let the tracker log
-           overdue changes and commit, so anything pushed as overdue is
-           already durably in the log.
-        4. With no await in between: remember the coverage in last_published
-           and publish it in full, the same payload a dashboard receives on
-           connect.
-        """
         async with self._lock:
             now = self._clock()
             async with self._session_factory() as session:
                 reports = await self._service.compute_coverage_reports(session, now)
                 await self._tracker.track(session, reports, now)
                 await session.commit()
-            self._last_published = {report.station_id: report for report in reports}
+            self._last_published = reports
             self._publisher.publish(reports)
 
     def snapshot(self) -> list[StationCoverageReport]:
-        """The coverage as last published, for a dashboard that just connected.
-
-        Returns last_published as a list. Synchronous, so the stream route can
-        subscribe and then take the snapshot without anything being published
-        in between.
-        """
-        return list(self._last_published.values())
+        return list(self._last_published)
 
 
-# Refreshes coverage on a timer, because window expiry and a threshold crossed
-# mid-visit produce no event. Runs as the lifespan task started in main.py.
 class ClockTick:
     def __init__(self, updater: CoverageUpdater, interval: timedelta) -> None:
-
         self._updater = updater
         self._interval = interval
         self._failed_ticks = 0
 
     async def run(self) -> None:
-
         while True:
             try:
                 await self._updater.refresh()

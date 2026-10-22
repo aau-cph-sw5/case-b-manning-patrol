@@ -3,9 +3,6 @@ from datetime import datetime
 from sqlmodel import Field, SQLModel
 
 
-# One row per OverdueDetected or OverdueCleared. Append-only (ADR-0008): rows are
-# inserted, never updated or deleted. entry_id is the entry's stable_entry_id, so
-# the primary key also stops the same entry from being logged twice.
 class OverdueLogEntry(SQLModel, table=True):
     __tablename__ = "overdue_log"
 

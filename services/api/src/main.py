@@ -18,15 +18,17 @@ from src.models.patrol_area import AreaKind
 from src.services.coverage.coverage_service import CoverageService
 from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
 from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.dashboard_presenter import DashboardPresenter
 from src.services.coverage.interval_builder import IntervalBuilder
 from src.services.coverage.sse_broadcaster import SseBroadcaster
 from src.services.overdue_tracker import OverdueTracker
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import health, positioning_simulator
-from .api.v2.routers import adjustment, coverage_stream, patrol_session
+from .api.v2.routers import adjustment, dashboard_stream, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
+from .db.repository.station import get_station_lines, get_stations
 
 API_PREFIX_V1 = "/api/v1"
 API_PREFIX_V2 = "/api/v2"
@@ -37,11 +39,14 @@ async def lifespan(app: FastAPI):
     await init_db()
     async with AsyncSession(engine) as session:
         await load_stations(session)
+        dashboard_presenter = DashboardPresenter(
+            await get_stations(session), await get_station_lines(session)
+        )
 
     builder = IntervalBuilder()
     rule = CoverageWindow(
-        window=timedelta(minutes=60),
-        min_durations={
+        time_until_next_needed_patrol=timedelta(minutes=60),
+        min_qualifying_durations={
             AreaKind.PLATFORM: timedelta(seconds=4),
             AreaKind.CONCOURSE: timedelta(minutes=10),
         },
@@ -57,10 +62,14 @@ async def lifespan(app: FastAPI):
         clock=lambda: datetime.now(UTC),
     )
 
+    # The first dashboard event must hold every station, so the snapshot is
+    # filled before the app serves its first client.
+    await coverage_updater.refresh()
     tick = asyncio.create_task(ClockTick(coverage_updater, timedelta(seconds=5)).run())
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
+    app.state.dashboard_presenter = dashboard_presenter
 
     yield
     tick.cancel()
@@ -97,7 +106,7 @@ app.add_middleware(
 app.include_router(health.router, prefix=API_PREFIX_V1)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
-app.include_router(coverage_stream.router, prefix=API_PREFIX_V2)
+app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
 
