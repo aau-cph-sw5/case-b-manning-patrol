@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections.abc import Callable
 from datetime import datetime, timedelta
 
@@ -8,6 +9,8 @@ from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_publisher import CoveragePublisher
 from src.services.coverage.coverage_service import CoverageService
 from src.services.overdue_tracker import OverdueTracker
+
+logger = logging.getLogger(__name__)
 
 
 class CoverageUpdater:
@@ -45,8 +48,28 @@ class ClockTick:
     def __init__(self, updater: CoverageUpdater, interval: timedelta) -> None:
         self._updater = updater
         self._interval = interval
+        self._failed_ticks = 0
 
     async def run(self) -> None:
         while True:
-            await self._updater.refresh()
+            try:
+                await self._updater.refresh()
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                self._failed_ticks += 1
+                if self._failed_ticks == 1:
+                    logger.exception("Clock tick refresh failed; will keep retrying")
+                else:
+                    logger.debug(
+                        "Clock tick refresh failed again (%d in a row)",
+                        self._failed_ticks,
+                    )
+            else:
+                if self._failed_ticks:
+                    logger.info(
+                        "Clock tick refresh recovered after %d failed ticks",
+                        self._failed_ticks,
+                    )
+                    self._failed_ticks = 0
             await asyncio.sleep(self._interval.total_seconds())
