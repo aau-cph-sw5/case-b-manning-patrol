@@ -58,7 +58,7 @@ class IntervalBuilder:
     ) -> StewardPatrolInterval:
         android_id, beacon_id = key
         return StewardPatrolInterval(
-            android_id=str(android_id),
+            android_id=android_id,
             beacon_id=beacon_id,
             started_at=started_at,
             ended_at=ended_at,

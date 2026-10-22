@@ -6,7 +6,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.models.coverage import (
     AreaCoverageReport,
-    AreaRefference,
+    AreaReference,
     OverdueCleared,
     OverdueDetected,
     OverdueEpisode,
@@ -17,7 +17,7 @@ from src.services import overdue_tracker
 from src.services.overdue_tracker import OverdueTracker
 
 NOW = datetime(2026, 10, 8, 12, 0, 0)
-AREA = AreaRefference(station_id="STN-001", area_id="PA-001-P", kind=AreaKind.PLATFORM)
+AREA = AreaReference(station_id="STN-001", area_id="PA-001-P", kind=AreaKind.PLATFORM)
 # The fake log never touches the session, so any object will do.
 SESSION = cast(AsyncSession, object())
 

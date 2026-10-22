@@ -1,15 +1,19 @@
 from datetime import timedelta
+from uuid import UUID
 
 import pytest
 
-from src.models.coverage import AreaCoverageReport, AreaRefference, CoverageStatus
+from src.models.coverage import AreaCoverageReport, AreaReference, CoverageStatus
 from src.models.patrol_area import AreaKind
+
+STEWARD_1 = UUID("00000000-0000-0000-0000-000000000001")
+STEWARD_2 = UUID("00000000-0000-0000-0000-000000000002")
 
 
 @pytest.fixture
 def area_coverage_covered_now(now):
     return AreaCoverageReport(
-        area=AreaRefference(
+        area=AreaReference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
         covered_now=True,
@@ -18,14 +22,14 @@ def area_coverage_covered_now(now):
         episodes=(),
         time_until_next_needed_patrol=timedelta(minutes=5),
         as_of=now,
-        current_steward_ids=frozenset(["steward1", "steward2"]),
+        current_steward_ids=frozenset([STEWARD_1, STEWARD_2]),
     )
 
 
 @pytest.fixture
 def area_coverage_overdue_never_covered(now):
     return AreaCoverageReport(
-        area=AreaRefference(
+        area=AreaReference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
         covered_now=False,
@@ -34,14 +38,14 @@ def area_coverage_overdue_never_covered(now):
         episodes=(),
         time_until_next_needed_patrol=timedelta(minutes=5),
         as_of=now,
-        current_steward_ids=frozenset(["steward1", "steward2"]),
+        current_steward_ids=frozenset([STEWARD_1, STEWARD_2]),
     )
 
 
 @pytest.fixture
 def area_coverage_overdue_covered(now):
     return AreaCoverageReport(
-        area=AreaRefference(
+        area=AreaReference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
         covered_now=False,
@@ -50,14 +54,14 @@ def area_coverage_overdue_covered(now):
         episodes=(),
         time_until_next_needed_patrol=timedelta(minutes=60),
         as_of=now,
-        current_steward_ids=frozenset(["steward1", "steward2"]),
+        current_steward_ids=frozenset([STEWARD_1, STEWARD_2]),
     )
 
 
 @pytest.fixture
 def area_coverage_overdue_shift_not_started(now):
     return AreaCoverageReport(
-        area=AreaRefference(
+        area=AreaReference(
             station_id=None, area_id="concourse", kind=AreaKind.CONCOURSE
         ),
         covered_now=False,
@@ -66,7 +70,7 @@ def area_coverage_overdue_shift_not_started(now):
         episodes=(),
         time_until_next_needed_patrol=timedelta(minutes=60),
         as_of=now,
-        current_steward_ids=frozenset(["steward1", "steward2"]),
+        current_steward_ids=frozenset([STEWARD_1, STEWARD_2]),
     )
 
 

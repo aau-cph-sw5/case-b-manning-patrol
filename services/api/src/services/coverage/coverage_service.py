@@ -1,6 +1,3 @@
-# CoverageService: computes the current coverage of every patrol area, grouped
-# per station. Reads only, never writes, logs or publishes.
-
 from datetime import datetime
 from uuid import UUID
 
@@ -10,7 +7,7 @@ from src.db.repository.events import get_events
 from src.db.repository.patrol_area import get_patrol_areas
 from src.models.coverage import (
     AreaCoverageReport,
-    AreaRefference,
+    AreaReference,
     StationCoverageReport,
     StewardPatrolInterval,
 )
@@ -55,7 +52,7 @@ class CoverageService:
             else []
         )
         return self._rule.evaluate(
-            AreaRefference.from_patrol_area(area), intervals, shift_start_time, now
+            AreaReference.from_patrol_area(area), intervals, shift_start_time, now
         )
 
     @staticmethod
@@ -74,12 +71,10 @@ class CoverageService:
         reports_by_station: dict[str, list[AreaCoverageReport]] = {}
         for report in area_reports:
             station_id = report.area.station_id
-            # An area without a station has no station report to belong to.
             if station_id is None:
                 continue
             reports_by_station.setdefault(station_id, []).append(report)
 
-        # Fixed order, so the same period computed twice compares equal (AC5).
         return [
             StationCoverageReport(
                 station_id=station_id,
