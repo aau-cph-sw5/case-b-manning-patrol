@@ -34,8 +34,20 @@ class CoverageUpdater:
                 reports = await self._service.compute_coverage_reports(session, now)
                 await self._tracker.track(session, reports, now)
                 await session.commit()
+            changed = self._changed(reports)
             self._last_published = {report.station_id: report for report in reports}
-            self._publisher.publish(reports)
+            if changed:
+                self._publisher.publish(changed)
+
+    def _changed(
+        self, reports: list[StationCoverageReport]
+    ) -> list[StationCoverageReport]:
+        return [
+            report
+            for report in reports
+            if report.station_id not in self._last_published
+            or self._last_published[report.station_id].state() != report.state()
+        ]
 
     def snapshot(self) -> list[StationCoverageReport]:
         return list(self._last_published.values())

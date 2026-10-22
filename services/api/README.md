@@ -83,7 +83,8 @@ services/api/
 ├── src/
 │   ├── main.py                  # FastAPI app definition and startup
 │   ├── models/                  # Shared models (events, adjustments, beacons)
-│   │   └── coverage.py          # Coverage and overdue log value objects (MET-B-007, skeleton)
+│   │   ├── coverage.py          # Coverage and overdue log value objects (MET-B-007, skeleton)
+│   │   └── dashboard.py         # Dashboard stream payload (contracts/positioning-interface v2)
 │   ├── db/repository/           # Database query functions; overdue_log.py is the overdue log (skeleton)
 │   ├── api/
 │   │   ├── v1/
@@ -94,7 +95,7 @@ services/api/
 │   │   └── v2/
 │   │       └── routers/
 │   │           ├── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
-│   │           └── coverage_stream.py  # SSE coverage stream for the dashboard (skeleton, not included in main.py)
+│   │           └── dashboard_stream.py # SSE dashboard stream (contracts/positioning-interface v2)
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── coverage/            # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007, skeleton)
