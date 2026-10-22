@@ -21,8 +21,8 @@ async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
     1. Subscribe to the broadcaster to get this connection's queue.
     2. Send updater.snapshot() as the first event, holding every station. No
        await between steps 1 and 2, so no update is missed or sent twice.
-    3. Wait on the queue and yield one event per refresh, holding only the
-       stations that changed.
+    3. Wait on the queue and yield one event per refresh, again holding
+       every station, changed or not.
     4. When the client disconnects, unsubscribe (in a finally block).
 
     The updater, the broadcaster and the presenter are taken from

@@ -25,7 +25,7 @@ class CoverageUpdater:
         self._session_factory = session_factory
         self._clock = clock
         self._lock = asyncio.Lock()
-        self._last_published: dict[str, StationCoverageReport] = {}
+        self._last_published: list[StationCoverageReport] = []
 
     async def refresh(self) -> None:
         async with self._lock:
@@ -34,23 +34,11 @@ class CoverageUpdater:
                 reports = await self._service.compute_coverage_reports(session, now)
                 await self._tracker.track(session, reports, now)
                 await session.commit()
-            changed = self._changed(reports)
-            self._last_published = {report.station_id: report for report in reports}
-            if changed:
-                self._publisher.publish(changed)
-
-    def _changed(
-        self, reports: list[StationCoverageReport]
-    ) -> list[StationCoverageReport]:
-        return [
-            report
-            for report in reports
-            if report.station_id not in self._last_published
-            or self._last_published[report.station_id].state() != report.state()
-        ]
+            self._last_published = reports
+            self._publisher.publish(reports)
 
     def snapshot(self) -> list[StationCoverageReport]:
-        return list(self._last_published.values())
+        return list(self._last_published)
 
 
 class ClockTick:
