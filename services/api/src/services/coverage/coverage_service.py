@@ -1,4 +1,8 @@
+# CoverageService: computes the current coverage of every patrol area, grouped
+# per station. Reads only, never writes, logs or publishes.
+
 from datetime import datetime
+from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -10,12 +14,11 @@ from src.models.coverage import (
     StationCoverageReport,
     StewardPatrolInterval,
 )
+from src.models.patrol_area import PatrolArea
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 
 
-# Query: computes the current coverage of every station. Reads only, never
-# writes, logs or publishes.
 class CoverageService:
     def __init__(self, builder: IntervalBuilder, rule: CoverageWindow) -> None:
         self._interval_builder = builder
@@ -30,51 +33,57 @@ class CoverageService:
         events = await get_events(session)
         areas = await get_patrol_areas(session)
 
-        intervals = self._interval_builder.build(events)
+        intervals_by_beacon = self._group_by_beacon(
+            self._interval_builder.build(events)
+        )
+        area_reports = [
+            self._evaluate_area(area, intervals_by_beacon, shift_start_time, now)
+            for area in areas
+        ]
+        return self._group_by_station(area_reports)
 
-        intervals_by_beacon = {}
+    def _evaluate_area(
+        self,
+        area: PatrolArea,
+        intervals_by_beacon: dict[UUID, list[StewardPatrolInterval]],
+        shift_start_time: datetime | None,
+        now: datetime,
+    ) -> AreaCoverageReport:
+        intervals = (
+            intervals_by_beacon.get(area.beacon_id, [])
+            if area.beacon_id is not None
+            else []
+        )
+        return self._rule.evaluate(
+            AreaRefference.from_patrol_area(area), intervals, shift_start_time, now
+        )
+
+    @staticmethod
+    def _group_by_beacon(
+        intervals: list[StewardPatrolInterval],
+    ) -> dict[UUID, list[StewardPatrolInterval]]:
+        intervals_by_beacon: dict[UUID, list[StewardPatrolInterval]] = {}
         for interval in intervals:
-            if interval.beacon_id not in intervals_by_beacon:
-                intervals_by_beacon[interval.beacon_id] = []
-            intervals_by_beacon[interval.beacon_id].append(interval)
+            intervals_by_beacon.setdefault(interval.beacon_id, []).append(interval)
+        return intervals_by_beacon
 
-        area_reports = []
-        for area in areas:
-            patrol_intervals: list[StewardPatrolInterval] = []
-            area_reference = AreaRefference.from_patrol_area(area)
-            if area.beacon_id is None:
-                patrol_intervals = []
-            else:
-                patrol_intervals = intervals_by_beacon.get(area.beacon_id, [])
-            area_report = self._rule.evaluate(
-                area_reference, patrol_intervals, shift_start_time, now
+    @staticmethod
+    def _group_by_station(
+        area_reports: list[AreaCoverageReport],
+    ) -> list[StationCoverageReport]:
+        reports_by_station: dict[str, list[AreaCoverageReport]] = {}
+        for report in area_reports:
+            station_id = report.area.station_id
+            # An area without a station has no station report to belong to.
+            if station_id is None:
+                continue
+            reports_by_station.setdefault(station_id, []).append(report)
+
+        # Fixed order, so the same period computed twice compares equal (AC5).
+        return [
+            StationCoverageReport(
+                station_id=station_id,
+                areas=tuple(sorted(reports, key=lambda report: report.area.area_id)),
             )
-            area_reports.append(area_report)
-
-        area_reports_by_station = self._get_area_reports_by_station(area_reports)
-
-        station_ids = sorted(area_reports_by_station.keys())
-
-        station_reports = []
-        for station_id in station_ids:
-            station_reports.append(
-                StationCoverageReport(
-                    station_id, tuple(area_reports_by_station[station_id])
-                )
-            )
-
-        return station_reports
-
-    def _get_area_reports_by_station(
-        self, area_reports: list[AreaCoverageReport]
-    ) -> dict[str, list[AreaCoverageReport]]:
-        area_reports_by_station = {}
-        for area_report in area_reports:
-            if area_report.area.station_id is None:
-                station_id = ""
-            else:
-                station_id = area_report.area.station_id
-            if station_id not in area_reports_by_station:
-                area_reports_by_station[station_id] = []
-            area_reports_by_station[station_id].append(area_report)
-        return area_reports_by_station
+            for station_id, reports in sorted(reports_by_station.items())
+        ]
