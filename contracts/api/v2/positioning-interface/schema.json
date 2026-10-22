@@ -162,9 +162,8 @@
 				"properties": {
 					"station_id": {
 						"type": "string",
-						"format": "uuid",
-						"description": "Station UUID.",
-						"example": "880e8400-e29b-41d4-a716-446655440003"
+						"description": "Stable identifier of the station, from the station dataset.",
+						"example": "STN-001"
 					},
 					"name": {
 						"type": "string",

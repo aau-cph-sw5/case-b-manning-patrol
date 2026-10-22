@@ -39,7 +39,7 @@ data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 - `time`: Date — when the server sent this event
 
 ### Station
-- `station_id`: UUID
+- `station_id`: string
 - `name`: string
 - `areas`: Area[]
 
