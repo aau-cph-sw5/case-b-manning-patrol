@@ -113,13 +113,6 @@ async def test_every_patrol_area_gets_a_report_even_without_events(service, sess
     assert [a.area.area_id for a in station(reports, STATION_B).areas] == ["B-P"]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "T1: AreaCoverageReport.coverage_status is COMPLIANT when there is no "
-        "coverage and no baseline; the rules say OVERDUE. Remove once fixed."
-    ),
-)
 async def test_area_without_events_is_overdue(service, session):
     reports = await service.compute_coverage_reports(session, NOW)
 

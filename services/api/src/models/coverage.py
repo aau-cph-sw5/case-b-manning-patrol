@@ -139,9 +139,9 @@ class AreaCoverageReport:
 
     @property
     def coverage_status(self) -> CoverageStatus:
-        if self.overdue_at is None:
+        if self.covered_now:
             return CoverageStatus.COMPLIANT
-        if self.as_of > self.overdue_at:
+        if self.overdue_at is None or self.as_of > self.overdue_at:
             return CoverageStatus.OVERDUE
         return CoverageStatus.COMPLIANT
 
