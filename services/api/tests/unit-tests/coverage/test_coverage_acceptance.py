@@ -21,7 +21,6 @@ from src.services.coverage.coverage_service import CoverageService
 from src.services.coverage.coverage_window import CoverageWindow
 from src.services.coverage.interval_builder import IntervalBuilder
 
-
 STATION_BEACONS = {
     "STN-2": UUID("550e8400-e29b-41d4-a716-000000000002"),
     "STN-3": UUID("550e8400-e29b-41d4-a716-000000000003"),
