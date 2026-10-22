@@ -1,6 +1,3 @@
-# OverdueTracker: appends the overdue episodes found in the coverage reports to
-# the overdue log, skipping entries it already wrote. Never edits an entry.
-
 from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession

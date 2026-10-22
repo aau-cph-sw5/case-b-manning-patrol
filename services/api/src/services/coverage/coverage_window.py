@@ -10,30 +10,16 @@ from src.models.coverage import (
 from src.models.patrol_area import AreaKind
 
 
-# The patrol completion rule: decides the coverage of one area from its
-# intervals. Holds only configuration, so the same inputs give the same result.
 class CoverageWindow:
     def __init__(
         self,
         time_until_next_needed_patrol: timedelta,
         min_qualifying_durations: dict[AreaKind, timedelta],
     ) -> None:
-        """Configure the rule.
-
-        time_until_next_needed_patrol is how long an area stays covered after
-        a visit (60 min). min_qualifying_durations is how long a visit must
-        last per kind of area (placeholders: platform 4 s, concourse 10 min).
-        Both are passed in, so they can change without changing the rule.
-        """
         self._time_until_next_needed_patrol = time_until_next_needed_patrol
         self._min_qualifying_durations = min_qualifying_durations
 
     def min_qualifying_duration(self, kind: AreaKind) -> timedelta:
-        """How long a visit must last before it counts for this kind of area.
-
-        Looks the kind up in min_qualifying_durations. A kind without a
-        configured threshold is a configuration error, not something to guess.
-        """
         if kind not in self._min_qualifying_durations:
             raise KeyError(f"No min_qualifying_duration configured for {kind}")
         return self._min_qualifying_durations[kind]
@@ -45,22 +31,6 @@ class CoverageWindow:
         shift_start_time: datetime | None,
         now: datetime,
     ) -> AreaCoverageReport:
-        """Work out the coverage of one patrol area at now.
-
-        intervals are the visits at this area only.
-        1. Ask each interval for its patrol_span. Visits that are too short
-           give None and are dropped.
-        2. If a shift_start_time is given, add [shift_start_time,
-           shift_start_time + time_until_next_needed_patrol], so a shift starts
-           covered. Today shift_start_time is None.
-        3. Merge the spans with _union.
-        4. The gaps between them, up to now, are the overdue episodes (_gaps).
-        5. Fill last_covered_at (end of the newest finished qualifying visit),
-           covered_now (a qualifying visit is still open) and
-           current_steward_ids (everyone present now, qualified or not).
-
-        The same inputs and the same now always give the same result (AC5).
-        """
         min_qualifying_duration = self.min_qualifying_duration(area.kind)
 
         spans: list[TimeSpan] = []
@@ -109,12 +79,6 @@ class CoverageWindow:
         )
 
     def _union(self, spans: list[TimeSpan]) -> list[TimeSpan]:
-        """Merge overlapping spans into a sorted list without overlaps.
-
-        Sort by start, then walk the list and merge each span into the previous
-        one while they touch. The result shows exactly when the area was
-        covered, which makes the gaps easy to find.
-        """
         merged: list[TimeSpan] = []
         for span in sorted(spans, key=lambda span: span.start):
             if merged and merged[-1].touches(span):
@@ -129,15 +93,6 @@ class CoverageWindow:
         start: datetime,
         until: datetime,
     ) -> list[OverdueEpisode]:
-        """Find the stretches between start and until where nothing covered the area.
-
-        spans must come from _union. Each gap becomes an OverdueEpisode that
-        starts where a span ends (overdue_at, the deadline) and is cleared
-        where the next span starts (qualified_as_patrolled_at of the visit that
-        ended it). A gap that reaches until is still open (cleared_at = None).
-        start is the first covered moment, so time before the first patrol is
-        never an episode.
-        """
         episodes: list[OverdueEpisode] = []
         for current, following in zip(spans, spans[1:], strict=False):
             if current.end >= following.start:

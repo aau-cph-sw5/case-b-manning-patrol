@@ -1,6 +1,3 @@
-"""
-Value objects for patrol coverage and the overdue log (MET-B-007)
-"""
 
 from __future__ import annotations
 
@@ -12,13 +9,11 @@ from uuid import UUID
 from src.models.patrol_area import AreaKind, PatrolArea
 
 
-# Whether an area, or a whole station, has been patrolled within the window.
 class CoverageStatus(StrEnum):
     COMPLIANT = "compliant"
     OVERDUE = "overdue"
 
 
-# Identifies one patrol area. Key for area coverage and for overdue log entries.
 @dataclass(frozen=True)
 class AreaReference:
     station_id: str | None
@@ -30,7 +25,6 @@ class AreaReference:
         return AreaReference(area.station_id, area.area_id, area.area_kind)
 
 
-# A span of time during which an area counts as covered.
 @dataclass(frozen=True)
 class TimeSpan:
     start: datetime
@@ -51,8 +45,6 @@ class TimeSpan:
         )
 
 
-# One steward's presence at one beacon: a CONNECT and the DISCONNECT or STOP that
-# closed it. ended_at is None while the visit is still open.
 @dataclass(frozen=True)
 class StewardPatrolInterval:
     android_id: UUID
@@ -174,8 +166,6 @@ class StationCoverageReport:
         return tuple(area.state() for area in sorted_areas)
 
 
-# Log entry: the system saw an area become overdue. Append-only.
-# Storage schema is open (ADR-0008).
 @dataclass(frozen=True)
 class OverdueDetected:
     area: AreaReference
@@ -190,8 +180,6 @@ class OverdueDetected:
         return f"{self.area.station_id}:{self.area.area_id}:{datestring}:DETECTED"
 
 
-# Log entry: an overdue episode for an area was cleared. Append-only.
-# Storage schema is open (ADR-0008).
 @dataclass(frozen=True)
 class OverdueCleared:
     area: AreaReference
