@@ -16,14 +16,15 @@ function Dashboard() {
   const attention = STATIONS.flatMap((station) =>
     station.levels.map((level) => ({
       code: `${station.code}_${level.label}`,
-      minutes: remainingMinutes(level, now),
+      minutes: remainingMinutes(level, now, station.code),
     })),
   )
     .filter((item) => item.minutes <= AttentionTime)
     .sort((a, b) => a.minutes - b.minutes)
 
-const overdueCount = STATIONS.flatMap((station) => station.levels)
-  .filter((level) => remainingMinutes(level, now) <= 0)
+const overdueCount = STATIONS.flatMap((station) =>
+  station.levels.filter((level) => remainingMinutes(level, now, station.code) <= 0)
+)
   .length
 
   return (

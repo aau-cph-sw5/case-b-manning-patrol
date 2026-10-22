@@ -21,7 +21,7 @@ function StationCard({ station, now }: { station: Station; now: number }) {
       <h2>{station.name}</h2>
       <ul className="levels">
         {station.levels.map((level) => {
-          const minutes = remainingMinutes(level, now)
+          const minutes = remainingMinutes(level, now, station.code)
           const color = timeColorClass(minutes) as TimeColor
           const StatusIcon = STATUS_ICONS[color]
           return (
