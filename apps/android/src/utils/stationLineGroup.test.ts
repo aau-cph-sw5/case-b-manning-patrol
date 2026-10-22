@@ -6,6 +6,7 @@ import { stationServesLineGroup } from "@/utils/stationLineGroup";
 const station = (partial: Partial<StationRecord>): StationRecord => ({
   id: "test",
   name: "Test",
+  areas: [],
   ...partial,
 });
 
