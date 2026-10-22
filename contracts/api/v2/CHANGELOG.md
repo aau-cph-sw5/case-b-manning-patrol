@@ -13,6 +13,8 @@
   `TrainResponse` removed.
 - Positioning Interface: `Station.slug` and `Station.station_name` replaced by
   `name`.
+- Positioning Interface: `Station.station_id` is a plain string (for example
+  `"STN-001"`), not a UUID, matching the station dataset the backend serves.
 - Positioning Interface: added `GET /api/v2/config/at-risk-threshold` returning
   `AtRiskThreshold` with `at_risk_threshold_secs` — how much time must remain
   before an area becomes overdue for it to be considered at-risk.
