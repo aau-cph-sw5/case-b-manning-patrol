@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import datetime
+import logging
 from datetime import timedelta
 
 from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
@@ -181,3 +182,95 @@ async def test_clock_tick_refreshes_until_cancelled():
             await task
 
     assert fake_updater.refreshes >= 2
+
+
+async def test_clock_tick_survives_a_failed_refresh():
+    class FlakyThenSteadyUpdater:
+        def __init__(self):
+            self.refreshes = 0
+
+        async def refresh(self):
+            self.refreshes += 1
+            if self.refreshes == 1:
+                raise RuntimeError("database hiccup")
+
+    fake_updater = FlakyThenSteadyUpdater()
+    tick = ClockTick(
+        fake_updater,  # ty: ignore[invalid-argument-type]
+        interval=timedelta(milliseconds=10),
+    )
+    task = asyncio.create_task(tick.run())
+    try:
+        await asyncio.sleep(0.05)
+    finally:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+    # If the first failure had killed the task, awaiting it would have raised
+    # RuntimeError instead of the CancelledError suppressed above.
+    assert fake_updater.refreshes >= 3
+
+
+async def test_clock_tick_logs_a_persistent_failure_once(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    class AlwaysFailingUpdater:
+        def __init__(self):
+            self.refreshes = 0
+
+        async def refresh(self):
+            self.refreshes += 1
+            raise RuntimeError("database down")
+
+    fake_updater = AlwaysFailingUpdater()
+    tick = ClockTick(
+        fake_updater,  # ty: ignore[invalid-argument-type]
+        interval=timedelta(milliseconds=10),
+    )
+    task = asyncio.create_task(tick.run())
+    try:
+        await asyncio.sleep(0.05)
+    finally:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+    assert fake_updater.refreshes >= 2
+    errors = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    assert len(errors) == 1
+
+
+async def test_clock_tick_logs_recovery_once_and_resets_the_streak(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    class FailsRecoversThenFailsAgainUpdater:
+        def __init__(self):
+            self.refreshes = 0
+
+        async def refresh(self):
+            self.refreshes += 1
+            # Fails, recovers, then fails again: the second streak must get
+            # its own traceback, because the first one was resolved.
+            if self.refreshes == 1 or self.refreshes >= 4:
+                raise RuntimeError("database hiccup")
+
+    fake_updater = FailsRecoversThenFailsAgainUpdater()
+    tick = ClockTick(
+        fake_updater,  # ty: ignore[invalid-argument-type]
+        interval=timedelta(milliseconds=10),
+    )
+    task = asyncio.create_task(tick.run())
+    try:
+        await asyncio.sleep(0.07)
+    finally:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+    assert fake_updater.refreshes >= 4
+    errors = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    assert len(errors) == 2
+    recovery = [r for r in caplog.records if r.levelno == logging.INFO]
+    assert len(recovery) == 1
+    assert "recovered" in recovery[0].getMessage()
