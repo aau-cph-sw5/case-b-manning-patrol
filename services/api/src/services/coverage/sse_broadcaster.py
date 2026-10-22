@@ -4,7 +4,7 @@ from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_publisher import CoveragePublisher
 
 
-# Publishes the current coverage of every station to every connected
+# Publishes the coverage of the stations that changed to every connected
 # dashboard over SSE, with one queue per connection. In memory, so it only
 # works in a single process.
 class SseBroadcaster(CoveragePublisher):
@@ -13,11 +13,10 @@ class SseBroadcaster(CoveragePublisher):
         self._subscribers: set[asyncio.Queue[list[StationCoverageReport]]] = set()
 
     def publish(self, coverage: list[StationCoverageReport]) -> None:
-        """Hand the current coverage to every connected dashboard.
+        """Hand the changed stations to every connected dashboard.
 
         put_nowait the whole list into each subscriber's queue, as one message
-        per refresh with the same shape as the snapshot a dashboard receives on
-        connect. The stream route of that connection takes it from there.
+        per refresh. The stream route of that connection takes it from there.
         Never waits, so one slow dashboard cannot hold up the others or the
         updater.
         """

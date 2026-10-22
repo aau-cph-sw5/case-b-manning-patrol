@@ -33,20 +33,6 @@
 - `AdjustmentEventStored` response: all request fields plus the
   server-generated `adjustment_id`, `server_timestamp`, and `source` — the
   server-assigned origin of the write, never taken from the request body.
-- Draft of Coverage Stream API contract for group review. Not yet published.
-- `GET /api/v2/coverage/stream` (ADR 0011): SSE events named `coverage`, each
-  carrying a `CoverageSnapshot` — the coverage of **all** stations, never a
-  single station. Agreed with the dashboard team: updates are handled like a
-  reconnect, so a client always replaces its whole state, and the first event
-  after (re)connecting is the snapshot. Recomputed when an ingestion event
-  arrives and on a timer, because coverage also expires with time (ADR 0010).
-- `StationCoverage`: `station_id`, station-level `status` rollup, and `areas`
-  of `AreaCoverage` — `area_id`, `type`, `covered_now`, `stewards_present`,
-  `last_covered_at`, `status`, absolute `overdue_at` (clients count down
-  themselves), and `as_of` (the age of the verdict).
-- Open question before publishing: the positioning-interface draft's
-  `GET /api/v2/dashboard/stream` overlaps with this stream and still describes
-  per-change updates; the two need to be reconciled.
 
 
 ## v2.0.0

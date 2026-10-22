@@ -36,11 +36,11 @@ class FakeTracker:
 class FakePublisher:
     def __init__(self, events):
         self.events = events
-        self.published = []
+        self.publishes = []
 
     def publish(self, coverage):
         self.events.append("publish")
-        self.published.extend(coverage)
+        self.publishes.append([report.station_id for report in coverage])
 
 
 class FakeClock:
@@ -70,7 +70,23 @@ def make_updater(clock_times):
     )
 
 
-async def test_refresh_publishes_the_full_coverage_every_time(station_report):
+async def test_first_refresh_publishes_every_station(station_report, now):
+    updater, service, publisher, _ = make_updater([now])
+    service.reports = [
+        station_report(
+            "marmorkirken", covered_now=True, as_of=now, last_covered_at=now
+        ),
+        station_report(
+            "kongens-nytorv", covered_now=False, as_of=now, last_covered_at=None
+        ),
+    ]
+
+    await updater.refresh()
+
+    assert publisher.publishes == [["marmorkirken", "kongens-nytorv"]]
+
+
+async def test_refresh_publishes_only_the_stations_that_changed(station_report):
     first_now = datetime.datetime(2026, 10, 19, 1, 0)
     second_now = first_now + timedelta(minutes=30)
     updater, service, publisher, _ = make_updater([first_now, second_now])
@@ -88,14 +104,8 @@ async def test_refresh_publishes_the_full_coverage_every_time(station_report):
             last_covered_at=first_now,
         ),
     ]
-
     await updater.refresh()
-    assert [r.station_id for r in publisher.published] == [
-        "marmorkirken",
-        "kongens-nytorv",
-    ]
 
-    publisher.published.clear()
     service.reports = [
         # marmorkirken: steward left.
         station_report(
@@ -112,12 +122,36 @@ async def test_refresh_publishes_the_full_coverage_every_time(station_report):
             last_covered_at=first_now,
         ),
     ]
-
     await updater.refresh()
-    assert [r.station_id for r in publisher.published] == [
-        "marmorkirken",
-        "kongens-nytorv",
+
+    assert publisher.publishes[-1] == ["marmorkirken"]
+
+
+async def test_unchanged_refresh_publishes_nothing(station_report):
+    first_now = datetime.datetime(2026, 10, 19, 1, 0)
+    second_now = first_now + timedelta(seconds=5)
+    updater, service, publisher, _ = make_updater([first_now, second_now])
+    service.reports = [
+        station_report(
+            "marmorkirken",
+            covered_now=True,
+            as_of=first_now,
+            last_covered_at=first_now,
+        )
     ]
+    await updater.refresh()
+
+    service.reports = [
+        station_report(
+            "marmorkirken",
+            covered_now=True,
+            as_of=second_now,
+            last_covered_at=first_now,
+        )
+    ]
+    await updater.refresh()
+
+    assert publisher.publishes == [["marmorkirken"]]
 
 
 async def test_tracker_logs_before_publisher_pushes(station_report, now):
@@ -157,6 +191,41 @@ async def test_snapshot_returns_latest_state_of_every_station(station_report):
 
     snapshot = {report.station_id: report for report in updater.snapshot()}
     assert snapshot["marmorkirken"].areas[0].covered_now is False
+
+
+async def test_snapshot_keeps_stations_that_were_not_republished(station_report):
+    first_now = datetime.datetime(2026, 10, 19, 1, 0)
+    second_now = first_now + timedelta(minutes=30)
+    updater, service, _, _ = make_updater([first_now, second_now])
+    unchanged = station_report(
+        "kongens-nytorv", covered_now=True, as_of=first_now, last_covered_at=first_now
+    )
+    service.reports = [
+        station_report(
+            "marmorkirken",
+            covered_now=True,
+            as_of=first_now,
+            last_covered_at=first_now,
+        ),
+        unchanged,
+    ]
+    await updater.refresh()
+
+    service.reports = [
+        station_report(
+            "marmorkirken",
+            covered_now=False,
+            as_of=second_now,
+            last_covered_at=first_now,
+        ),
+        unchanged,
+    ]
+    await updater.refresh()
+
+    assert [report.station_id for report in updater.snapshot()] == [
+        "marmorkirken",
+        "kongens-nytorv",
+    ]
 
 
 async def test_clock_tick_refreshes_until_cancelled():

@@ -10,8 +10,8 @@ from src.services.coverage.coverage_service import CoverageService
 from src.services.overdue_tracker import OverdueTracker
 
 
-# Runs one coverage refresh: compute, log overdue, then publish the full
-# coverage. Called by ingestion and by ClockTick, one refresh at a time.
+# Runs one coverage refresh: compute, log overdue, then publish the stations
+# that changed. Called by ingestion and by ClockTick, one refresh at a time.
 class CoverageUpdater:
     def __init__(
         self,
@@ -49,9 +49,10 @@ class CoverageUpdater:
         3. Open a session, compute the coverage, then let the tracker log
            overdue changes and commit, so anything pushed as overdue is
            already durably in the log.
-        4. With no await in between: remember the coverage in last_published
-           and publish it in full, the same payload a dashboard receives on
-           connect.
+        4. With no await in between: find the stations whose state changed
+           since the last refresh, remember the coverage of every station in
+           last_published, and publish only the changed stations. Nothing is
+           published when no station changed.
         """
         async with self._lock:
             now = self._clock()
@@ -59,8 +60,24 @@ class CoverageUpdater:
                 reports = await self._service.compute_coverage_reports(session, now)
                 await self._tracker.track(session, reports, now)
                 await session.commit()
+            changed = self._changed(reports)
             self._last_published = {report.station_id: report for report in reports}
-            self._publisher.publish(reports)
+            if changed:
+                self._publisher.publish(changed)
+
+    def _changed(
+        self, reports: list[StationCoverageReport]
+    ) -> list[StationCoverageReport]:
+        """The reports whose state differs from the last published one.
+
+        A station that was never published counts as changed.
+        """
+        return [
+            report
+            for report in reports
+            if report.station_id not in self._last_published
+            or self._last_published[report.station_id].state() != report.state()
+        ]
 
     def snapshot(self) -> list[StationCoverageReport]:
         """The coverage as last published, for a dashboard that just connected.
