@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { connectToStationUpdates } from "../api/stationEventStream";
-import { Station, type StationOverview } from "../types/station/station";
+import { type StationOverview } from "../types/station/station";
 
-export function StationScreen() {
+export function useStationScreen() {
     const [stationData, setStationData] = useState<StationOverview>();
 
     useEffect(() => {
@@ -24,6 +24,6 @@ export function StationScreen() {
         };
     }, []);
 
-    return null;
+    return { stations: stationData };
 }
 
