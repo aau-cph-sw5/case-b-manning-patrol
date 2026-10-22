@@ -5,6 +5,7 @@ import logging
 from datetime import timedelta
 
 from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
+from src.services.coverage.shift_schedule import Shift
 
 
 class FakeSession:
@@ -44,6 +45,11 @@ class FakePublisher:
         self.publishes.append([report.station_id for report in coverage])
 
 
+class AlwaysOnShift:
+    def latest_shift(self, now):
+        return Shift(start=now - timedelta(hours=1), end=now + timedelta(hours=1))
+
+
 class FakeClock:
     def __init__(self, times):
         self._times = iter(times)
@@ -64,6 +70,7 @@ def make_updater(clock_times):
             publisher=publisher,
             session_factory=lambda: FakeSession(),  # ty: ignore[invalid-argument-type]
             clock=FakeClock(clock_times),
+            shift_schedule=AlwaysOnShift(),  # ty: ignore[invalid-argument-type]
         ),
         service,
         publisher,
