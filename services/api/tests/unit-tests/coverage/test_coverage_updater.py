@@ -91,21 +91,19 @@ async def test_refresh_publishes_the_full_coverage_every_time(station_report):
     ]
 
     await updater.refresh()
-    assert [r.station_id for r in publisher.published] == [
+    assert [report.station_id for report in publisher.published] == [
         "marmorkirken",
         "kongens-nytorv",
     ]
 
     publisher.published.clear()
     service.reports = [
-        # marmorkirken: steward left.
         station_report(
             "marmorkirken",
             covered_now=False,
             as_of=second_now,
             last_covered_at=first_now,
         ),
-        # kongens-nytorv: only as_of moved.
         station_report(
             "kongens-nytorv",
             covered_now=True,
@@ -115,7 +113,7 @@ async def test_refresh_publishes_the_full_coverage_every_time(station_report):
     ]
 
     await updater.refresh()
-    assert [r.station_id for r in publisher.published] == [
+    assert [report.station_id for report in publisher.published] == [
         "marmorkirken",
         "kongens-nytorv",
     ]
@@ -207,8 +205,6 @@ async def test_clock_tick_survives_a_failed_refresh():
         with contextlib.suppress(asyncio.CancelledError):
             await task
 
-    # If the first failure had killed the task, awaiting it would have raised
-    # RuntimeError instead of the CancelledError suppressed above.
     assert fake_updater.refreshes >= 3
 
 
@@ -237,7 +233,7 @@ async def test_clock_tick_logs_a_persistent_failure_once(caplog):
             await task
 
     assert fake_updater.refreshes >= 2
-    errors = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    errors = [record for record in caplog.records if record.levelno >= logging.ERROR]
     assert len(errors) == 1
 
 
@@ -250,8 +246,6 @@ async def test_clock_tick_logs_recovery_once_and_resets_the_streak(caplog):
 
         async def refresh(self):
             self.refreshes += 1
-            # Fails, recovers, then fails again: the second streak must get
-            # its own traceback, because the first one was resolved.
             if self.refreshes == 1 or self.refreshes >= 4:
                 raise RuntimeError("database hiccup")
 
@@ -269,8 +263,8 @@ async def test_clock_tick_logs_recovery_once_and_resets_the_streak(caplog):
             await task
 
     assert fake_updater.refreshes >= 4
-    errors = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    errors = [record for record in caplog.records if record.levelno >= logging.ERROR]
     assert len(errors) == 2
-    recovery = [r for r in caplog.records if r.levelno == logging.INFO]
+    recovery = [record for record in caplog.records if record.levelno == logging.INFO]
     assert len(recovery) == 1
     assert "recovered" in recovery[0].getMessage()
