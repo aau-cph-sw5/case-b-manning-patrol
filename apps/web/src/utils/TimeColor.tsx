@@ -19,14 +19,17 @@ export function remainingMinutes(level: StationLevel, now: number, stationCode: 
 }
 
 export function formatRemaining(minutes: number): string {
-  if (minutes < 0) {
-    return `+${Math.ceil(Math.abs(minutes))} min`
+  if (minutes <= -1) {
+    return `+${Math.floor(Math.abs(minutes))} min`
+  }
+  if (minutes <= 0) {
+    return '0 min'
   }
   return `${Math.ceil(minutes)} min`
 }
 
 export function timeColorClass(minutes: number): string {
-  if (minutes < 0) {
+  if (minutes <= 0) {
     return 'row-red'
   }
   return minutes > AttentionTime ? 'row-green' : 'row-yellow'
