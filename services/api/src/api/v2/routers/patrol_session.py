@@ -27,7 +27,6 @@ class PatrolSessionEvent(BaseModel):
     timestamp: datetime
 
 
-# TODO: Connection needs to return Area
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
 async def connection_event(
     connection_event: ConnectionEvent, session: SessionDep, request: Request

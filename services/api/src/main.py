@@ -40,8 +40,8 @@ async def lifespan(app: FastAPI):
 
     builder = IntervalBuilder()
     rule = CoverageWindow(
-        window=timedelta(minutes=60),
-        min_durations={
+        time_until_next_needed_patrol=timedelta(minutes=60),
+        min_qualifying_durations={
             AreaKind.PLATFORM: timedelta(seconds=4),
             AreaKind.CONCOURSE: timedelta(minutes=10),
         },

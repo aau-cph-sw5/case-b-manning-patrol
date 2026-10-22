@@ -10,7 +10,7 @@ from src.db.repository.events import get_events
 from src.db.repository.patrol_area import get_patrol_areas
 from src.models.coverage import (
     AreaCoverageReport,
-    AreaRefference,
+    AreaReference,
     StationCoverageReport,
     StewardPatrolInterval,
 )
@@ -55,7 +55,7 @@ class CoverageService:
             else []
         )
         return self._rule.evaluate(
-            AreaRefference.from_patrol_area(area), intervals, shift_start_time, now
+            AreaReference.from_patrol_area(area), intervals, shift_start_time, now
         )
 
     @staticmethod

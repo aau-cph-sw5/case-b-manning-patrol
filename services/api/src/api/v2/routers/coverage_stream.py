@@ -62,7 +62,9 @@ def _area_payload(area: AreaCoverageReport) -> dict:
         "area_id": area.area.area_id,
         "type": area.area.kind.value,
         "covered_now": area.covered_now,
-        "stewards_present": sorted(area.current_steward_ids),
+        "stewards_present": sorted(
+            str(steward_id) for steward_id in area.current_steward_ids
+        ),
         "last_covered_at": _isoformat(area.last_covered_at),
         "status": area.coverage_status.value,
         "overdue_at": _isoformat(area.overdue_at),

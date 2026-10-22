@@ -51,8 +51,8 @@ async def session() -> AsyncGenerator[AsyncSession]:
 @pytest.fixture
 def service() -> CoverageService:
     rule = CoverageWindow(
-        window=WINDOW,
-        min_durations={
+        time_until_next_needed_patrol=WINDOW,
+        min_qualifying_durations={
             AreaKind.PLATFORM: timedelta(seconds=4),
             AreaKind.CONCOURSE: timedelta(minutes=10),
         },
@@ -166,7 +166,7 @@ async def test_open_visit_counts_as_covered_now(service, session):
 
     a_platform = area_report(reports, STATION_A, "A-P")
     assert a_platform.covered_now is True
-    assert a_platform.current_steward_ids == frozenset([str(STEWARD)])
+    assert a_platform.current_steward_ids == frozenset([STEWARD])
 
 
 async def test_visit_at_a_beacon_without_patrol_area_changes_nothing(service, session):

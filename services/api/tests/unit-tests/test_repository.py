@@ -15,7 +15,7 @@ from src.db.repository import events, overdue_log, patrol_area, station
 from src.models import OverdueLogEntry, PatrolArea, Station
 from src.models.coverage import (
     AreaCoverageReport,
-    AreaRefference,
+    AreaReference,
     OverdueCleared,
     OverdueDetected,
     OverdueEpisode,
@@ -345,7 +345,7 @@ async def test_get_open_connections_returns_one_event_per_beacon(session):
     assert [open_connection.event_id for open_connection in result] == [latest.event_id]
 
 
-OVERDUE_AREA = AreaRefference(station_id="S1", area_id="S1-P", kind=AreaKind.PLATFORM)
+OVERDUE_AREA = AreaReference(station_id="S1", area_id="S1-P", kind=AreaKind.PLATFORM)
 OVERDUE_AT = TIMESTAMP - timedelta(minutes=5)
 
 

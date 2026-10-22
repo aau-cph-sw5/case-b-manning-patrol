@@ -6,7 +6,7 @@ import pytest
 
 from src.models.coverage import (
     AreaCoverageReport,
-    AreaRefference,
+    AreaReference,
     StationCoverageReport,
 )
 from src.models.patrol_area import AreaKind
@@ -33,7 +33,7 @@ def station_report() -> Callable[..., StationCoverageReport]:
             station_id=station_id,
             areas=(
                 AreaCoverageReport(
-                    area=AreaRefference(
+                    area=AreaReference(
                         station_id=station_id,
                         area_id="platform-1",
                         kind=AreaKind.PLATFORM,

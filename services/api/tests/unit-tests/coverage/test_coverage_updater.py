@@ -21,7 +21,7 @@ class FakeService:
     def __init__(self):
         self.reports = []
 
-    async def compute_coverage_reports(self, session, now, baseline=None):
+    async def compute_coverage_reports(self, session, now, shift_start_time=None):
         return self.reports
 
 
