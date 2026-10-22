@@ -5,16 +5,25 @@ from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.repository import events, patrol_area, station
-from src.models import PatrolArea, Station
+from src.db.repository import events, overdue_log, patrol_area, station
+from src.models import OverdueLogEntry, PatrolArea, Station
+from src.models.coverage import (
+    AreaCoverageReport,
+    AreaRefference,
+    OverdueCleared,
+    OverdueDetected,
+    OverdueEpisode,
+    StationCoverageReport,
+)
 from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 from src.models.patrol_area import AreaKind
+from src.services.overdue_tracker import OverdueTracker
 
 TIMESTAMP = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
 STEWARD_ANDROID_ID = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")
@@ -334,3 +343,110 @@ async def test_get_open_connections_returns_one_event_per_beacon(session):
     result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
 
     assert [open_connection.event_id for open_connection in result] == [latest.event_id]
+
+
+OVERDUE_AREA = AreaRefference(station_id="S1", area_id="S1-P", kind=AreaKind.PLATFORM)
+OVERDUE_AT = TIMESTAMP - timedelta(minutes=5)
+
+
+def make_detected(**overrides: Any) -> OverdueDetected:
+    fields: dict[str, Any] = {
+        "area": OVERDUE_AREA,
+        "overdue_at": OVERDUE_AT,
+        "detected_at": TIMESTAMP,
+        "last_covered_at": TIMESTAMP - timedelta(minutes=65),
+        "source": "system",
+    }
+    return OverdueDetected(**(fields | overrides))
+
+
+def make_cleared(**overrides: Any) -> OverdueCleared:
+    fields: dict[str, Any] = {
+        "area": OVERDUE_AREA,
+        "overdue_at": OVERDUE_AT,
+        "cleared_at": TIMESTAMP + timedelta(minutes=2),
+        "source": "system",
+    }
+    return OverdueCleared(**(fields | overrides))
+
+
+async def overdue_rows(session: AsyncSession) -> dict[str, OverdueLogEntry]:
+    result = await session.exec(select(OverdueLogEntry))
+    return {row.entry_type: row for row in result.all()}
+
+
+@pytest.mark.asyncio
+async def test_get_entry_ids_returns_empty_set_when_log_is_empty(session):
+    assert await overdue_log.get_entry_ids(session) == set()
+
+
+@pytest.mark.asyncio
+async def test_get_entry_ids_returns_stable_ids_of_appended_entries(session):
+    detected, cleared = make_detected(), make_cleared()
+
+    await overdue_log.append_entries(session, [detected, cleared])
+
+    assert await overdue_log.get_entry_ids(session) == {
+        detected.stable_entry_id,
+        cleared.stable_entry_id,
+    }
+
+
+@pytest.mark.asyncio
+async def test_append_entries_stores_detected_entry(session):
+    await overdue_log.append_entries(session, [make_detected()])
+
+    row = (await overdue_rows(session))["DETECTED"]
+    assert row.station_id == "S1"
+    assert row.area_id == "S1-P"
+    assert row.area_kind == AreaKind.PLATFORM
+    assert row.overdue_at == OVERDUE_AT
+    assert row.detected_at == TIMESTAMP
+    assert row.last_covered_at == TIMESTAMP - timedelta(minutes=65)
+    assert row.cleared_at is None
+    assert row.source == "system"
+
+
+@pytest.mark.asyncio
+async def test_append_entries_stores_cleared_entry(session):
+    await overdue_log.append_entries(session, [make_cleared()])
+
+    row = (await overdue_rows(session))["CLEARED"]
+    assert row.overdue_at == OVERDUE_AT
+    assert row.cleared_at == TIMESTAMP + timedelta(minutes=2)
+    assert row.detected_at is None
+    assert row.last_covered_at is None
+
+
+@pytest.mark.asyncio
+async def test_append_entries_rejects_an_entry_already_in_the_log(session):
+    await overdue_log.append_entries(session, [make_detected()])
+
+    with pytest.raises(IntegrityError):
+        await overdue_log.append_entries(
+            session, [make_detected(detected_at=TIMESTAMP + timedelta(minutes=1))]
+        )
+
+
+@pytest.mark.asyncio
+async def test_tracking_the_same_episode_again_keeps_the_first_detection(session):
+    def reports(now: datetime) -> list[StationCoverageReport]:
+        area_report = AreaCoverageReport(
+            area=OVERDUE_AREA,
+            last_covered_at=TIMESTAMP - timedelta(minutes=65),
+            covered_now=False,
+            shift_start_time=None,
+            current_steward_ids=frozenset(),
+            episodes=(OverdueEpisode(overdue_at=OVERDUE_AT, cleared_at=None),),
+            time_until_next_needed_patrol=timedelta(minutes=60),
+            as_of=now,
+        )
+        return [StationCoverageReport(station_id="S1", areas=(area_report,))]
+
+    later = TIMESTAMP + timedelta(seconds=5)
+    await OverdueTracker().track(session, reports(TIMESTAMP), TIMESTAMP)
+    await OverdueTracker().track(session, reports(later), later)
+
+    rows = await overdue_rows(session)
+    assert list(rows) == ["DETECTED"]
+    assert rows["DETECTED"].detected_at == TIMESTAMP
