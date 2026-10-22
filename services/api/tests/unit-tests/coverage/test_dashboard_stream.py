@@ -63,7 +63,7 @@ async def test_stream_sends_every_station_first(
     await generator.aclose()
 
 
-async def test_stream_sends_only_the_published_stations_after_the_first(
+async def test_stream_sends_every_station_on_each_refresh(
     station_report, dashboard_presenter, now
 ):
     snapshot = [
@@ -74,21 +74,24 @@ async def test_stream_sends_only_the_published_stations_after_the_first(
             "kongens-nytorv", covered_now=True, as_of=now, last_covered_at=now
         ),
     ]
-    changed = [
+    refreshed = [
+        station_report(
+            "marmorkirken", covered_now=True, as_of=now, last_covered_at=now
+        ),
         station_report(
             "kongens-nytorv", covered_now=False, as_of=now, last_covered_at=now
-        )
+        ),
     ]
     broadcaster = SseBroadcaster()
     request = make_request(FakeUpdater(snapshot), broadcaster, dashboard_presenter)
 
     generator = open_stream(request)
     await generator.__anext__()
-    broadcaster.publish(changed)
+    broadcaster.publish(refreshed)
     second = await generator.__anext__()
 
     assert second.event == "dashboard"
-    assert station_ids(second) == ["kongens-nytorv"]
+    assert station_ids(second) == ["marmorkirken", "kongens-nytorv"]
     await generator.aclose()
 
 

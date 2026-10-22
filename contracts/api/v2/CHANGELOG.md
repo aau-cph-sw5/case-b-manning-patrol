@@ -5,8 +5,9 @@
   `GET /api/v2/stations/{stationID}`, `GET /api/v2/trains/{trainID}`,
   `WS /stationUpdate` and `WS /trainUpdate` with a single SSE stream,
   `GET /api/v2/dashboard/stream`, consumed by the control room and the Android
-  app. The first event holds the full dashboard; later events hold only the
-  changed stations and trains.
+  app. Every event holds the full dashboard, including the stations and trains
+  that did not change, and is sent on every recompute (agreed in the nexus
+  sprint meeting).
 - Positioning Interface: `DashboardResponse` renamed to `Dashboard` and given a
   `time` field (when the event was sent). `StationResponse` and
   `TrainResponse` removed.
