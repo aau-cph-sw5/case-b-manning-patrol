@@ -166,13 +166,6 @@ async def test_concourse_and_platform_of_one_station_are_independent(service, se
     assert area_report(reports, STATION_A, "A-C").last_covered_at is None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "T2: IntervalBuilder.build drops visits still open at the end instead "
-        "of returning them with ended_at=None. Remove once fixed."
-    ),
-)
 async def test_open_visit_counts_as_covered_now(service, session):
     await add_visit(session, A_PLATFORM_BEACON, NOW - timedelta(minutes=1))
 
