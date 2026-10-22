@@ -1,5 +1,5 @@
 import EventSource from "react-native-sse";
-import { StationOverviewSchema, type StationOverview } from "../types/station/station"
+import { StationOverviewSchema, type StationOverview } from "@/types/station";
 const SSE_URL = "testUrl"
 
 //Connection to SSE with actions acceptable are open, message and error

@@ -2,59 +2,58 @@
 // deadlines are generated relative to `now` so every run shows live counters and
 // every risk state is represented: one overdue level, one due soon, a station
 // being patrolled by another steward, and a station comfortably fresh.
-import type { Area, AreaType, StationRecord } from "@/types/station";
+import type { Area, AreaType, Station } from "@/types/station";
 
 const MINUTE = 60_000;
 
-export function createMockStations(now: number): StationRecord[] {
-  const at = (minutesFromNow: number) => now + minutesFromNow * MINUTE;
+export function createMockStations(now: number): Station[] {
+  const at = (minutesFromNow: number) => new Date(now + minutesFromNow * MINUTE);
 
   const area = (
-    type: AreaType,
+    areaType: AreaType,
+    areaId: string,
     name: string,
     line: string,
     minutesTillOverdue: number,
     coveredNow = false,
   ): Area => ({
-    type,
+    areaId,
     name,
     line,
-    timeTillOverdue: at(minutesTillOverdue),
+    areaType,
+    status: minutesTillOverdue <= 0 ? "overdue" : "compliant",
     coveredNow,
+    overdueAt: at(minutesTillOverdue),
   });
 
   return [
     {
       name: "Kongens Nytorv",
-      routeCodes: ["M1", "M2"],
       areas: [
-        area("Platform", "Perron 1-2", "M1", -3),
-        area("Concourse", "Stationsområde", "M2", 42),
+        area("platform", "kny-p", "Perron 1-2", "M1", -3),
+        area("concourse", "kny-c", "Stationsområde", "M2", 42),
       ],
     },
     {
       name: "Frederiksberg",
-      routeCodes: ["M1", "M2", "M3", "M4"],
       areas: [
-        area("Platform", "Perron", "M1", 37),
-        area("Concourse", "Stationsområde", "M3", 8),
+        area("platform", "frb-p", "Perron", "M1", 37),
+        area("concourse", "frb-c", "Stationsområde", "M3", 8),
       ],
     },
     {
       name: "Nørrebro",
-      routeCodes: ["M3", "M4"],
       areas: [
-        area("Platform", "Perron 1", "M3", 55),
-        area("Platform", "Perron 2", "M3", 26),
-        area("Concourse", "Stationsområde", "M3", 61),
+        area("platform", "nor-p1", "Perron 1", "M3", 55),
+        area("platform", "nor-p2", "Perron 2", "M3", 26),
+        area("concourse", "nor-c", "Stationsområde", "M3", 61),
       ],
     },
     {
       name: "Islands Brygge",
-      routeCodes: ["M1", "M2"],
       areas: [
-        area("Platform", "Perron", "M1", 25, true),
-        area("Concourse", "Stationsområde", "M2", 58),
+        area("platform", "ibr-p", "Perron", "M1", 25, true),
+        area("concourse", "ibr-c", "Stationsområde", "M2", 58),
       ],
     },
   ];

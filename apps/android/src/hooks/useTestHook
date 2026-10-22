@@ -1,0 +1,22 @@
+import { useEffect, useState } from "react";
+import { connectToStationUpdates } from "../api/stationEventStream";
+import { type StationOverview } from "../types/station/station";
+
+export function useStationUpdates() {
+  const [snapshot, setSnapshot] = useState<{ stations: Station[]; lastUpdatedAt: number } | null>(null);
+
+  useEffect(() => {
+    const disconnect = connectToStationUpdates(
+      (data) => {
+        setSnapshot({ stations: data.stations, lastUpdatedAt: Date.now() });
+      },
+      (error) => { /* keep the previous snapshot on purpose, like the old hook */ },
+    );
+    return disconnect;
+  }, []);
+
+  return {
+    stations: snapshot?.stations ?? [],
+    lastUpdatedAt: snapshot?.lastUpdatedAt ?? null,
+  };
+}

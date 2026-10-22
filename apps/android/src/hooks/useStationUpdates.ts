@@ -1,29 +1,42 @@
+// the station list for a screen: subscribes to the SSE datastream and keeps the
+// last received snapshot. a dropped connection never clears the list, so it
+// stays usable offline together with the last update time the screen shows.
+// the snapshot starts from the mock fixture until the real stream is live.
 import { useEffect, useState } from "react";
-import { connectToStationUpdates } from "../api/stationEventStream";
-import { type StationOverview } from "../types/station/station";
 
-export function useStationScreen() {
-    const [stationData, setStationData] = useState<StationOverview>();
+import { connectToStationUpdates } from "@/api/stationEventStream";
+import { createMockStations } from "@/fixtures/mockStations";
+import type { Station } from "@/types/station";
 
-    useEffect(() => {
-        const disconnect = connectToStationUpdates(
-        (data) => {
-            console.log("Received station update:", data);
+export type StationsSnapshot = {
+  stations: Station[];
+  lastUpdatedAt: number | null;
+};
 
-            setStationData(data);
-        },
+export function useStationUpdates(): StationsSnapshot {
+  // seeded with the mock broadcast until SSE_URL is live; delete the
+  // initializer's body for an empty start instead.
+  const [snapshot, setSnapshot] = useState<StationsSnapshot>(() => ({
+    stations: createMockStations(Date.now()),
+    lastUpdatedAt: null,
+  }));
 
-        (error) => {
-            console.error("SSE error:", error);
-            //Add error handling here
-        },
-        );
-        //Calls the disconnect function when done with useeffect
-        return () => {
-        disconnect();
-        };
-    }, []);
+  useEffect(() => {
+    const disconnect = connectToStationUpdates(
+      (data) => {
+        // the payload carries no backend timestamp, so the client receipt
+        // time is the best "last updated" we have.
+        setSnapshot({ stations: data.stations, lastUpdatedAt: Date.now() });
+      },
+      (error) => {
+        console.error("SSE error:", error);
+        // nothing to overwrite with; a previously received snapshot is kept on purpose.
+      },
+    );
+    return () => {
+      disconnect();
+    };
+  }, []);
 
-    return { stations: stationData };
+  return snapshot;
 }
-
