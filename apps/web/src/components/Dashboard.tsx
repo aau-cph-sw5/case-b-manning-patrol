@@ -31,7 +31,7 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
     <>
       <section className="dashboard-header">
         <Legend attentionTime={attentionTime} onAttentionTimeChange={setAttentionTime} />
-        <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
+        <h1 className='dashboard-title'>Patrulje Overblik</h1>
       </section>
       <div className="dash">
         <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
@@ -43,7 +43,7 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
           ))}
         </section>
         <aside className="card attention">
-          <h2>ATTENTION ({attention.length})</h2>
+          <h2>Kræver handling ({attention.length})</h2>
           <ul className="attention-list">
             {attention.map((item) => (
               <li key={item.code} className={timeColorClass(item.minutes, attentionTime)}>
