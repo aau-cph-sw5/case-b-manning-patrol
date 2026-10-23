@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Interface API",
 		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. A single Server-Sent Events (SSE) stream pushes the Dashboard to every client.",
-		"version": "2.0.1"
+		"version": "2.1.0"
 	},
 	"servers": [
 		{
@@ -37,9 +37,55 @@
 							}
 						}
 					}
-				}
 			}
 		},
+		"post": {
+			"summary": "Update at-risk threshold",
+			"description": "Sets how much time must remain before an area becomes overdue for the area to be considered at-risk. Returns the updated configuration.",
+			"requestBody": {
+				"required": true,
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/AtRiskThreshold"
+						}
+					}
+				}
+			},
+			"responses": {
+				"200": {
+					"description": "Threshold updated. Returns the new at-risk threshold configuration.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AtRiskThreshold"
+							}
+						}
+					}
+				},
+				"400": {
+					"description": "Invalid threshold value, e.g. a non-positive number of minutes",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Error"
+							}
+						}
+					}
+				},
+				"500": {
+					"description": "Internal server error",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Error"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
 		"/api/v2/dashboard/stream": {
 			"get": {
 				"summary": "Subscribe to dashboard updates",
@@ -205,16 +251,17 @@
 				"required": ["stations", "trains", "time"]
 			},
 			"AtRiskThreshold": {
-			"type": "object",
-			"properties": {
-				"at_risk_threshold_secs": {
-					"type": "integer",
-					"description": "Seconds before an area becomes overdue when it is considered at-risk. E.g. 900 means an area is at-risk when less than 15 minutes remain until overdue_at.",
-					"example": 900
-				}
+				"type": "object",
+				"properties": {
+					"at_risk_threshold_minutes": {
+						"type": "integer",
+						"minimum": 1,
+						"description": "Minutes before an area becomes overdue when it is considered at-risk. E.g. 15 means an area is at-risk when less than 15 minutes remain until overdue_at.",
+						"example": 15
+					}
+				},
+				"required": ["at_risk_threshold_minutes"]
 			},
-			"required": ["at_risk_threshold_secs"]
-		},
 		"Error": {
 				"type": "object",
 				"properties": {
