@@ -63,8 +63,6 @@ class CoverageService:
         shift_start_time: datetime,
         now: datetime,
     ) -> list[StewardPatrolInterval]:
-        # Coverage resets every shift: only the part of each visit between the
-        # shift start and now counts.
         within: list[StewardPatrolInterval] = []
         for interval in intervals:
             if interval.started_at > now:

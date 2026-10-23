@@ -37,7 +37,6 @@ class CoverageUpdater:
         async with self._lock:
             now = self._clock()
             shift = self._shift_schedule.latest_shift(now)
-            # Between shifts the last shift's result stays frozen at its end.
             as_of = min(now, shift.end)
             async with self._session_factory() as session:
                 reports = await self._service.compute_coverage_reports(

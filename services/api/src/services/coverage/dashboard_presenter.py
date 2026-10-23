@@ -7,8 +7,6 @@ from src.models.dashboard import Dashboard, DashboardArea, DashboardStation
 LINE_SEPARATOR = " & "
 
 
-# Turns coverage reports into the Dashboard of the positioning-interface contract.
-# Holds the station reference data the reports do not carry: names and lines.
 class DashboardPresenter:
     def __init__(self, stations: list[Station], station_lines: list[StationLine]):
         """Index the station names and the lines serving each station.
@@ -47,8 +45,6 @@ class DashboardPresenter:
 
     @staticmethod
     def _area(report: AreaCoverageReport, line: str) -> DashboardArea:
-        # The dataset has no area names. A station has at most one area of each
-        # kind, so the kind names the area within its station.
         return DashboardArea(
             area_id=report.area.area_id,
             name=report.area.kind.value.capitalize(),

@@ -64,8 +64,6 @@ async def lifespan(app: FastAPI):
         shift_schedule=ShiftSchedule.from_file(),
     )
 
-    # The first dashboard event must hold every station, so the snapshot is
-    # filled before the app serves its first client.
     await coverage_updater.refresh()
     tick = asyncio.create_task(ClockTick(coverage_updater, timedelta(seconds=5)).run())
 
@@ -97,7 +95,6 @@ async def validation_exception_handler(_: Request, error: RequestValidationError
     return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
-# CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
