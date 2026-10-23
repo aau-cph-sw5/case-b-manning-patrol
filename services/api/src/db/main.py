@@ -8,6 +8,7 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.models import (  # noqa: F401  registers table metadata
+    config,
     event,
     overdue_log,
     patrol_area,
