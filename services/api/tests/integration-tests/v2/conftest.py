@@ -1,8 +1,6 @@
 import os
 from collections.abc import AsyncGenerator  # noqa: E402
-from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
 
 import pytest
 import pytest_asyncio
@@ -15,7 +13,6 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 from src.db.main import get_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
-from src.models import PatrolArea, Station
 from src.models.patrol_area import AreaKind
 from src.services.coverage.coverage_service import CoverageService
 from src.services.coverage.coverage_updater import CoverageUpdater
@@ -28,33 +25,10 @@ from src.services.overdue_tracker import OverdueTracker
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
-SEEDED_STATION_ID = "STN-001"
-SEEDED_BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
-
 
 @pytest.fixture
 def client() -> TestClient:
     return TestClient(app)
-
-
-@pytest_asyncio.fixture
-async def seeded_station_id() -> str:
-    get_test_session = app.dependency_overrides[get_session]
-    async with asynccontextmanager(get_test_session)() as session:
-        session.add(Station(id=SEEDED_STATION_ID, name="Station 01"))
-        session.add(
-            PatrolArea(
-                beacon_id=UUID(SEEDED_BEACON_ID),
-                station_id=SEEDED_STATION_ID,
-                area_id="PA-001-P",
-                area_kind=AreaKind.PLATFORM,
-            )
-        )
-        await session.commit()
-        app.state.dashboard_presenter = DashboardPresenter(
-            await get_stations(session), await get_station_lines(session)
-        )
-    return SEEDED_STATION_ID
 
 
 @pytest_asyncio.fixture(autouse=True)
