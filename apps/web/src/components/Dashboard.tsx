@@ -7,12 +7,16 @@ import {
   timeColorClass,
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
-import { AttentionTime } from '../settings.ts'
+import { RiskTime, setRiskTime } from '../settings.ts'
 import Legend from './Legend.tsx'
 
 function Dashboard() {
   const now = useNow()
-  const [attentionTime, setAttentionTime] = useState<number>(AttentionTime)
+  const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
+  const handleRiskTimeChange = (value: number) => {
+    setRiskTime(value)
+    setRiskTimeState(value)
+  }
 
   const attention = STATIONS.flatMap((station) =>
     station.levels.map((level) => ({
@@ -20,7 +24,7 @@ function Dashboard() {
       minutes: remainingMinutes(level, now),
     })),
   )
-    .filter((item) => item.minutes <= attentionTime)
+    .filter((item) => item.minutes <= riskTime)
     .sort((a, b) => a.minutes - b.minutes)
 
 const overdueCount = STATIONS.flatMap((station) => station.levels)
@@ -30,7 +34,7 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
   return (
     <>
       <section className="dashboard-header">
-        <Legend attentionTime={attentionTime} onAttentionTimeChange={setAttentionTime} />
+        <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
         <h1 className='dashboard-title'>Patrulje Overblik</h1>
       </section>
       <div className="dash">
@@ -39,14 +43,14 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
         </div>
         <section className="station-grid">
           {STATIONS.map((station) => (
-            <StationCard key={station.code} station={station} now={now} attentionTime={attentionTime} />
+            <StationCard key={station.code} station={station} now={now} riskTime={riskTime} />
           ))}
         </section>
         <aside className="card attention">
           <h2>Kræver handling ({attention.length})</h2>
           <ul className="attention-list">
             {attention.map((item) => (
-              <li key={item.code} className={timeColorClass(item.minutes, attentionTime)}>
+              <li key={item.code} className={timeColorClass(item.minutes, riskTime)}>
                 {item.code}: {formatRemaining(item.minutes)}
               </li>
             ))}

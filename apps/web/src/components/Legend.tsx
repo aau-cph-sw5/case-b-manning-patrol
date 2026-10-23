@@ -3,30 +3,30 @@ import { useState } from 'react'
 import { BsEmojiFrown, BsEmojiNeutral, BsEmojiSmile, BsPencil } from 'react-icons/bs';
 
 interface LegendProps {
-  attentionTime: number
-  onAttentionTimeChange: (value: number) => void
+  riskTime: number
+  onRiskTimeChange: (value: number) => void
 }
 
 interface LegendItem {
   color: string
   emoji: any
-  label: string
+  label: React.ReactNode
   isEditable?: boolean
 }
 
-export default function Legend({ attentionTime, onAttentionTimeChange }: LegendProps) {
+export default function Legend({ riskTime, onRiskTimeChange }: LegendProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState<string>(attentionTime.toString())
+  const [editValue, setEditValue] = useState<string>(riskTime.toString())
 
   const handleEditClick = () => {
-    setEditValue(attentionTime.toString())
+    setEditValue(riskTime.toString())
     setIsEditing(true)
   }
 
   const handleSave = () => {
     const numValue = parseInt(editValue, 10)
     if (!isNaN(numValue) && numValue >= 0) {
-      onAttentionTimeChange(numValue)
+      onRiskTimeChange(numValue)
     }
     setIsEditing(false)
   }
@@ -53,7 +53,7 @@ export default function Legend({ attentionTime, onAttentionTimeChange }: LegendP
           onKeyDown={handleKeyDown}
           autoFocus
           className="edit-input"
-        /> : `I risiko: fra ${attentionTime} min.`,
+        /> : `I risiko: fra ${riskTime} min.`,
       isEditable: true
     },
     { color: 'text-red', emoji: BsEmojiFrown, label: 'Overskredet: 0 min.' },

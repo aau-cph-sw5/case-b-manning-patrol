@@ -21,11 +21,11 @@ export function formatRemaining(minutes: number): string {
   return `${Math.ceil(minutes)} min`
 }
 
-export function timeColorClass(minutes: number, attentionTime: number = 10): string {
+export function timeColorClass(minutes: number, riskTime: number = 10): string {
   if (minutes < 0) {
     return 'row-red'
   }
-  return minutes > attentionTime ? 'row-green' : 'row-yellow'
+  return minutes > riskTime ? 'row-green' : 'row-yellow'
 }
 
 export default timeColorClass
