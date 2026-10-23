@@ -1,8 +1,8 @@
 // pins the contract of the station list hook: the snapshot starts seeded with
 // the mock broadcast, a receipt replaces it and stamps the update time, an
 // error deliberately keeps the last snapshot, and unmount disconnects.
-// jsdom only for the hook renderer; the stream connection itself is a mock.
-// @vitest-environment jsdom
+// happy-dom only for the hook renderer; the stream connection itself is a mock.
+// @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
