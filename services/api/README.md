@@ -101,12 +101,12 @@ services/api/
 │   │   ├── v1/
 │   │   │   └── routers/
 │   │   │       ├── adjustment.py       # Adjustment route (contracts/positioning-adjustment v1, draft)
-│   │   │       ├── health.py           # Health check endpoint
 │   │   │       └── positioning_simulator.py # Positioning Interface simulator
 │   │   └── v2/
 │   │       └── routers/
-│   │           ├── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
-│   │           └── dashboard_stream.py # SSE dashboard stream (contracts/positioning-interface v2)
+│   │           ├── dashboard_stream.py # SSE dashboard stream (contracts/positioning-interface v2)
+│   │           ├── health.py           # Health check endpoints (contracts/health v2)
+│   │           └── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── coverage/            # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007, skeleton)
