@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { STATIONS } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
 import {
@@ -8,14 +8,29 @@ import {
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
 import { RiskTime, setRiskTime } from '../settings.ts'
+import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import Legend from './Legend.tsx'
 
 function Dashboard() {
   const now = useNow()
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
+
+  useEffect(() => {
+    getAtRiskThreshold()
+      .then((minutes) => {
+        setRiskTime(minutes)
+        setRiskTimeState(minutes)
+      })
+      .catch((error) => {
+        console.error('Error fetching at-risk threshold:', error)
+      })
+  }, [])
+
   const handleRiskTimeChange = (value: number) => {
     setRiskTime(value)
     setRiskTimeState(value)
+    // Update the backend with the new risk time
+    setAtRiskThreshold(value).catch(console.error) 
   }
 
   const attention = STATIONS.flatMap((station) =>
