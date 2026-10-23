@@ -19,7 +19,8 @@ export function connectToStationUpdates(
             return;
         }
         try {
-            const extractedData = StationOverviewSchema.parse(event.data);
+            // SSE delivers event.data as a raw JSON string, so parse before zod.
+            const extractedData = StationOverviewSchema.parse(JSON.parse(event.data));
             onUpdate(extractedData);
         } catch (error) {
             onError(error);
