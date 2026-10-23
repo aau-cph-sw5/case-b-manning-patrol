@@ -58,7 +58,10 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
               const StatusIcon = STATUS_ICONS[color]
               return (
                 <li key={item.code} className={color}>
-                  <StatusIcon className="smiley-icon"/> {item.code}: {formatRemaining(item.minutes)}
+                  <StatusIcon className="smiley-icon" />
+                  <span className="attention-text">
+                    {item.code}: {formatRemaining(item.minutes)}
+                  </span>
                 </li>
               )
             })}

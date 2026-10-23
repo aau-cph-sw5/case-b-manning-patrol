@@ -38,6 +38,11 @@
   align-content: start;
 }
 
+.attention-text {
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .attention-more {
   justify-content: center;
   font-weight: bold;
