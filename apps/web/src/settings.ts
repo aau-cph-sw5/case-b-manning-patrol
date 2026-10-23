@@ -1,3 +1,11 @@
-let AttentionTime: number = 10;
+let RiskTime: number = 10;
 
-export { AttentionTime }
+function getRiskTime(): number {
+  return RiskTime;
+}
+
+function setRiskTime(value: number): void {
+  RiskTime = value;
+}
+
+export { RiskTime, getRiskTime, setRiskTime };

@@ -1,4 +1,3 @@
-import { AttentionTime } from "../settings"
 import type { StationLevel } from "../data/mockData"
 import { LEVEL_DEADLINES } from "../data/mockDeadlines"
 import { BsEmojiFrown, BsEmojiNeutral, BsEmojiSmile } from 'react-icons/bs'
@@ -36,11 +35,11 @@ export function formatRemaining(minutes: number): string {
   return `${Math.ceil(minutes)} min`
 }
 
-export function timeColorClass(minutes: number): string {
+export function timeColorClass(minutes: number, riskTime: number = 10): string {
   if (minutes <= 0) {
     return 'row-red'
   }
-  return minutes > AttentionTime ? 'row-green' : 'row-yellow'
+  return minutes > riskTime ? 'row-green' : 'row-yellow'
 }
 
 export default timeColorClass
