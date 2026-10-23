@@ -6,38 +6,49 @@ Backend service for the Manning Patrol positioning system.
 
 - Python 3.13
 - [uv](https://github.com/astral-sh/uv) (Astral package manager)
-- Docker for Windows/MacOS (running the VM where the database container lives)
-    - If Linux or WSL2, container can run native in the OS. Search for setup yourself.
 
-## Setup
+## Running as a developer (step by step)
 
-```bash
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+- Run `uv sync` — installs dependencies.
+- Run `docker compose up -d` — starts the PostgreSQL container. 
+- Create `services/api/.env` with `DATABASE_URL=postgresql+asyncpg://metro:admin@localhost:5432/metro` — the Compose credentials are fixed (see `.env-example`). Without `DATABASE_URL` the app falls back to a local SQLite file (`local.db`).
+- Run `uv run alembic upgrade head` — applies migrations. Do this before the first server start.
+- Run `uv run dev` — starts the server with auto-reload on `http://localhost:8000`.
 
-# Install dependencies
-uv sync
-```
 
-The app reads its database address from `DATABASE_URL`, and it will not start
-without it. Create `services/api/.env` and insert your personal `DATABASE_URL`:
+## Running in production (step by step)
 
-```
-DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE_NAME
-```
+- Install the locked dependencies (same command CI uses):
 
-## Running
+  ```bash
+  uv sync --locked
+  ```
 
-```bash
-# Development server with auto-reload (recommended)
-uv run dev
+- Provide `DATABASE_URL` as a real environment variable on the host — do not
+  rely on a `.env` file in production (if one exists in the working
+  directory it is read too):
 
-# Or manually
-uv run fastapi dev src/main.py
-```
+  ```bash
+  export DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE_NAME
+  ```
 
-The server runs on `http://localhost:8000`. The positioning simulator is
-included in the main app (see below), so there is no separate server to start.
+- Apply database migrations against the production database:
+
+  ```bash
+  uv run alembic upgrade head
+  ```
+
+- Start the server with uvicorn directly — no reload, bound to all
+  interfaces:
+
+  ```bash
+  uv run uvicorn src.main:app --host 0.0.0.0 --port 8000
+  ```
+
+  Note: put a reverse proxy (or process supervisor) in front of it; uvicorn
+  is not a service manager. The same startup sequence as in development
+  runs: tables are ensured, stations/lines/patrol areas are re-ingested, and
+  the coverage updater starts ticking every 5 seconds.
 
 ## Development
 
@@ -105,7 +116,7 @@ services/api/
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline replayed by the simulator
 ├── tests/
-├── docker-compose.yml # Local PostgreSQL database (not yet defined)
+├── docker-compose.yml # Local PostgreSQL database for development
 ├── pyproject.toml    # Dependencies and tool config
 ├── uv.lock           # Locked dependency versions
 └── .python-version   # Python version (3.13)
@@ -125,13 +136,15 @@ Fixture used:
 ## Database
 
 The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
-> **Status:** Docker-Compose PostgreSQL setup
+See [Running as a developer](#running-as-a-developer-step-by-step) for the
+full setup: `docker-compose.yml` defines the local PostgreSQL container
+(fixed credentials `metro` / `admin`, port 5432), and `.env-example` shows the
+`DATABASE_URL` format.
 
-Run Docker for Windows/MacOS, make sure the engine(Virtual Machine) is running.
-See '.env-example' for .env setup.
-
-- `src/db/config.py` reads `DATABASE_URL` from the `.env`. Alembic reads the
-  same setting, so `alembic.ini` holds no database URL.
+- `src/db/config.py` reads `DATABASE_URL` from the environment or the `.env`
+  file. Alembic reads the same setting, so `alembic.ini` holds no database
+  URL. Without `DATABASE_URL` the app falls back to a local SQLite file
+  (`local.db`).
 - The schema is managed by Alembic migrations in `alembic/versions/`.
 - `src/db/main.py` creates the engine and still runs `create_all` on server
   startup. Apply migrations before starting the server on a new database,
@@ -140,21 +153,8 @@ See '.env-example' for .env setup.
 - `src/db/ingest.py` then loads `src/data/stations.v1.json` into those tables.
   It replaces their contents on every start, so rows added by hand are lost.
   See `src/data/README.md`.
-
-- `docker-compose.yml` — defines the PostgreSQL setup.
-- `src/services/db/` — hold the database access layer (connection
+- `src/services/db/` — holds the database access layer (connection
   setup, queries).
-  
-Make sure port 5432 is available before utilizing the docker setup- 
-if you have used a local postgres dB prior then it most likely is 
-occupying that port( previous db setup)
- 
-Once the database service is defined, start it from '.../services/api/':
-
-```bash
-docker compose up -d
-uv run alembic upgrade head
-```
 
 ### Migrations
 
