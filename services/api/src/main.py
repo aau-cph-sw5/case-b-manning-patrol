@@ -88,7 +88,7 @@ async def event_validation_exception_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
-        content={"code": "400", "message": str(error)},
+        content={"code": "404", "message": str(error)},
     )
 
 
