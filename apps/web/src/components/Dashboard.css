@@ -25,6 +25,31 @@
   border-color: #d0455e;
 }
 
+.attention {
+  contain: size;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.attention .attention-list {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+}
+
+.attention-text {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.attention-more {
+  justify-content: center;
+  font-weight: bold;
+  opacity: 0.7;
+}
+
 @media (max-width: 700px) {
   .dashboard-header {
     grid-template-columns: 1fr;

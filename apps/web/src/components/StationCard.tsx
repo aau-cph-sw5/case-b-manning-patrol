@@ -1,19 +1,11 @@
 import type { Station } from '../data/mockData'
-import { BsEmojiFrown, BsEmojiNeutral, BsEmojiSmile } from 'react-icons/bs';
-import type { IconType } from 'react-icons'
 import {
   formatRemaining,
   remainingMinutes,
+  STATUS_ICONS,
   timeColorClass,
   type TimeColor,
 } from '../utils/TimeColor'
-
-const STATUS_ICONS: Record<TimeColor, IconType> = {
-  'row-green': BsEmojiSmile,
-  'row-yellow': BsEmojiNeutral,
-  'row-red': BsEmojiFrown,
-}
-
 
 function StationCard({ station, now }: { station: Station; now: number }) {
   return (
