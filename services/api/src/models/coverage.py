@@ -1,3 +1,7 @@
+"""
+Value objects for patrol coverage and the overdue log (MET-B-007)
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
