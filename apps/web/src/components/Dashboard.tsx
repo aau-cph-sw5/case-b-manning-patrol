@@ -1,17 +1,23 @@
+import { useRef } from 'react'
 import { STATIONS } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
 import {
   formatRemaining,
   remainingMinutes,
+  STATUS_ICONS,
   timeColorClass,
+  type TimeColor,
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
+import { useFitCount } from '../hooks/useFitCount.ts'
 import { AttentionTime } from '../settings.ts'
 
 import './Dashboard.css'
 
 function Dashboard() {
   const now = useNow()
+  const listRef = useRef<HTMLUListElement>(null)
+  const fit = useFitCount(listRef)
 
   const attention = STATIONS.flatMap((station) =>
     station.levels.map((level) => ({
@@ -21,6 +27,10 @@ function Dashboard() {
   )
     .filter((item) => item.minutes <= AttentionTime)
     .sort((a, b) => a.minutes - b.minutes)
+
+  const visibleAttention =
+    attention.length > fit ? attention.slice(0, fit - 1) : attention
+  const hiddenCount = attention.length - visibleAttention.length
 
 const overdueCount = STATIONS.flatMap((station) => station.levels)
   .filter((level) => remainingMinutes(level, now) <= 0)
@@ -42,12 +52,22 @@ const overdueCount = STATIONS.flatMap((station) => station.levels)
         </section>
         <aside className="card attention">
           <h2>ATTENTION ({attention.length})</h2>
-          <ul className="attention-list">
-            {attention.map((item) => (
-              <li key={item.code} className={timeColorClass(item.minutes)}>
-                {item.code}: {formatRemaining(item.minutes)}
-              </li>
-            ))}
+          <ul className="attention-list" ref={listRef}>
+            {visibleAttention.map((item) => {
+              const color = timeColorClass(item.minutes) as TimeColor
+              const StatusIcon = STATUS_ICONS[color]
+              return (
+                <li key={item.code} className={color}>
+                  <StatusIcon className="smiley-icon" />
+                  <span className="attention-text">
+                    {item.code}: {formatRemaining(item.minutes)}
+                  </span>
+                </li>
+              )
+            })}
+            {hiddenCount > 0 && (
+              <li className="attention-more">+{hiddenCount}</li>
+            )}
           </ul>
         </aside>
       </div>
