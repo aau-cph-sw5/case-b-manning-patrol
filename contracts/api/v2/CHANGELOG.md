@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
+- Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
+  the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the
+  updated `AtRiskThreshold`.
+- Positioning Interface: `AtRiskThreshold.at_risk_threshold_secs` renamed to
+  `at_risk_threshold_minutes`; the threshold is now expressed in minutes
+  instead of seconds. The field was introduced in the unpublished v2.0.1
+  draft, so no published interface breaks.
+
 ## v2.1.0 - Health API contract
 - Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
 - The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
