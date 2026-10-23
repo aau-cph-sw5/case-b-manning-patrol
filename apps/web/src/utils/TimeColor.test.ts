@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { StationLevel } from '../data/mockData'
+import { AttentionTime } from '../settings'
 import {
   formatRemaining,
   remainingMinutes,
@@ -63,10 +64,10 @@ describe('timeColorClass', () => {
   })
 
   it('is yellow at the attention threshold', () => {
-    expect(timeColorClass(10)).toBe('row-yellow')
+    expect(timeColorClass(AttentionTime)).toBe('row-yellow')
   })
 
   it('is green above the attention threshold', () => {
-    expect(timeColorClass(10.1)).toBe('row-green')
+    expect(timeColorClass(AttentionTime + 0.1)).toBe('row-green')
   })
 })
