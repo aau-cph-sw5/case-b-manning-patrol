@@ -1,6 +1,6 @@
 import os
 from collections.abc import AsyncGenerator  # noqa: E402
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
@@ -13,10 +13,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 from src.db.main import get_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
-from src.models.patrol_area import AreaKind
 from src.services.coverage.coverage_service import CoverageService
 from src.services.coverage.coverage_updater import CoverageUpdater
-from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.coverage_window import (
+    MIN_QUALIFYING_DURATIONS,
+    TIME_UNTIL_NEXT_NEEDED_PATROL,
+    CoverageWindow,
+)
 from src.services.coverage.dashboard_presenter import DashboardPresenter
 from src.services.coverage.interval_builder import IntervalBuilder
 from src.services.coverage.shift_schedule import ShiftSchedule
@@ -49,11 +52,8 @@ async def override_db_session() -> AsyncGenerator[None]:
         service=CoverageService(
             IntervalBuilder(),
             CoverageWindow(
-                time_until_next_needed_patrol=timedelta(minutes=60),
-                min_qualifying_durations={
-                    AreaKind.PLATFORM: timedelta(seconds=4),
-                    AreaKind.CONCOURSE: timedelta(minutes=10),
-                },
+                time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
+                min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
             ),
         ),
         tracker=OverdueTracker(),

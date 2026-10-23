@@ -9,6 +9,12 @@ from src.models.coverage import (
 )
 from src.models.patrol_area import AreaKind
 
+TIME_UNTIL_NEXT_NEEDED_PATROL = timedelta(minutes=60)
+MIN_QUALIFYING_DURATIONS = {
+    AreaKind.PLATFORM: timedelta(seconds=10),
+    AreaKind.CONCOURSE: timedelta(seconds=20),
+}
+
 
 class CoverageWindow:
     def __init__(

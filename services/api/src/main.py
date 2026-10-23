@@ -14,10 +14,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.patrol_area import AreaKind
 from src.services.coverage.coverage_service import CoverageService
 from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
-from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.coverage_window import (
+    MIN_QUALIFYING_DURATIONS,
+    TIME_UNTIL_NEXT_NEEDED_PATROL,
+    CoverageWindow,
+)
 from src.services.coverage.dashboard_presenter import DashboardPresenter
 from src.services.coverage.interval_builder import IntervalBuilder
 from src.services.coverage.shift_schedule import ShiftSchedule
@@ -46,11 +49,8 @@ async def lifespan(app: FastAPI):
 
     builder = IntervalBuilder()
     rule = CoverageWindow(
-        time_until_next_needed_patrol=timedelta(minutes=60),
-        min_qualifying_durations={
-            AreaKind.PLATFORM: timedelta(seconds=10),
-            AreaKind.CONCOURSE: timedelta(seconds=20),
-        },
+        time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
+        min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
     sse_broadcaster = SseBroadcaster()
     overdue_tracker = OverdueTracker()

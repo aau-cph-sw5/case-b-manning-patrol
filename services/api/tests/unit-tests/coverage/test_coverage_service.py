@@ -13,11 +13,15 @@ from src.models import Event, EventType, PatrolArea, Station
 from src.models.coverage import CoverageStatus, StationCoverageReport
 from src.models.patrol_area import AreaKind
 from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.coverage_window import (
+    MIN_QUALIFYING_DURATIONS,
+    TIME_UNTIL_NEXT_NEEDED_PATROL,
+    CoverageWindow,
+)
 from src.services.coverage.interval_builder import IntervalBuilder
 
 NOW = datetime(2026, 10, 8, 12, 0, 0, tzinfo=UTC)
-WINDOW = timedelta(minutes=60)
+WINDOW = TIME_UNTIL_NEXT_NEEDED_PATROL
 STEWARD = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")
 
 STATION_A = "STN-A"
@@ -52,10 +56,7 @@ async def session() -> AsyncGenerator[AsyncSession]:
 def service() -> CoverageService:
     rule = CoverageWindow(
         time_until_next_needed_patrol=WINDOW,
-        min_qualifying_durations={
-            AreaKind.PLATFORM: timedelta(seconds=4),
-            AreaKind.CONCOURSE: timedelta(minutes=10),
-        },
+        min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
     return CoverageService(IntervalBuilder(), rule)
 
@@ -139,19 +140,11 @@ async def test_visit_counts_only_for_the_area_of_its_beacon(service, session):
 
 
 async def test_concourse_and_platform_of_one_station_are_independent(service, session):
-    # Long enough for a platform (4 s), too short for a concourse (10 min).
-    await add_visit(
-        session,
-        A_PLATFORM_BEACON,
-        NOW - timedelta(minutes=30),
-        NOW - timedelta(minutes=25),
-    )
-    await add_visit(
-        session,
-        A_CONCOURSE_BEACON,
-        NOW - timedelta(minutes=30),
-        NOW - timedelta(minutes=25),
-    )
+    # Exactly the platform threshold, which is shorter than the concourse one.
+    started_at = NOW - timedelta(minutes=30)
+    ended_at = started_at + MIN_QUALIFYING_DURATIONS[AreaKind.PLATFORM]
+    await add_visit(session, A_PLATFORM_BEACON, started_at, ended_at)
+    await add_visit(session, A_CONCOURSE_BEACON, started_at, ended_at)
 
     reports = await service.compute_coverage_reports(session, NOW)
 

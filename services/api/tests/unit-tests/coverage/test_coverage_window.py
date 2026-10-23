@@ -5,10 +5,17 @@ import pytest
 
 from src.models.coverage import AreaReference, OverdueEpisode, StewardPatrolInterval
 from src.models.patrol_area import AreaKind
-from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.coverage_window import (
+    MIN_QUALIFYING_DURATIONS,
+    TIME_UNTIL_NEXT_NEEDED_PATROL,
+    CoverageWindow,
+)
 
 BASE = datetime(2026, 3, 2, 12, 0, 0)
-WINDOW = timedelta(minutes=60)
+WINDOW = TIME_UNTIL_NEXT_NEEDED_PATROL
+PLATFORM_THRESHOLD = MIN_QUALIFYING_DURATIONS[AreaKind.PLATFORM]
+CONCOURSE_THRESHOLD = MIN_QUALIFYING_DURATIONS[AreaKind.CONCOURSE]
+ONE_SECOND = timedelta(seconds=1)
 PLATFORM_AREA = AreaReference(
     station_id="STN-001", area_id="platform-1", kind=AreaKind.PLATFORM
 )
@@ -28,10 +35,7 @@ def clock(hour, minute=0, second=0):
 def rule():
     return CoverageWindow(
         time_until_next_needed_patrol=WINDOW,
-        min_qualifying_durations={
-            AreaKind.PLATFORM: timedelta(seconds=4),
-            AreaKind.CONCOURSE: timedelta(minutes=10),
-        },
+        min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
 
 
@@ -45,21 +49,24 @@ def visit(started_at, ended_at, android_id=STEWARD_A):
 
 
 def test_min_qualifying_duration_returns_the_configured_threshold_per_kind(rule):
-    assert rule.min_qualifying_duration(AreaKind.PLATFORM) == timedelta(seconds=4)
-    assert rule.min_qualifying_duration(AreaKind.CONCOURSE) == timedelta(minutes=10)
+    assert rule.min_qualifying_duration(AreaKind.PLATFORM) == timedelta(seconds=10)
+    assert rule.min_qualifying_duration(AreaKind.CONCOURSE) == timedelta(seconds=20)
 
 
 def test_min_qualifying_duration_for_an_unconfigured_kind_is_a_configuration_error():
     rule = CoverageWindow(
         time_until_next_needed_patrol=WINDOW,
-        min_qualifying_durations={AreaKind.PLATFORM: timedelta(seconds=4)},
+        min_qualifying_durations={AreaKind.PLATFORM: PLATFORM_THRESHOLD},
     )
     with pytest.raises(KeyError):
         rule.min_qualifying_duration(AreaKind.CONCOURSE)
 
 
 def test_platform_visit_below_the_threshold_is_dropped(rule):
-    too_short = visit(started_at=clock(10, 0, 0), ended_at=clock(10, 0, 3))
+    started_at = clock(10, 0, 0)
+    too_short = visit(
+        started_at=started_at, ended_at=started_at + PLATFORM_THRESHOLD - ONE_SECOND
+    )
 
     report = rule.evaluate(PLATFORM_AREA, [too_short], None, BASE)
 
@@ -69,25 +76,32 @@ def test_platform_visit_below_the_threshold_is_dropped(rule):
 
 
 def test_platform_visit_at_the_threshold_qualifies(rule):
-    exactly_enough = visit(started_at=clock(10, 0, 0), ended_at=clock(10, 0, 4))
+    started_at = clock(10, 0, 0)
+    ended_at = started_at + PLATFORM_THRESHOLD
+    exactly_enough = visit(started_at=started_at, ended_at=ended_at)
 
-    report = rule.evaluate(PLATFORM_AREA, [exactly_enough], None, clock(11, 0, 4))
+    report = rule.evaluate(PLATFORM_AREA, [exactly_enough], None, ended_at + WINDOW)
 
-    assert report.last_covered_at == clock(10, 0, 4)
-    assert report.overdue_at == clock(11, 0, 4)
+    assert report.last_covered_at == ended_at
+    assert report.overdue_at == ended_at + WINDOW
     assert report.coverage_status == "compliant"
     assert report.episodes == ()
 
 
 def test_concourse_uses_its_own_threshold(rule):
-    four_seconds = visit(started_at=clock(10, 0, 0), ended_at=clock(10, 0, 4))
-    ten_minutes = visit(started_at=clock(10, 0, 0), ended_at=clock(10, 10, 0))
+    started_at = clock(10, 0, 0)
+    platform_long = visit(
+        started_at=started_at, ended_at=started_at + PLATFORM_THRESHOLD
+    )
+    concourse_long = visit(
+        started_at=started_at, ended_at=started_at + CONCOURSE_THRESHOLD
+    )
 
-    below = rule.evaluate(CONCOURSE_AREA, [four_seconds], None, BASE)
-    at_threshold = rule.evaluate(CONCOURSE_AREA, [ten_minutes], None, BASE)
+    below = rule.evaluate(CONCOURSE_AREA, [platform_long], None, BASE)
+    at_threshold = rule.evaluate(CONCOURSE_AREA, [concourse_long], None, BASE)
 
     assert below.last_covered_at is None
-    assert at_threshold.last_covered_at == clock(10, 10, 0)
+    assert at_threshold.last_covered_at == started_at + CONCOURSE_THRESHOLD
 
 
 def test_expired_coverage_is_overdue_with_an_open_episode(rule):
@@ -110,7 +124,10 @@ def test_a_gap_becomes_an_episode_cleared_by_the_next_visit(rule):
     report = rule.evaluate(PLATFORM_AREA, [first, second], None, clock(14, 0, 0))
 
     assert report.episodes == (
-        OverdueEpisode(overdue_at=clock(11, 10, 0), cleared_at=clock(13, 0, 4)),
+        OverdueEpisode(
+            overdue_at=clock(11, 10, 0),
+            cleared_at=clock(13, 0, 0) + PLATFORM_THRESHOLD,
+        ),
     )
     assert report.last_covered_at == clock(13, 10, 0)
 
@@ -131,7 +148,10 @@ def test_overlapping_visits_by_two_stewards_merge_into_one_span(rule):
 
 def test_spans_that_just_meet_are_merged(rule):
     first = visit(started_at=clock(10, 0, 0), ended_at=clock(10, 10, 0))
-    second = visit(started_at=clock(11, 9, 56), ended_at=clock(11, 15, 0))
+    # The second visit qualifies at 11:10:00, the moment the first span ends.
+    second = visit(
+        started_at=clock(11, 10, 0) - PLATFORM_THRESHOLD, ended_at=clock(11, 15, 0)
+    )
 
     report = rule.evaluate(PLATFORM_AREA, [first, second], None, clock(11, 30, 0))
 

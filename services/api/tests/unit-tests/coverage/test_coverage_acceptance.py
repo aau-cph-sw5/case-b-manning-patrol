@@ -18,7 +18,11 @@ from src.models.coverage import (
 from src.models.patrol_area import AreaKind
 from src.scripts.seed import FIXTURE, load_events
 from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_window import CoverageWindow
+from src.services.coverage.coverage_window import (
+    MIN_QUALIFYING_DURATIONS,
+    TIME_UNTIL_NEXT_NEEDED_PATROL,
+    CoverageWindow,
+)
 from src.services.coverage.interval_builder import IntervalBuilder
 
 STATION_BEACONS = {
@@ -78,11 +82,8 @@ def fixture_events() -> list[Event]:
 @pytest.fixture
 def service() -> CoverageService:
     rule = CoverageWindow(
-        time_until_next_needed_patrol=timedelta(minutes=60),
-        min_qualifying_durations={
-            AreaKind.PLATFORM: timedelta(seconds=4),
-            AreaKind.CONCOURSE: timedelta(minutes=10),
-        },
+        time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
+        min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
     return CoverageService(IntervalBuilder(), rule)
 
@@ -103,9 +104,9 @@ async def test_fixture_gap_at_station_3_is_one_overdue_episode(service, session)
     reports = await compute(service, session, AFTER_FIXTURE)
 
     # Coverage of the 03:10:13-03:10:27 visit runs out at 04:10:27. The 04:45:40
-    # visit clears it once it qualifies, 4 seconds later.
+    # visit clears it once it qualifies, 10 seconds later.
     assert platform(reports, "STN-3").episodes == (
-        OverdueEpisode(overdue_at=at(4, 10, 27), cleared_at=at(4, 45, 44)),
+        OverdueEpisode(overdue_at=at(4, 10, 27), cleared_at=at(4, 45, 50)),
     )
 
 
@@ -137,9 +138,9 @@ async def test_fixture_break_at_station_4_is_overdue_for_the_minutes_past_the_ho
     reports = await compute(service, session, AFTER_FIXTURE)
 
     # The steward leaves station 4 at 03:20:46 and is back at 04:25:59, so the
-    # area is overdue from 04:20:46 until that visit qualifies.
+    # area is overdue from 04:20:46 until that visit qualifies, 10 seconds later.
     assert platform(reports, "STN-4").episodes == (
-        OverdueEpisode(overdue_at=at(4, 20, 46), cleared_at=at(4, 26, 3)),
+        OverdueEpisode(overdue_at=at(4, 20, 46), cleared_at=at(4, 26, 9)),
     )
 
 
