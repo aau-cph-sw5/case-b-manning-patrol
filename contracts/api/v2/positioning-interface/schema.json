@@ -89,7 +89,7 @@
 		"/api/v2/dashboard/stream": {
 			"get": {
 				"summary": "Subscribe to dashboard updates",
-				"description": "Server-Sent Events stream (text/event-stream). Every message is an SSE event named `dashboard` whose `data` is a JSON-encoded Dashboard. The first event after connecting contains every station and train. Later events contain only the stations and trains whose state changed; clients replace their copy by station_id / train_id. The stream stays open until the client disconnects.",
+				"description": "Server-Sent Events stream (text/event-stream). Every message is an SSE event named `dashboard` whose `data` is a JSON-encoded Dashboard. Every event contains every station and train, changed or not, so clients replace their whole state on each event. An event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically, even when nothing changed. The stream stays open until the client disconnects.",
 				"responses": {
 					"200": {
 						"description": "Open SSE stream. Each event's data is a Dashboard.",
@@ -208,9 +208,8 @@
 				"properties": {
 					"station_id": {
 						"type": "string",
-						"format": "uuid",
-						"description": "Station UUID.",
-						"example": "880e8400-e29b-41d4-a716-446655440003"
+						"description": "Stable identifier of the station, from the station dataset.",
+						"example": "STN-001"
 					},
 					"name": {
 						"type": "string",

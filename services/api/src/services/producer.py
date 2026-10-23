@@ -135,11 +135,9 @@ async def validate_event(
             raise BeaconNotFoundError(f"Beacon '{beacon_id}' was not found")
 
 
-# CHANGE TO GET VALID ACTOR/ANDROID ID FROM DB. RETURN ACTOR OR NONE
 async def return_android_id(android_id: UUID) -> str | None:
     return "Android_1"
 
 
-# CHANGE TO GET VALID BEACON ID FROM DB. RETURN BEACON OR NONE
 async def return_beacon(beacon_id: UUID) -> str | None:
     return "Beacon_1"

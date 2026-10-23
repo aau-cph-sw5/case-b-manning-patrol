@@ -18,13 +18,16 @@
   `GET /api/v2/stations/{stationID}`, `GET /api/v2/trains/{trainID}`,
   `WS /stationUpdate` and `WS /trainUpdate` with a single SSE stream,
   `GET /api/v2/dashboard/stream`, consumed by the control room and the Android
-  app. The first event holds the full dashboard; later events hold only the
-  changed stations and trains.
+  app. Every event holds the full dashboard, including the stations and trains
+  that did not change, and is sent on every recompute (agreed in the nexus
+  sprint meeting).
 - Positioning Interface: `DashboardResponse` renamed to `Dashboard` and given a
   `time` field (when the event was sent). `StationResponse` and
   `TrainResponse` removed.
 - Positioning Interface: `Station.slug` and `Station.station_name` replaced by
   `name`.
+- Positioning Interface: `Station.station_id` is a plain string (for example
+  `"STN-001"`), not a UUID, matching the station dataset the backend serves.
 - Positioning Interface: added `GET /api/v2/config/at-risk-threshold` returning
   `AtRiskThreshold` with `at_risk_threshold_secs` — how much time must remain
   before an area becomes overdue for it to be considered at-risk.

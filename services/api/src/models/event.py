@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import AwareDatetime, BaseModel
 from sqlmodel import Field, SQLModel
 
 
@@ -50,7 +50,7 @@ class EventModel(BaseModel):
 class CorrectedFact(BaseModel):
     fact_type: EventType
     beacon_id: UUID | None = None
-    occurred_at: datetime
+    occurred_at: AwareDatetime
 
 
 class AdjustmentModel(BaseModel):

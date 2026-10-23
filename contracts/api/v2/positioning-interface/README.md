@@ -26,8 +26,8 @@ event: dashboard
 data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 ```
 
-- The first event after connecting contains every station and train, so clients need no separate initial fetch.
-- Later events contain only the stations and trains whose state changed. Clients replace their copy of each station by `station_id` and each train by `train_id`.
+- Every event contains every station and train, changed or not, so clients need no separate initial fetch and replace their whole state on each event.
+- An event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically, because coverage also expires with time. An event is sent even when nothing changed.
 - `time` is when the server sent the event.
 - `overdue_at` is a point in time, not a duration. Clients count down to it themselves, so the server does not push an event every second.
 - Browsers reconnect an SSE stream automatically. After a reconnect the first event is again the full dashboard.
@@ -40,7 +40,7 @@ data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 - `time`: Date — when the server sent this event
 
 ### Station
-- `station_id`: UUID
+- `station_id`: string
 - `name`: string
 - `areas`: Area[]
 
