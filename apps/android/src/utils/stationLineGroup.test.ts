@@ -8,7 +8,6 @@ const area = (line: string): Area => ({
   name: "Perron",
   line,
   areaType: "platform",
-  status: "compliant",
   coveredNow: false,
   overdueAt: null,
 });

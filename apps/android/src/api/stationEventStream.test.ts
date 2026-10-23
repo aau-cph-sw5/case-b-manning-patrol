@@ -33,23 +33,26 @@ const { MockEventSource, instances } = vi.hoisted(() => {
 
 vi.mock("react-native-sse", () => ({ default: MockEventSource }));
 
+
 const validPayload = JSON.stringify({
   stations: [
     {
+      station_id: "vanlose",
       name: "Vanløse",
       areas: [
         {
-          areaId: "platform-1",
+          area_id: "platform-1",
           name: "Perron 1",
           line: "M1",
-          areaType: "platform",
-          status: "compliant",
-          coveredNow: false,
-          overdueAt: "2026-10-23T10:00:00.000Z",
+          area_type: "platform",
+          covered_now: false,
+          overdue_at: "2026-10-23T10:00:00.000Z",
         },
       ],
     },
   ],
+  trains: [],
+  time: "2026-10-23T09:59:00.000Z",
 });
 
 function connect() {
@@ -65,13 +68,14 @@ beforeEach(() => {
 });
 
 describe("connectToStationUpdates", () => {
-  it("opens one stream per call with open, message and error handlers", () => {
+  it("opens one stream per call with open, dashboard and error handlers", () => {
     const { source } = connect();
 
     expect(instances).toHaveLength(1);
+    expect(source.url).toBe("http://localhost:8000/api/v2/dashboard/stream");
     expect(Object.keys(source.listeners).sort()).toEqual([
+      "dashboard",
       "error",
-      "message",
       "open",
     ]);
   });
@@ -79,7 +83,7 @@ describe("connectToStationUpdates", () => {
   it("delivers a valid payload to onUpdate with overdueAt as a Date", () => {
     const { onUpdate, onError, source } = connect();
 
-    source.listeners["message"][0]({ data: validPayload });
+    source.listeners["dashboard"][0]({ data: validPayload });
 
     expect(onUpdate).toHaveBeenCalledTimes(1);
     const [overview] = onUpdate.mock.calls[0];
@@ -94,8 +98,8 @@ describe("connectToStationUpdates", () => {
   it("delivers each message as its own snapshot", () => {
     const { onUpdate, source } = connect();
 
-    source.listeners["message"][0]({ data: validPayload });
-    source.listeners["message"][0]({ data: validPayload });
+    source.listeners["dashboard"][0]({ data: validPayload });
+    source.listeners["dashboard"][0]({ data: validPayload });
 
     expect(onUpdate).toHaveBeenCalledTimes(2);
   });
@@ -103,7 +107,7 @@ describe("connectToStationUpdates", () => {
   it("ignores messages without data", () => {
     const { onUpdate, onError, source } = connect();
 
-    source.listeners["message"][0]({ data: null });
+    source.listeners["dashboard"][0]({ data: null });
 
     expect(onUpdate).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
@@ -112,7 +116,7 @@ describe("connectToStationUpdates", () => {
   it("routes a malformed payload to onError instead of onUpdate", () => {
     const { onUpdate, onError, source } = connect();
 
-    source.listeners["message"][0]({
+    source.listeners["dashboard"][0]({
       data: JSON.stringify({ stations: [{ areas: [] }] }),
     });
 
@@ -123,7 +127,7 @@ describe("connectToStationUpdates", () => {
   it("routes a non-JSON payload to onError", () => {
     const { onUpdate, onError, source } = connect();
 
-    source.listeners["message"][0]({ data: "not json" });
+    source.listeners["dashboard"][0]({ data: "not json" });
 
     expect(onUpdate).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledTimes(1);
