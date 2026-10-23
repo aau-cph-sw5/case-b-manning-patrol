@@ -121,15 +121,19 @@ code {
 }
 
 .dash {
+  /* width taken from the station grid and given to the attention card */
+  --attention-extra: 30px;
   display: grid;
   grid-template-columns:
-    calc(4 * (100% - 112px) / 5 + 48px) calc((100% - 112px) / 5);
+    calc(4 * (100% - 112px) / 5 + 48px - var(--attention-extra))
+    calc((100% - 112px) / 5 + var(--attention-extra));
   gap: 64px;
   padding: 0 16px 16px;
 
   @media (max-width: 1248px) {
     grid-template-columns:
-      calc(2 * (100% - 80px) / 3 + 16px) calc((100% - 80px) / 3);
+      calc(2 * (100% - 80px) / 3 + 16px - var(--attention-extra))
+      calc((100% - 80px) / 3 + var(--attention-extra));
   }
 
   @media (max-width: 700px) {
@@ -176,6 +180,9 @@ code {
 }
 
 .attention-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border-bottom: 1px solid var(--border);
   padding: 6px 8px;
 }
