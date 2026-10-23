@@ -7,10 +7,10 @@ import {
   remainingMs,
   type AreaStatus,
 } from "@/utils/areaStatus";
-import type { Area, StationRecord } from "@/types/station";
+import type { Area, Station as StationData } from "@/types/station";
 
 type StationProps = {
-  station: StationRecord;
+  station: StationData;
   now: number;
 };
 
@@ -51,18 +51,19 @@ export default function Station({ station, now }: StationProps) {
         </Text>
       </View>
       <View style={styles.timerPanel}>
-        <AreaTimer area={mostUrgentArea(station.areas, "Platform")} now={now} />
+        <AreaTimer area={mostUrgentArea(station.areas, "platform")} now={now} />
         <View style={styles.timerDivider} />
-        <AreaTimer area={mostUrgentArea(station.areas, "Concourse")} now={now} />
+        <AreaTimer area={mostUrgentArea(station.areas, "concourse")} now={now} />
       </View>
     </View>
   );
 }
 
 // one deadline cell. the colour carries the risk (AC 1) and the caption says why
-// a level needs no round right now: someone else is patrolling it (AC 2).
+// a level needs no round right now: someone else is patrolling it (AC 2). an
+// area with no deadline yet renders the same placeholder as a missing one.
 function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
-  if (!area) {
+  if (!area || area.overdueAt === null) {
     return (
       <View style={[styles.timerCell, styles.missing]}>
         <Text style={styles.timer}>--</Text>
@@ -70,7 +71,7 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
     );
   }
 
-  const remaining = remainingMs(area.timeTillOverdue, now);
+  const remaining = remainingMs(area.overdueAt, now);
 
   if (area.coveredNow) {
     return (
@@ -128,8 +129,8 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     flex: 1,
-    color: "#666666",
-    fontSize: 11,
+    color: "#000000",
+    fontSize: 15,
     fontWeight: "700",
     textAlign: "center",
   },

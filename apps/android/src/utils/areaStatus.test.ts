@@ -3,7 +3,7 @@
 // arithmetic is pinned down exactly.
 import { describe, expect, it } from "vitest";
 
-import type { Area, StationRecord } from "@/types/station";
+import type { Area, Station } from "@/types/station";
 import {
   areaStatus,
   formatCountdown,
@@ -17,16 +17,18 @@ const MINUTE = 60_000;
 
 function area(overrides: Partial<Area>): Area {
   return {
-    type: "Platform",
-    timeTillOverdue: NOW + 45 * MINUTE,
-    line: "M1",
+    areaId: "platform-1",
     name: "Perron",
+    line: "M1",
+    areaType: "platform",
+    status: "compliant",
     coveredNow: false,
+    overdueAt: new Date(NOW + 45 * MINUTE),
     ...overrides,
   };
 }
 
-function station(name: string, areas: Area[]): StationRecord {
+function station(name: string, areas: Area[]): Station {
   return { name, areas };
 }
 
@@ -60,49 +62,60 @@ describe("areaStatus", () => {
 
 describe("remainingMs", () => {
   it("is the distance from now to the deadline, negative once overdue", () => {
-    expect(remainingMs(NOW + 5 * MINUTE, NOW)).toBe(5 * MINUTE);
-    expect(remainingMs(NOW - 5 * MINUTE, NOW)).toBe(-5 * MINUTE);
+    expect(remainingMs(new Date(NOW + 5 * MINUTE), NOW)).toBe(5 * MINUTE);
+    expect(remainingMs(new Date(NOW - 5 * MINUTE), NOW)).toBe(-5 * MINUTE);
+  });
+
+  it("treats a level with no deadline yet as never due", () => {
+    expect(remainingMs(null, NOW)).toBe(Number.POSITIVE_INFINITY);
   });
 });
 
 describe("mostUrgentArea", () => {
   it("picks the tightest deadline of the type", () => {
-    const late = area({ name: "Late platform", timeTillOverdue: NOW + 2 * MINUTE });
-    const soon = area({ name: "Soon platform", timeTillOverdue: NOW + 5 * MINUTE });
-    const concourse = area({ type: "Concourse", timeTillOverdue: NOW });
+    const late = area({ name: "Late platform", overdueAt: new Date(NOW + 2 * MINUTE) });
+    const soon = area({ name: "Soon platform", overdueAt: new Date(NOW + 5 * MINUTE) });
+    const concourse = area({ areaType: "concourse", overdueAt: new Date(NOW) });
 
-    expect(mostUrgentArea([late, soon, concourse], "Platform")).toBe(late);
-    expect(mostUrgentArea([late, soon, concourse], "Concourse")).toBe(concourse);
+    expect(mostUrgentArea([late, soon, concourse], "platform")).toBe(late);
+    expect(mostUrgentArea([late, soon, concourse], "concourse")).toBe(concourse);
   });
 
   it("prefers an uncovered level over a tighter covered one", () => {
-    const covered = area({ name: "Covered", timeTillOverdue: NOW, coveredNow: true });
-    const uncovered = area({ name: "Uncovered", timeTillOverdue: NOW + 20 * MINUTE });
+    const covered = area({ name: "Covered", overdueAt: new Date(NOW), coveredNow: true });
+    const uncovered = area({ name: "Uncovered", overdueAt: new Date(NOW + 20 * MINUTE) });
 
-    expect(mostUrgentArea([covered, uncovered], "Platform")).toBe(uncovered);
+    expect(mostUrgentArea([covered, uncovered], "platform")).toBe(uncovered);
   });
 
   it("falls back to the covered level when nothing else is there", () => {
     const covered = area({ coveredNow: true });
-    expect(mostUrgentArea([covered], "Platform")).toBe(covered);
+    expect(mostUrgentArea([covered], "platform")).toBe(covered);
+  });
+
+  it("sorts a level with no deadline behind one that has a deadline", () => {
+    const undated = area({ name: "Undated", overdueAt: null });
+    const dated = area({ name: "Dated", overdueAt: new Date(NOW + 20 * MINUTE) });
+
+    expect(mostUrgentArea([undated, dated], "platform")).toBe(dated);
   });
 
   it("returns undefined when the station has no level of the type", () => {
-    const concourse = area({ type: "Concourse" });
-    expect(mostUrgentArea([concourse], "Platform")).toBeUndefined();
+    const concourse = area({ areaType: "concourse" });
+    expect(mostUrgentArea([concourse], "platform")).toBeUndefined();
   });
 });
 
 describe("sortStationsByUrgency", () => {
   it("puts the station with the tightest uncovered deadline first", () => {
     const relaxed = station("Relaxed", [
-      area({ timeTillOverdue: NOW + 50 * MINUTE }),
+      area({ overdueAt: new Date(NOW + 50 * MINUTE) }),
     ]);
     const urgent = station("Urgent", [
-      area({ timeTillOverdue: NOW + 5 * MINUTE }),
+      area({ overdueAt: new Date(NOW + 5 * MINUTE) }),
     ]);
     const overdue = station("Overdue", [
-      area({ timeTillOverdue: NOW - 3 * MINUTE }),
+      area({ overdueAt: new Date(NOW - 3 * MINUTE) }),
     ]);
 
     expect(sortStationsByUrgency([relaxed, overdue, urgent], NOW)).toEqual([
@@ -114,10 +127,10 @@ describe("sortStationsByUrgency", () => {
 
   it("sorts a station whose levels are all covered behind uncovered work", () => {
     const coveredOnly = station("Covered only", [
-      area({ timeTillOverdue: NOW, coveredNow: true }),
+      area({ overdueAt: new Date(NOW), coveredNow: true }),
     ]);
     const uncovered = station("Uncovered", [
-      area({ timeTillOverdue: NOW + 40 * MINUTE }),
+      area({ overdueAt: new Date(NOW + 40 * MINUTE) }),
     ]);
 
     expect(sortStationsByUrgency([coveredOnly, uncovered], NOW)).toEqual([
@@ -133,6 +146,16 @@ describe("sortStationsByUrgency", () => {
     expect(sortStationsByUrgency([empty, hasWork], NOW)).toEqual([
       hasWork,
       empty,
+    ]);
+  });
+
+  it("keeps a station with no deadlines yet behind stations with work", () => {
+    const undated = station("Undated", [area({ overdueAt: null })]);
+    const hasWork = station("Has work", [area({})]);
+
+    expect(sortStationsByUrgency([undated, hasWork], NOW)).toEqual([
+      hasWork,
+      undated,
     ]);
   });
 });
