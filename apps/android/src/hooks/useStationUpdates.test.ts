@@ -1,7 +1,7 @@
-// pins the contract of the station list hook: the snapshot starts seeded with
-// the mock broadcast, a receipt replaces it and stamps the update time, an
-// error deliberately keeps the last snapshot, and unmount disconnects.
-// happy-dom only for the hook renderer; the stream connection itself is a mock.
+// pins the contract of the station list hook: the snapshot starts empty, a
+// receipt replaces it and stamps the update time, an error deliberately keeps
+// the last snapshot, and unmount disconnects. happy-dom only for the hook
+// renderer; the stream connection itself is a mock.
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -44,10 +44,10 @@ afterEach(() => {
 });
 
 describe("useStationUpdates", () => {
-  it("starts seeded with the mock broadcast and no update time", () => {
+  it("starts empty with no update time", () => {
     const { result } = renderHook(() => useStationUpdates());
 
-    expect(result.current.stations).toEqual(createMockStations(FIXED_NOW));
+    expect(result.current.stations).toEqual([]);
     expect(result.current.lastUpdatedAt).toBeNull();
     expect(connectToStationUpdates).toHaveBeenCalledTimes(1);
   });
@@ -79,14 +79,14 @@ describe("useStationUpdates", () => {
     expect(result.current.lastUpdatedAt).toBe(FIXED_NOW);
   });
 
-  it("keeps the seeded snapshot on error before any update arrives", () => {
+  it("keeps the empty snapshot on error before any update arrives", () => {
     const { result } = renderHook(() => useStationUpdates());
 
     act(() => {
       onError(new Error("SSE connection dropped"));
     });
 
-    expect(result.current.stations).toEqual(createMockStations(FIXED_NOW));
+    expect(result.current.stations).toEqual([]);
     expect(result.current.lastUpdatedAt).toBeNull();
   });
 

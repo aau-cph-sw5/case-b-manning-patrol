@@ -1,7 +1,7 @@
-// the mock broadcast array until the backend datastream exists (PBI 009 notes).
-// deadlines are generated relative to `now` so every run shows live counters and
-// every risk state is represented: one overdue level, one due soon, a station
-// being patrolled by another steward, and a station comfortably fresh.
+// sample station data for the hook tests: realistic stations with deadlines
+// generated relative to `now` so every run shows live counters and every risk
+// state is represented: one overdue level, one due soon, a station being
+// patrolled by another steward, and a station comfortably fresh.
 import type { Area, AreaType, Station } from "@/types/station";
 
 const MINUTE = 60_000;
@@ -21,7 +21,6 @@ export function createMockStations(now: number): Station[] {
     name,
     line,
     areaType,
-    status: minutesTillOverdue <= 0 ? "overdue" : "compliant",
     coveredNow,
     overdueAt: at(minutesTillOverdue),
   });

@@ -21,7 +21,6 @@ function area(overrides: Partial<Area>): Area {
     name: "Perron",
     line: "M1",
     areaType: "platform",
-    status: "compliant",
     coveredNow: false,
     overdueAt: new Date(NOW + 45 * MINUTE),
     ...overrides,

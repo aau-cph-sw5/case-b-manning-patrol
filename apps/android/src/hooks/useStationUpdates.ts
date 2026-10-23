@@ -1,11 +1,11 @@
 // the station list for a screen: subscribes to the SSE datastream and keeps the
-// last received snapshot. a dropped connection never clears the list, so it
-// stays usable offline together with the last update time the screen shows.
-// the snapshot starts from the mock fixture until the real stream is live.
+// last received snapshot. the list starts empty and fills with the first
+// event, which the server sends as a full snapshot right on connect. a
+// dropped connection never clears it, so it stays usable offline together
+// with the last update time the screen shows.
 import { useEffect, useState } from "react";
 
 import { connectToStationUpdates } from "@/api/stationEventStream";
-import { createMockStations } from "@/fixtures/mockStations";
 import type { Station } from "@/types/station";
 
 export type StationsSnapshot = {
@@ -14,18 +14,16 @@ export type StationsSnapshot = {
 };
 
 export function useStationUpdates(): StationsSnapshot {
-  // seeded with the mock broadcast until SSE_URL is live; delete the
-  // initializer's body for an empty start instead.
-  const [snapshot, setSnapshot] = useState<StationsSnapshot>(() => ({
-    stations: createMockStations(Date.now()),
+  const [snapshot, setSnapshot] = useState<StationsSnapshot>({
+    stations: [],
     lastUpdatedAt: null,
-  }));
+  });
 
   useEffect(() => {
     const disconnect = connectToStationUpdates(
       (data) => {
-        // the payload carries no backend timestamp, so the client receipt
-        // time is the best "last updated" we have.
+        // receipt time drives "last updated"; the server clock is not
+        // used for it.
         setSnapshot({ stations: data.stations, lastUpdatedAt: Date.now() });
       },
       (error) => {
