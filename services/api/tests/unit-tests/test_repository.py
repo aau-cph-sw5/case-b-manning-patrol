@@ -12,7 +12,7 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository import events, overdue_log, patrol_area, station
-from src.models import OverdueLogEntry, PatrolArea, Station
+from src.models import Line, OverdueLogEntry, PatrolArea, Station, StationLine
 from src.models.coverage import (
     AreaCoverageReport,
     AreaReference,
@@ -105,6 +105,31 @@ async def test_get_stations_returns_all_stations(session):
 @pytest.mark.asyncio
 async def test_get_stations_returns_empty_list_when_no_stations(session):
     assert await station.get_stations(session) == []
+
+
+@pytest.mark.asyncio
+async def test_get_station_lines_returns_all_links(session):
+    session.add(Station(id="S1", name="Nørreport"))
+    session.add(Station(id="S2", name="Kongens Nytorv"))
+    session.add(Line(id="M1", name="Metro Line 1"))
+    session.add(Line(id="M2", name="Metro Line 2"))
+    session.add(StationLine(station_id="S1", line_id="M1"))
+    session.add(StationLine(station_id="S2", line_id="M1"))
+    session.add(StationLine(station_id="S2", line_id="M2"))
+    await session.commit()
+
+    result = await station.get_station_lines(session)
+
+    assert {(sl.station_id, sl.line_id) for sl in result} == {
+        ("S1", "M1"),
+        ("S2", "M1"),
+        ("S2", "M2"),
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_station_lines_returns_empty_list_when_no_links(session):
+    assert await station.get_station_lines(session) == []
 
 
 @pytest.mark.asyncio
