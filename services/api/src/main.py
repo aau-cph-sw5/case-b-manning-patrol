@@ -48,8 +48,8 @@ async def lifespan(app: FastAPI):
     rule = CoverageWindow(
         time_until_next_needed_patrol=timedelta(minutes=60),
         min_qualifying_durations={
-            AreaKind.PLATFORM: timedelta(seconds=4),
-            AreaKind.CONCOURSE: timedelta(minutes=10),
+            AreaKind.PLATFORM: timedelta(seconds=10),
+            AreaKind.CONCOURSE: timedelta(seconds=20),
         },
     )
     sse_broadcaster = SseBroadcaster()
