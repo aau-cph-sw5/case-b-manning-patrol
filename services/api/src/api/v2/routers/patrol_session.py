@@ -1,9 +1,8 @@
-from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, status
-from pydantic import BaseModel
+from pydantic import AwareDatetime, BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
@@ -19,12 +18,12 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 class ConnectionEvent(BaseModel):
     android_id: UUID
     beacon_id: UUID
-    timestamp: datetime
+    timestamp: AwareDatetime
 
 
 class PatrolSessionEvent(BaseModel):
     android_id: UUID
-    timestamp: datetime
+    timestamp: AwareDatetime
 
 
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
