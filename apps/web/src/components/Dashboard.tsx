@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { STATIONS } from '../data/mockData.tsx'
 import StationCard from './StationCard.tsx'
 import {
@@ -10,51 +10,75 @@ import {
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
 import { useFitCount } from '../hooks/useFitCount.ts'
-import { AttentionTime } from '../settings.ts'
-
+import { RiskTime, setRiskTime } from '../settings.ts'
+import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
+import Legend from './Legend.tsx'
+        
 import './Dashboard.css'
 
 function Dashboard() {
   const now = useNow()
   const listRef = useRef<HTMLUListElement>(null)
   const fit = useFitCount(listRef)
+  const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
+
+  useEffect(() => {
+    getAtRiskThreshold()
+      .then((minutes) => {
+        setRiskTime(minutes)
+        setRiskTimeState(minutes)
+      })
+      .catch((error) => {
+        console.error('Error fetching at-risk threshold:', error)
+      })
+  }, [])
+
+  const handleRiskTimeChange = (value: number) => {
+    setRiskTime(value)
+    setRiskTimeState(value)
+    // Update the backend with the new risk time
+    setAtRiskThreshold(value).catch(console.error) 
+  }
 
   const attention = STATIONS.flatMap((station) =>
     station.levels.map((level) => ({
       code: `${station.code}_${level.label}`,
-      minutes: remainingMinutes(level, now),
+      minutes: remainingMinutes(level, now, station.code),
     })),
   )
-    .filter((item) => item.minutes <= AttentionTime)
+    .filter((item) => item.minutes <= riskTime)
     .sort((a, b) => a.minutes - b.minutes)
 
   const visibleAttention =
     attention.length > fit ? attention.slice(0, fit - 1) : attention
   const hiddenCount = attention.length - visibleAttention.length
 
-const overdueCount = STATIONS.flatMap((station) => station.levels)
-  .filter((level) => remainingMinutes(level, now) <= 0)
-  .length
+  const overdueCount = STATIONS.flatMap((station) =>
+    station.levels.filter(
+      (level) => remainingMinutes(level, now, station.code) <= 0,
+    ),
+  ).length
 
   return (
     <>
       <section className="dashboard-header">
-        <h1 className='dashboard-title'>Manning Patrol Dashboard</h1>
-      <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`}>
-        OVERDUE ({overdueCount})
-      </div>
+        <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
+        <h1 className='dashboard-title'>Patrulje Overblik</h1>
       </section>
       <div className="dash">
+        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
+          Overskredet ({overdueCount})
+        </div>
         <section className="station-grid">
           {STATIONS.map((station) => (
-            <StationCard key={station.code} station={station} now={now} />
+            <StationCard key={station.code} station={station} now={now} riskTime={riskTime} />
           ))}
         </section>
         <aside className="card attention">
-          <h2>ATTENTION ({attention.length})</h2>
+          <h2>Kræver handling ({attention.length})</h2>
           <ul className="attention-list" ref={listRef}>
             {visibleAttention.map((item) => {
-              const color = timeColorClass(item.minutes) as TimeColor
+              const color = timeColorClass(item.minutes, riskTime) as TimeColor
               const StatusIcon = STATUS_ICONS[color]
               return (
                 <li key={item.code} className={color}>

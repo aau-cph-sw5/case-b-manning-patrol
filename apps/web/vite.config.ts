@@ -19,6 +19,9 @@ export default defineConfig({
         branches: 80,
         statements: 80,
       },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000',
     },
   },
 })

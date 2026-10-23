@@ -7,14 +7,14 @@ import {
   type TimeColor,
 } from '../utils/TimeColor'
 
-function StationCard({ station, now }: { station: Station; now: number }) {
+function StationCard({ station, now, riskTime }: { station: Station; now: number; riskTime: number }) {
   return (
     <article className="card station-card">
       <h2>{station.name}</h2>
       <ul className="levels">
         {station.levels.map((level) => {
-          const minutes = remainingMinutes(level, now)
-          const color = timeColorClass(minutes) as TimeColor
+          const minutes = remainingMinutes(level, now, station.code)
+          const color = timeColorClass(minutes, riskTime) as TimeColor
           const StatusIcon = STATUS_ICONS[color]
           return (
             <li key={level.label} className={color}>

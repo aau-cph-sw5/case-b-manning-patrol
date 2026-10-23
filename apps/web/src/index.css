@@ -71,7 +71,7 @@ h2 {
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
-  margin: 32px 0;
+  margin: 16px 0;
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
@@ -127,7 +127,8 @@ code {
   grid-template-columns:
     calc(4 * (100% - 112px) / 5 + 48px - var(--attention-extra))
     calc((100% - 112px) / 5 + var(--attention-extra));
-  gap: 64px;
+  row-gap: 16px;
+  column-gap: 64px;
   padding: 0 16px 16px;
 
   @media (max-width: 1248px) {
