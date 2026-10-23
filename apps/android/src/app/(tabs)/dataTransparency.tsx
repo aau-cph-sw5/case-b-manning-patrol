@@ -4,10 +4,10 @@ import { StyleSheet, View, Text } from 'react-native';
 export default function NotFoundScreen () {
     return (
         <>
-            <StackScreen options={{title: 'Data Transparency'}} />
+            <StackScreen options={{title: 'Data Gennemsigtighed'}} />
             <View style={styles.container}>
                 <Text style={styles.text}>
-                    Placeholder Data Transparency
+                    Placeholder Data Gennemsigtighed
                 </Text>
             </View>
         </>

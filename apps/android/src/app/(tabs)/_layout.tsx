@@ -8,9 +8,9 @@ export default function TabLayout() {
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <TabBar {...props} />}
     >
-      <Tabs.Screen name="dataTransparency" options={{ title: "Data Transparency" }} />
-      <Tabs.Screen name="index" options={{ title: "Patrol" }} />
-      <Tabs.Screen name="patrolHistory" options={{ title: "Patrol History" }} />
+      <Tabs.Screen name="dataTransparency" options={{ title: "Data Gennemsigtighed" }} />
+      <Tabs.Screen name="index" options={{ title: "Stationskontrol" }} />
+      <Tabs.Screen name="patrolHistory" options={{ title: "Patruljehistorik" }} />
     </Tabs>
   );
 }

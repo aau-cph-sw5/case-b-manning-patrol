@@ -33,7 +33,7 @@ export default function StationFilter({ selected, onSelect }: StationFilterProps
     <View
       style={styles.track}
       accessibilityRole="tablist"
-      accessibilityLabel="Filter stations by line"
+      accessibilityLabel="Filtrer efter metrolinje"
     >
       <Animated.View style={[styles.thumb, thumbStyle]} />
       {LINE_GROUPS.map((lineGroup) => (

@@ -73,8 +73,8 @@ export default function Index() {
           <StationListHeader />
           <Text style={styles.lastUpdated}>
             {lastUpdatedAt === null
-              ? "Last updated at..."
-              : `Last updated ${formatClock(lastUpdatedAt)}`}
+              ? "Sidst opdateret..."
+              : `Sidst opdateret ${formatClock(lastUpdatedAt)}`}
           </Text>
           {round.map((station) => (
             <Station key={station.name} station={station} now={now} />

@@ -4,10 +4,10 @@ import { StyleSheet, View, Text } from 'react-native';
 export default function NotFoundScreen () {
     return (
         <>
-            <StackScreen options={{title: 'Patrol History'}} />
+            <StackScreen options={{title: 'Patruljehistorik'}} />
             <View style={styles.container}>
                 <Text style={styles.text}>
-                    Placeholder Patrol History
+                    Placeholder Patruljehistorik
                 </Text>
             </View>
         </>

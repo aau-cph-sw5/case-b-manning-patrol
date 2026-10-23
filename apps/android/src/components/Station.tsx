@@ -21,8 +21,8 @@ export function StationListHeader() {
         <Text style={[styles.headerLabel, styles.stationHeaderLabel]}>Station</Text>
       </View>
       <View style={styles.headerTimerPanel}>
-        <Text style={styles.headerLabel}>Platform</Text>
-        <Text style={styles.headerLabel}>Concourse</Text>
+        <Text style={styles.headerLabel}>Perron</Text>
+        <Text style={styles.headerLabel}>Forhal</Text>
       </View>
     </View>
   );
@@ -41,7 +41,9 @@ export default function Station({ station, now }: StationProps) {
                 key={line}
                 style={[styles.routeBadge, routeColors[line] ?? styles.routeDefault]}
               >
-                <Text style={styles.routeText}>{line}</Text>
+                <Text style={[styles.routeText, line === "M2" ? M2_ROUTE_TEXT : null]}>
+                  {line}
+                </Text>
               </View>
             ))}
           </View>
@@ -77,7 +79,7 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
     return (
       <View style={[styles.timerCell, styles.covered]}>
         <Text style={styles.timer}>{formatCountdown(remaining)}</Text>
-        <Text style={styles.caption}>Patrolled</Text>
+        <Text style={styles.caption}>Patruljeres...</Text>
       </View>
     );
   }
@@ -91,18 +93,20 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
         {formatCountdown(remaining)}
       </Text>
       {areaStatus(remaining) === "overdue" ? (
-        <Text style={styles.caption}>Overdue</Text>
+        <Text style={styles.caption}>Overskredet</Text>
       ) : null}
     </View>
   );
 }
 
 export const routeColors: Record<string, object> = {
-  M1: { backgroundColor: "#2ecc71" },
-  M2: { backgroundColor: "#f1c40f" },
-  M3: { backgroundColor: "#e91e63" },
-  M4: { backgroundColor: "#3498db" },
+  M1: { backgroundColor: "#007D55" },
+  M2: { backgroundColor: "#FFC82D" },
+  M3: { backgroundColor: "#E6140F" },
+  M4: { backgroundColor: "#00A0BE" },
 };
+
+const M2_ROUTE_TEXT = { color: "#000000" };
 
 const statusColors: Record<AreaStatus, object> = {
   fresh: { backgroundColor: "#159f72" },
@@ -142,7 +146,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#ed2224",
     borderRadius: 17,
     backgroundColor: "#ffffff",
   },

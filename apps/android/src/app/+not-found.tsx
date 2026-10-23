@@ -5,10 +5,10 @@ import { StyleSheet, View } from 'react-native';
 export default function NotFoundScreen () {
     return (
         <>
-            <StackScreen options={{title: 'Oops! Not Found'}} />
+            <StackScreen options={{title: 'Ups! Side ikke fundet'}} />
             <View style={styles.container}>
                 <Link href={'/'} style={styles.button}>
-                    Go back to Home Screen!
+                    Gå tilbage til Hjemmeside!
                 </Link>
             </View>
         </>

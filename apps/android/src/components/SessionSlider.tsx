@@ -46,15 +46,15 @@ type Appearance = {
 
 const appearance: Record<PatrolSessionStatus, Appearance> = {
   stopped: {
-    label: "Slide to start",
+    label: "Slide for at starte",
     accessibilityLabel: "Start session",
     thumbSide: "left",
     thumbColor: colors.green,
     filled: false,
   },
   starting: {
-    label: "Starting...",
-    accessibilityLabel: "Starting session",
+    label: "Starter...",
+    accessibilityLabel: "Starter session",
     thumbSide: "right",
     thumbColor: colors.green,
     filled: false,
@@ -67,8 +67,8 @@ const appearance: Record<PatrolSessionStatus, Appearance> = {
     filled: true,
   },
   stopping: {
-    label: "Stopping...",
-    accessibilityLabel: "Stopping session",
+    label: "Stopper...",
+    accessibilityLabel: "Stopper session",
     thumbSide: "left",
     thumbColor: colors.red,
     filled: true,

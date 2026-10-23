@@ -28,7 +28,7 @@ export default function TopNavBar({ selected, onSelect }: TopNavBarProps) {
 
 const styles = StyleSheet.create({
   bar: {
-    backgroundColor: "#6b1e1e",
+    backgroundColor: "#940024",
   },
   card: {
     flexDirection: "row",
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 17,
-    backgroundColor: "#ed2224",
+    backgroundColor: "#E40037",
   },
   logoText: {
     color: "#ffffff",
