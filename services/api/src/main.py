@@ -26,7 +26,7 @@ from src.services.overdue_tracker import OverdueTracker
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import health, positioning_simulator
-from .api.v2.routers import adjustment, dashboard_stream, patrol_session
+from .api.v2.routers import adjustment, config, dashboard_stream, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
@@ -108,6 +108,7 @@ app.add_middleware(
 app.include_router(health.router, prefix=API_PREFIX_V1)
 app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 
