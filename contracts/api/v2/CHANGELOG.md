@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.2.0 - Positioning Interface: `line` is an array of strings
+- Positioning Interface: `Area.line` changed from a single string (e.g.
+  `"M1 & M2"`) to an array of line ids (e.g. `["M1", "M2"]`). The field was
+  introduced in the unpublished v2.0.1 draft, so no published interface breaks.
+
 ## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
 - Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
   the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the

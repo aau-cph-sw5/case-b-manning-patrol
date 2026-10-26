@@ -27,7 +27,7 @@ def test_present_maps_a_station_to_the_contract(station_report, dashboard_presen
                 DashboardArea(
                     area_id="platform-1",
                     name="Platform",
-                    line="M1 & M2",
+                    line=["M1", "M2"],
                     area_type=AreaKind.PLATFORM,
                     covered_now=False,
                     overdue_at=last_covered_at + timedelta(minutes=60),
@@ -62,7 +62,7 @@ def test_area_has_no_deadline_while_covered_now(station_report, dashboard_presen
     assert area.overdue_at is None
 
 
-def test_station_without_lines_gets_an_empty_line(station_report):
+def test_station_without_lines_gets_an_empty_line_list(station_report):
     presenter = DashboardPresenter(
         stations=[Station(id="marmorkirken", name="Marmorkirken")],
         station_lines=[],
@@ -73,4 +73,4 @@ def test_station_without_lines_gets_an_empty_line(station_report):
 
     dashboard = presenter.present([report], sent_at=SENT_AT)
 
-    assert dashboard.stations[0].areas[0].line == ""
+    assert dashboard.stations[0].areas[0].line == []
