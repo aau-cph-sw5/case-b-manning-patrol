@@ -2,8 +2,13 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Positioning Interface API",
+<<<<<<< Updated upstream
 		"description": "Backend API contract for station and train presence positioning data. Consumed by the Web UI dashboard and reporting services. Combines fetch-on-load REST resources with WebSocket push channels for live updates.",
 		"version": "2.0.1"
+=======
+		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. A single Server-Sent Events (SSE) stream pushes the Dashboard to every client.",
+		"version": "2.2.0"
+>>>>>>> Stashed changes
 	},
 	"servers": [
 		{
@@ -235,7 +240,30 @@
 						"description": "Human-readable identifier for the area.",
 						"example": "kongens-nytorv-platform-a M1 & M2"
 					},
+<<<<<<< Updated upstream
 					"last_manned_at": {
+=======
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The metro lines the area serves.",
+						"example": ["M1", "M2"]
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["platform", "concourse"],
+						"description": "Kind of area. Decides how long a visit must last to count as a patrol.",
+						"example": "platform"
+					},
+					"covered_now": {
+						"type": "boolean",
+						"description": "True while a steward is patrolling the area right now.",
+						"example": false
+					},
+					"overdue_at": {
+>>>>>>> Stashed changes
 						"type": "string",
 						"format": "date-time",
 						"description": "When the area was last known to be manned. UTC in ISO 8601 with offset.",

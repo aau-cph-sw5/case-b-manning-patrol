@@ -1,5 +1,26 @@
 # Changelog
 
+<<<<<<< Updated upstream
+=======
+## v2.2.0 - Positioning Interface: `line` is an array of strings
+- Positioning Interface: `Area.line` changed from a single string (e.g.
+  `"M1 & M2"`) to an array of line ids (e.g. `["M1", "M2"]`). The field was
+  introduced in the unpublished v2.0.1 draft, so no published interface breaks.
+
+## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
+- Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
+  the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the
+  updated `AtRiskThreshold`.
+- Positioning Interface: `AtRiskThreshold.at_risk_threshold_secs` renamed to
+  `at_risk_threshold_minutes`; the threshold is now expressed in minutes
+  instead of seconds. The field was introduced in the unpublished v2.0.1
+  draft, so no published interface breaks.
+
+## v2.1.0 - Health API contract
+- Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
+- The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
+
+>>>>>>> Stashed changes
 ## v2.0.1 - Initial draft (unpublished)
 - Draft of Adjustment Event API contract for group review. Not yet published.
 - `POST /api/v2/adjustment` appends a manual correction to the append-only

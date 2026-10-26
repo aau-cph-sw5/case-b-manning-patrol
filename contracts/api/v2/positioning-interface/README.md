@@ -30,6 +30,27 @@ The exact relationship between `StationResponse`/`TrainResponse` and the underly
 
 ## Data Models
 
+<<<<<<< Updated upstream
+=======
+### Dashboard
+- `stations`: Station[]
+- `trains`: Train[]
+- `time`: Date — when the server sent this event
+
+### Station
+- `station_id`: string
+- `name`: string
+- `areas`: Area[]
+
+### Area
+- `area_id`: string
+- `name`: string
+- `line`: string[] — the metro lines the area serves (e.g. `["M1", "M2"]` for an interchange)
+- `area_type`: enum `"platform"` | `"concourse"`
+- `covered_now`: boolean
+- `overdue_at`: Date | null — when the area becomes (or became) overdue; null while covered now or when never patrolled
+
+>>>>>>> Stashed changes
 ### Train
 - `train_id`: UUID
 - `beacon_id`: UUID
