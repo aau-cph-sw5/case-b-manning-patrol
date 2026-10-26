@@ -24,8 +24,8 @@ const THUMB_INSET = (TRACK_HEIGHT - 2 * TRACK_BORDER - THUMB_SIZE) / 2;
 const colors = {
   green: "#3f9e7c",
   red: "#c8313b",
-  trackEmpty: "#e5e7eb",
-  trackEmptyBorder: "#f3f4f6",
+  trackEmpty: "#f0f0f0",
+  trackEmptyBorder: "#f0f0f0",
   trackFilled: "#6fbfa6",
   trackFilledBorder: "#4caf8c",
 };

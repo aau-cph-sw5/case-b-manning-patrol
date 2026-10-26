@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   timerDivider: {
     width: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.45)",
+    backgroundColor: "#f0f0f0"
   },
   timer: {
     color: "#ffffff",
