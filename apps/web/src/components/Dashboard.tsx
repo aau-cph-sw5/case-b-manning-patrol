@@ -75,7 +75,7 @@ function Dashboard() {
         <div className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</div>
       </section>
       <div className="dash">
-        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
+        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2, marginTop: "10px" }}>
           Overskredet ({overdueCount})
         </div>
         <section className="station-grid">
