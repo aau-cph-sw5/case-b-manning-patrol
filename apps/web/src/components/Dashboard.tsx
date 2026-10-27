@@ -14,19 +14,9 @@ import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import Legend from './Legend.tsx'
-        
-import './Dashboard.css'
+import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
-function formatLastUpdated(timeString: string | null): string {
-  if (!timeString) return "Ingen data endnu";
-  return new Date(timeString).toLocaleString("da-DK", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    day: "numeric",
-    month: "short",
-  });
-}
+import './Dashboard.css'
 
 function Dashboard() {
   const now = useNow()
@@ -82,7 +72,7 @@ function Dashboard() {
       <section className="dashboard-header">
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
         <h1 className='dashboard-title'>Patrulje Overblik</h1>
-        <div className="last-updated">Sidst opdateret: {formatLastUpdated(lastUpdated)}</div>
+        <div className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</div>
       </section>
       <div className="dash">
         <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
