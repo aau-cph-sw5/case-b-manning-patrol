@@ -23,7 +23,7 @@ function Dashboard() {
   const listRef = useRef<HTMLUListElement>(null)
   const fit = useFitCount(listRef)
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
-  const { dashboard, isLoading, error, lastUpdated } = useDashboardStream()
+  const { dashboard, error, lastUpdated } = useDashboardStream()
 
   useEffect(() => {
     if (dashboard) console.log("Dashboard SSE update:", dashboard);

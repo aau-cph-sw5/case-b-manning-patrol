@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Dashboard } from "@/api/dashboardApi";
-import { connectDashboardStream, subscribeToDashboard } from "@/api/dashboardApi";
+import { subscribeToDashboard } from "@/api/dashboardApi";
 
 const LOCAL_STORAGE_KEY = "dashboardState";
 
