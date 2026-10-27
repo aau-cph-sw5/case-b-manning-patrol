@@ -76,6 +76,8 @@ npm install
 npm run dev     # vite
 npm run build   # tsc -b && vite build — the type check lives here
 npm run lint    # oxlint
+npm test        # vitest run
+npm run coverage   # vitest with v8 coverage, fails below 80%
 ```
 
 - Do not bypass `tsc -b` with `vite build` alone.

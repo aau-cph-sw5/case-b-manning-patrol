@@ -24,8 +24,8 @@ const THUMB_INSET = (TRACK_HEIGHT - 2 * TRACK_BORDER - THUMB_SIZE) / 2;
 const colors = {
   green: "#3f9e7c",
   red: "#c8313b",
-  trackEmpty: "#e5e7eb",
-  trackEmptyBorder: "#f3f4f6",
+  trackEmpty: "#f0f0f0",
+  trackEmptyBorder: "#f0f0f0",
   trackFilled: "#6fbfa6",
   trackFilledBorder: "#4caf8c",
 };
@@ -46,15 +46,15 @@ type Appearance = {
 
 const appearance: Record<PatrolSessionStatus, Appearance> = {
   stopped: {
-    label: "Slide to start",
+    label: "Slide for at starte",
     accessibilityLabel: "Start session",
     thumbSide: "left",
     thumbColor: colors.green,
     filled: false,
   },
   starting: {
-    label: "Starting...",
-    accessibilityLabel: "Starting session",
+    label: "Starter...",
+    accessibilityLabel: "Starter session",
     thumbSide: "right",
     thumbColor: colors.green,
     filled: false,
@@ -67,8 +67,8 @@ const appearance: Record<PatrolSessionStatus, Appearance> = {
     filled: true,
   },
   stopping: {
-    label: "Stopping...",
-    accessibilityLabel: "Stopping session",
+    label: "Stopper...",
+    accessibilityLabel: "Stopper session",
     thumbSide: "left",
     thumbColor: colors.red,
     filled: true,
