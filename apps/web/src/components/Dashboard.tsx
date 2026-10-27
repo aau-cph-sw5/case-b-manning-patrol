@@ -12,6 +12,7 @@ import { useNow } from '../hooks/useNow.ts'
 import { useFitCount } from '../hooks/useFitCount.ts'
 import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
+import { useDashboardStream } from '../hooks/useDashboardStream'
 import Legend from './Legend.tsx'
         
 import './Dashboard.css'
@@ -21,6 +22,12 @@ function Dashboard() {
   const listRef = useRef<HTMLUListElement>(null)
   const fit = useFitCount(listRef)
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
+  const { dashboard, isLoading, error } = useDashboardStream()
+
+  useEffect(() => {
+    if (dashboard) console.log("Dashboard SSE update:", dashboard);
+    if (error) console.error("SSE error:", error);
+  }, [dashboard, error])
 
   useEffect(() => {
     getAtRiskThreshold()
