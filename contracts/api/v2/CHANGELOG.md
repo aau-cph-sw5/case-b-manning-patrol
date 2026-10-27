@@ -1,10 +1,48 @@
 # Changelog
 
+## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
+- Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
+  the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the
+  updated `AtRiskThreshold`.
+- Positioning Interface: `AtRiskThreshold.at_risk_threshold_secs` renamed to
+  `at_risk_threshold_minutes`; the threshold is now expressed in minutes
+  instead of seconds. The field was introduced in the unpublished v2.0.1
+  draft, so no published interface breaks.
+
+## v2.1.0 - Health API contract
+- Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
+- The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
+
 ## v2.0.1 - Initial draft (unpublished)
+- Positioning Interface: replaced `GET /api/v2/dashboard`,
+  `GET /api/v2/stations/{stationID}`, `GET /api/v2/trains/{trainID}`,
+  `WS /stationUpdate` and `WS /trainUpdate` with a single SSE stream,
+  `GET /api/v2/dashboard/stream`, consumed by the control room and the Android
+  app. Every event holds the full dashboard, including the stations and trains
+  that did not change, and is sent on every recompute (agreed in the nexus
+  sprint meeting).
+- Positioning Interface: `DashboardResponse` renamed to `Dashboard` and given a
+  `time` field (when the event was sent). `StationResponse` and
+  `TrainResponse` removed.
+- Positioning Interface: `Station.slug` and `Station.station_name` replaced by
+  `name`.
+- Positioning Interface: `Station.station_id` is a plain string (for example
+  `"STN-001"`), not a UUID, matching the station dataset the backend serves.
+- Positioning Interface: added `GET /api/v2/config/at-risk-threshold` returning
+  `AtRiskThreshold` with `at_risk_threshold_secs` — how much time must remain
+  before an area becomes overdue for it to be considered at-risk.
+- Positioning Interface: `StationArea` replaced by `Area` with `area_id`,
+  `name`, `line`, `area_type`, `covered_now` and `overdue_at`. `beacon_id`,
+  `slug`, `last_manned_at`, `current_steward_id` and `status` removed.
+- `POST /api/v2/patrol-session/stop` now also closes open connections: the
+  server appends a disconnect event (stamped with the stop `timestamp`) for
+  every connect event of that `android_id` that has no matching disconnect,
+  so clients no longer need to POST `/connection/disconnect` when a session
+  ends.
 - Draft of Adjustment Event API contract for group review. Not yet published.
 - `POST /api/v2/adjustment` appends a manual correction to the append-only
   event store; there is no update or delete path.
-- `AdjustmentEventCreate` request: `actor`, optional `target_event_id` (an
+- `AdjustmentEventCreate` request: `android_id`, optional `target_event_id` (an
   adjustment may point at another adjustment), a `corrected_fact` in the same
   vocabulary as the ingestion events, and the mandatory `reason` and `author`
   audit fields.
