@@ -7,8 +7,8 @@ import { sessionReducer } from "@/state/sessionReducer";
 import { initialSessionState, type PatrolSessionState } from "@/types/patrol_session/patrolSession";
 
 // shown to the steward. the api's own error message is meant for developers.
-const START_ERROR = "Could not start the session. Try again.";
-const STOP_ERROR = "Could not stop the session. Try again.";
+const START_ERROR = "Kunne ikke starte sessionen. Prøv igen.";
+const STOP_ERROR = "Kunne ikke stoppe sessionen. Prøv igen.";
 
 export type UsePatrolSessionResult = {
   state: PatrolSessionState;
