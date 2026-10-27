@@ -6,7 +6,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <Stack>
-        <Stack.Screen name="index" options={{ title: "Patrol" }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </GestureHandlerRootView>
   );
