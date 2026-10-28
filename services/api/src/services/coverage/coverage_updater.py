@@ -8,8 +8,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_publisher import CoveragePublisher
 from src.services.coverage.coverage_service import CoverageService
+from src.services.coverage.overdue_tracker import OverdueTracker
 from src.services.coverage.shift_schedule import ShiftSchedule
-from src.services.overdue_tracker import OverdueTracker
 
 logger = logging.getLogger(__name__)
 

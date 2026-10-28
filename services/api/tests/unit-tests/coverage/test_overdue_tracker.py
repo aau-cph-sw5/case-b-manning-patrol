@@ -13,8 +13,8 @@ from src.models.coverage import (
     StationCoverageReport,
 )
 from src.models.patrol_area import AreaKind
-from src.services import overdue_tracker
-from src.services.overdue_tracker import OverdueTracker
+from src.services.coverage import overdue_tracker
+from src.services.coverage.overdue_tracker import OverdueTracker
 
 NOW = datetime(2026, 10, 8, 12, 0, 0)
 AREA = AreaReference(station_id="STN-001", area_id="PA-001-P", kind=AreaKind.PLATFORM)

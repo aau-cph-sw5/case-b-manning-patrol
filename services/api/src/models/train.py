@@ -1,12 +1,8 @@
-
-
-from enum import StrEnum
 from uuid import UUID
 
 from sqlmodel import Field, SQLModel
 
 from src.models.line import Line
-
 
 
 class Train(SQLModel, table=True):

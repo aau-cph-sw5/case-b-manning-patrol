@@ -23,9 +23,9 @@ from src.services.coverage.coverage_window import (
 )
 from src.services.coverage.dashboard_presenter import DashboardPresenter
 from src.services.coverage.interval_builder import IntervalBuilder
+from src.services.coverage.overdue_tracker import OverdueTracker
 from src.services.coverage.shift_schedule import ShiftSchedule
 from src.services.coverage.sse_broadcaster import SseBroadcaster
-from src.services.overdue_tracker import OverdueTracker
 from src.services.producer import EventValidationError
 
 from .api.v1.routers import positioning_simulator
