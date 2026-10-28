@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from src.models.patrol_area import AreaKind
+from src.domain.patrol_area import AreaKind
 
 
 class DashboardArea(BaseModel):

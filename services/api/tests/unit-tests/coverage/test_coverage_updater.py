@@ -4,9 +4,9 @@ import datetime
 import logging
 from datetime import timedelta
 
+from src.domain.shift import Shift
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_updater import CoverageUpdater
-from src.services.station_coverage.shift_schedule import Shift
 
 
 class FakeSession:

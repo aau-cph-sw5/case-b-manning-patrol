@@ -4,7 +4,7 @@ from typing import cast
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import (
+from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
     OverdueCleared,
@@ -12,7 +12,7 @@ from src.models.coverage import (
     OverdueEpisode,
     StationCoverageReport,
 )
-from src.models.patrol_area import AreaKind
+from src.domain.patrol_area import AreaKind
 from src.services.station_coverage import overdue_tracker
 from src.services.station_coverage.overdue_tracker import OverdueTracker
 

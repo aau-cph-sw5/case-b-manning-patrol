@@ -44,45 +44,36 @@ services/api/
 ├── alembic.ini
 ├── src/
 │   ├── main.py                  # FastAPI app definition and startup
-│   ├── models/                  # Shared models (events, adjustments, beacons)
-│   │   ├── coverage.py          # Coverage and overdue log value objects (MET-B-007, skeleton)
-│   │   └── dashboard.py         # Dashboard stream payload (contracts/positioning-interface v2)
-│   ├── db/repository/           # Database query functions; overdue_log.py is the overdue log (skeleton)
+│   ├── domain/                  # Pure value objects and enums (no storage or API imports)
+│   │   ├── coverage.py          # Coverage and overdue log value objects (MET-B-007)
+│   │   ├── event.py             # EventType and EventRecord
+│   │   ├── patrol_area.py       # AreaKind
+│   │   └── shift.py             # Shift
+│   ├── db/
+│   │   ├── models/              # SQLModel tables (events, adjustments, stations, areas, ...)
+│   │   └── repository/          # Database query functions; overdue_log.py is the overdue log
 │   ├── api/
-│   │   ├── v1/
-│   │   │   └── routers/
-│   │   │       ├── adjustment.py       # Adjustment route (contracts/positioning-adjustment v1, draft)
-│   │   │       └── positioning_simulator.py # Positioning Interface simulator
 │   │   └── v2/
-│   │       └── routers/
-│   │           ├── dashboard_stream.py # SSE dashboard stream (contracts/positioning-interface v2)
-│   │           ├── health.py           # Health check endpoints (contracts/health v2)
-│   │           └── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
+│   │       ├── routers/
+│   │       │   ├── adjustment.py       # Adjustment route (contracts/positioning-adjustment v2)
+│   │       │   ├── config.py           # At-risk threshold config
+│   │       │   ├── dashboard_stream.py # SSE dashboard stream (contracts/positioning-interface v2)
+│   │       │   ├── health.py           # Health check endpoints (contracts/health v2)
+│   │       │   └── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
+│   │       └── schemas/         # Request/response payloads (dashboard, adjustment)
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
-│       ├── coverage/            # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007, skeleton)
+│       ├── station_coverage/    # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007)
 │       ├── positioning_service.py
-│       ├── db/                  # Empty
 │       └── producer.py          # Event/adjustment producer
 ├── fixtures/
-│   └── fixture-events-v1.json   # Event timeline replayed by the simulator
+│   └── fixture-events-v1.json   # Event timeline inserted by the seed script
 ├── tests/
 ├── docker-compose.yml # Local PostgreSQL database for development
 ├── pyproject.toml    # Dependencies and tool config
 ├── uv.lock           # Locked dependency versions
 └── .python-version   # Python version (3.13)
 ```
-
-## Positioning Simulator
-
-Implements the Positioning Interface contract (`contracts/positioning-interface/v1/`):
-
-- `GET /observations` - Returns currently active area observations
-- `GET /observation-events` - Returns all observation events
-- `GET /ws/observation-events` - WebSocket stream of events
-
-Fixture used:
-- `fixtures/fixture-events-v1.json` - Event timeline replayed by the simulator
 
 ## Database
 
@@ -104,13 +95,13 @@ full setup: `docker-compose.yml` defines the local PostgreSQL container
 - `src/db/ingest.py` then loads `src/data/stations.v1.json` into those tables.
   It replaces their contents on every start, so rows added by hand are lost.
   See `src/data/README.md`.
-- `src/services/db/` — holds the database access layer (connection
-  setup, queries).
+- `src/db/` — holds the database access layer (connection setup, tables,
+  queries).
 
 ### Migrations
 
 - Run `uv run alembic upgrade head` — apply migrations (after pulling changes).
-- After changing a model in `src/models/`, generate a migration, read it, and commit it with the model change:
+- After changing a table in `src/db/models/`, generate a migration, read it, and commit it with the model change:
 
   ```bash
   uv run alembic revision --autogenerate -m "describe the change"

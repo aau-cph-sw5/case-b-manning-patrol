@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import PatrolArea
+from src.db.models import PatrolArea
 
 
 async def get_patrol_area(session: AsyncSession, beacon_id: UUID) -> PatrolArea:

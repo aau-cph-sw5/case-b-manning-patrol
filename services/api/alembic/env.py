@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
-import src.models  # noqa: F401  registers table metadata
+import src.db.models  # noqa: F401  registers table metadata
 from src.db.config import settings
 
 config = context.config

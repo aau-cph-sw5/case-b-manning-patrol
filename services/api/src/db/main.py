@@ -7,13 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import (  # noqa: F401  registers table metadata
-    config,
-    event,
-    overdue_log,
-    patrol_area,
-    station,
-)
+from src.db import models  # noqa: F401  registers table metadata
 
 from .config import settings
 

@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.models.event import Event, EventType
+from src.domain.event import EventRecord, EventType
 from src.services.station_coverage.interval_builder import IntervalBuilder
 
 STEWARD_1 = UUID("660e8400-e29b-41d4-a716-446655440001")
@@ -25,31 +25,30 @@ def make_event(
     seconds: int,
     android_id: UUID = STEWARD_1,
     beacon_id: UUID | None = STATION_2,
-) -> Event:
-    return Event(
+) -> EventRecord:
+    return EventRecord(
         event_id=uuid4(),
         event_type=event_type,
         android_id=android_id,
         beacon_id=beacon_id,
         device_timestamp=at(seconds),
         server_timestamp=at(seconds),
-        source="test",
     )
 
 
-def connect(seconds: int, **kwargs) -> Event:
+def connect(seconds: int, **kwargs) -> EventRecord:
     return make_event(EventType.CONNECT_EVENT, seconds, **kwargs)
 
 
-def disconnect(seconds: int, **kwargs) -> Event:
+def disconnect(seconds: int, **kwargs) -> EventRecord:
     return make_event(EventType.DISCONNECT_EVENT, seconds, **kwargs)
 
 
-def start(seconds: int, android_id: UUID = STEWARD_1) -> Event:
+def start(seconds: int, android_id: UUID = STEWARD_1) -> EventRecord:
     return make_event(EventType.START_EVENT, seconds, android_id, beacon_id=None)
 
 
-def stop(seconds: int, android_id: UUID = STEWARD_1) -> Event:
+def stop(seconds: int, android_id: UUID = STEWARD_1) -> EventRecord:
     return make_event(EventType.STOP_EVENT, seconds, android_id, beacon_id=None)
 
 

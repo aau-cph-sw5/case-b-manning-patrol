@@ -4,19 +4,15 @@ from uuid import UUID, uuid4
 from fastapi.exceptions import RequestValidationError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.api.v2.schemas.adjustment import AdjustmentStored, CorrectedFact
+from src.db.models.event import Adjustment, Event
 from src.db.repository.events import (
     get_event,
     get_open_connections,
     insert_adjustment,
     insert_event,
 )
-from src.models.event import (
-    Adjustment,
-    AdjustmentStored,
-    CorrectedFact,
-    Event,
-    EventType,
-)
+from src.domain.event import EventType
 
 
 class MainProducer:

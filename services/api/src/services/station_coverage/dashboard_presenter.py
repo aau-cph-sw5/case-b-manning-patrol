@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from src.models import Station, StationLine
-from src.models.coverage import AreaCoverageReport, StationCoverageReport
-from src.models.dashboard import Dashboard, DashboardArea, DashboardStation
+from src.api.v2.schemas.dashboard import Dashboard, DashboardArea, DashboardStation
+from src.db.models import Station, StationLine
+from src.domain.coverage import AreaCoverageReport, StationCoverageReport
 
 
 class DashboardPresenter:

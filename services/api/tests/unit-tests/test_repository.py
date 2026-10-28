@@ -11,9 +11,10 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.db.models import Line, OverdueLogEntry, PatrolArea, Station, StationLine
+from src.db.models.event import Adjustment, Event
 from src.db.repository import events, overdue_log, patrol_area, station
-from src.models import Line, OverdueLogEntry, PatrolArea, Station, StationLine
-from src.models.coverage import (
+from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
     OverdueCleared,
@@ -21,8 +22,8 @@ from src.models.coverage import (
     OverdueEpisode,
     StationCoverageReport,
 )
-from src.models.event import Adjustment, Event, EventType
-from src.models.patrol_area import AreaKind
+from src.domain.event import EventType
+from src.domain.patrol_area import AreaKind
 from src.services.station_coverage.overdue_tracker import OverdueTracker
 
 TIMESTAMP = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)

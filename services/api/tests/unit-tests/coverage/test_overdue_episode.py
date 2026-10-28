@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from src.models.coverage import OverdueEpisode
+from src.domain.coverage import OverdueEpisode
 
 
 @pytest.fixture

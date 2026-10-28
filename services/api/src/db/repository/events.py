@@ -8,11 +8,8 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.event import (
-    Adjustment,
-    Event,
-    EventType,
-)
+from src.db.models.event import Adjustment, Event
+from src.domain.event import EventType
 
 
 async def get_event(session: AsyncSession, event_id: UUID) -> Event:

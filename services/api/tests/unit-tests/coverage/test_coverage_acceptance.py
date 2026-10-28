@@ -9,13 +9,13 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import Event, PatrolArea, Station
-from src.models.coverage import (
+from src.db.models import Event, PatrolArea, Station
+from src.domain.coverage import (
     CoverageStatus,
     OverdueEpisode,
     StationCoverageReport,
 )
-from src.models.patrol_area import AreaKind
+from src.domain.patrol_area import AreaKind
 from src.scripts.seed import FIXTURE, load_events
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_window import (

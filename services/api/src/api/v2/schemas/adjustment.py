@@ -1,49 +1,15 @@
-from datetime import datetime
-from enum import StrEnum
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel
-from sqlmodel import Field, SQLModel
 
-
-class EventType(StrEnum):
-    CONNECT_EVENT = "connect"
-    DISCONNECT_EVENT = "disconnect"
-    START_EVENT = "shift_start"
-    STOP_EVENT = "shift_stop"
-    ADJUSTMENT_EVENT = "adjustment"
-
-
-class Event(SQLModel, table=True):
-    event_id: UUID = Field(primary_key=True)
-    event_type: EventType
-    android_id: UUID
-    beacon_id: UUID | None
-    device_timestamp: datetime
-    server_timestamp: datetime
-    source: str
+from src.db.models.event import Adjustment, AdjustmentBase
+from src.domain.event import EventType
 
 
 class CorrectedFact(BaseModel):
     fact_type: EventType
     beacon_id: UUID | None = None
     occurred_at: AwareDatetime
-
-
-class AdjustmentBase(SQLModel):
-    target_event_id: UUID | None = None
-    android_id: UUID
-    reason: str
-    author: str
-    server_timestamp: datetime
-    source: str
-
-
-class Adjustment(AdjustmentBase, table=True):
-    adjustment_id: UUID = Field(primary_key=True)
-    corrected_fact_type: EventType
-    corrected_beacon_id: UUID | None
-    corrected_occured_at: datetime
 
 
 class AdjustmentStored(AdjustmentBase):

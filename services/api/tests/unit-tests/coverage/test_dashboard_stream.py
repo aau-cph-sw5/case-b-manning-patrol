@@ -5,8 +5,8 @@ from fastapi import FastAPI, Request
 from fastapi.sse import ServerSentEvent
 
 from src.api.v2.routers.dashboard_stream import stream
+from src.api.v2.schemas.dashboard import Dashboard
 from src.main import app as main_app
-from src.models.dashboard import Dashboard
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 

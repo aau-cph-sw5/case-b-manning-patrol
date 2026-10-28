@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.api.v2.schemas.adjustment import AdjustmentStored, CorrectedFact
 from src.db.main import get_session
-from src.models.event import AdjustmentStored, CorrectedFact
 from src.services.producer import MainProducer
 
 router = APIRouter(tags=["adjustment"])

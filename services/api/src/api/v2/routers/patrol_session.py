@@ -6,9 +6,9 @@ from pydantic import AwareDatetime, BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
-from src.models.event import EventType
-from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.domain.event import EventType
 from src.services.producer import MainProducer
+from src.services.station_coverage.coverage_updater import CoverageUpdater
 
 router = APIRouter(tags=["positioning-ingestion"])
 

@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 
 from src.db.main import get_session
 from src.db.repository import events
+from src.domain.event import EventType
 from src.main import app
-from src.models.event import EventType
 from src.services.producer import MainProducer
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
