@@ -1,11 +1,9 @@
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.api.v2.schemas.adjustment import AdjustmentStored, CorrectedFact
+from src.api.v2.schemas.adjustment import AdjustmentEventCreate, AdjustmentEventStored
 from src.db.main import get_session
 from src.services.event_producer import EventProducer
 
@@ -14,18 +12,10 @@ router = APIRouter(tags=["adjustment"])
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
-class AdjustmentEvent(BaseModel):
-    android_id: UUID
-    corrected_fact: CorrectedFact
-    reason: str
-    author: str
-    target_event_id: UUID | None = None
-
-
 @router.post("/adjustment", status_code=status.HTTP_201_CREATED)
 async def adjustment_event(
-    adjustment_event: AdjustmentEvent, session: SessionDep
-) -> AdjustmentStored:
+    adjustment_event: AdjustmentEventCreate, session: SessionDep
+) -> AdjustmentEventStored:
     adjustment = await EventProducer.append_adjustment(
         session=session,
         android_id=adjustment_event.android_id,

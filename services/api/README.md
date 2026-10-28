@@ -57,10 +57,11 @@ services/api/
 │   │       ├── routers/
 │   │       │   ├── adjustment.py       # Adjustment route (contracts/positioning-adjustment v2)
 │   │       │   ├── config.py           # At-risk threshold config
+│   │       │   ├── connection.py       # Connection ingestion routes (contracts/positioning-ingestion v2)
 │   │       │   ├── dashboard_stream.py # SSE dashboard stream (contracts/positioning-interface v2)
 │   │       │   ├── health.py           # Health check endpoints (contracts/health v2)
-│   │       │   └── patrol_session.py   # Connection and patrol-session ingestion routes (contracts/positioning-ingestion v2)
-│   │       └── schemas/         # Request/response payloads (dashboard, adjustment)
+│   │       │   └── patrol_session.py   # Patrol-session ingestion routes (contracts/positioning-ingestion v2)
+│   │       └── schemas/         # Request/response payloads (dashboard, adjustment, ingestion)
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── station_coverage/    # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007)

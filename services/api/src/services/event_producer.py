@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.api.v2.schemas.adjustment import AdjustmentStored, CorrectedFact
+from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.repository.adjustment import insert_adjustment
@@ -72,7 +72,7 @@ class EventProducer:
         author: str,
         source: str,
         target_event_id: UUID | None = None,
-    ) -> AdjustmentStored:
+    ) -> AdjustmentEventStored:
 
         if (
             corrected_fact.fact_type == EventType.CONNECT_EVENT
@@ -102,7 +102,7 @@ class EventProducer:
         )
 
         await insert_adjustment(session, adjustment)
-        return AdjustmentStored.from_adjustment(adjustment)
+        return AdjustmentEventStored.from_adjustment(adjustment)
 
 
 def _now_utc() -> datetime:
