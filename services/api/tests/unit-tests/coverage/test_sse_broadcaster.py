@@ -1,8 +1,8 @@
-from src.services.coverage.sse_broadcaster import SseBroadcaster
+from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
 
 
 def test_subscriber_starts_with_empty_queue():
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
 
     queue = broadcaster.subscribe()
 
@@ -10,7 +10,7 @@ def test_subscriber_starts_with_empty_queue():
 
 
 def test_publish_reaches_every_subscriber(station_report, now):
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
     first = broadcaster.subscribe()
     second = broadcaster.subscribe()
 
@@ -38,7 +38,7 @@ def test_publish_reaches_every_subscriber(station_report, now):
 
 
 def test_unsubscribed_dashboard_stops_receiving(station_report, now):
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
     gone = broadcaster.subscribe()
     staying = broadcaster.subscribe()
     broadcaster.unsubscribe(gone)

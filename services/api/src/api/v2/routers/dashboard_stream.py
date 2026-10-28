@@ -7,7 +7,7 @@ from fastapi.sse import EventSourceResponse, ServerSentEvent
 from src.models.coverage import StationCoverageReport
 from src.services.coverage.coverage_updater import CoverageUpdater
 from src.services.coverage.dashboard_presenter import DashboardPresenter
-from src.services.coverage.sse_broadcaster import SseBroadcaster
+from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
 
 router = APIRouter(tags=["positioning-interface"])
 
@@ -28,7 +28,7 @@ async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
     The updater, the broadcaster and the presenter are taken from
     request.app.state.
     """
-    broadcaster: SseBroadcaster = request.app.state.sse_broadcaster
+    broadcaster: SseCoverageBroadcaster = request.app.state.sse_broadcaster
     updater: CoverageUpdater = request.app.state.coverage_updater
     presenter: DashboardPresenter = request.app.state.dashboard_presenter
     queue = broadcaster.subscribe()

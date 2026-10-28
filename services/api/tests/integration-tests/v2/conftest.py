@@ -24,7 +24,7 @@ from src.services.coverage.dashboard_presenter import DashboardPresenter
 from src.services.coverage.interval_builder import IntervalBuilder
 from src.services.coverage.overdue_tracker import OverdueTracker
 from src.services.coverage.shift_schedule import ShiftSchedule
-from src.services.coverage.sse_broadcaster import SseBroadcaster
+from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
@@ -47,7 +47,7 @@ async def override_db_session() -> AsyncGenerator[None]:
 
     app.dependency_overrides[get_session] = get_test_session
 
-    sse_broadcaster = SseBroadcaster()
+    sse_broadcaster = SseCoverageBroadcaster()
     coverage_updater = CoverageUpdater(
         service=CoverageService(
             IntervalBuilder(),

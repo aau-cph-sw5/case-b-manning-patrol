@@ -7,7 +7,7 @@ from fastapi.sse import ServerSentEvent
 from src.api.v2.routers.dashboard_stream import stream
 from src.main import app as main_app
 from src.models.dashboard import Dashboard
-from src.services.coverage.sse_broadcaster import SseBroadcaster
+from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
 
 
 class FakeUpdater:
@@ -52,7 +52,7 @@ async def test_stream_sends_every_station_first(
             "kongens-nytorv", covered_now=False, as_of=now, last_covered_at=None
         ),
     ]
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
     request = make_request(FakeUpdater(snapshot), broadcaster, dashboard_presenter)
 
     generator = open_stream(request)
@@ -82,7 +82,7 @@ async def test_stream_sends_every_station_on_each_refresh(
             "kongens-nytorv", covered_now=False, as_of=now, last_covered_at=now
         ),
     ]
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
     request = make_request(FakeUpdater(snapshot), broadcaster, dashboard_presenter)
 
     generator = open_stream(request)
@@ -101,7 +101,7 @@ async def test_stream_unsubscribes_when_the_client_disconnects(
     snapshot = [
         station_report("marmorkirken", covered_now=True, as_of=now, last_covered_at=now)
     ]
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
     request = make_request(FakeUpdater(snapshot), broadcaster, dashboard_presenter)
 
     generator = open_stream(request)
@@ -119,7 +119,7 @@ async def test_stream_payload_has_the_contract_fields(
     snapshot = [
         station_report("marmorkirken", covered_now=True, as_of=now, last_covered_at=now)
     ]
-    broadcaster = SseBroadcaster()
+    broadcaster = SseCoverageBroadcaster()
     request = make_request(FakeUpdater(snapshot), broadcaster, dashboard_presenter)
 
     generator = open_stream(request)

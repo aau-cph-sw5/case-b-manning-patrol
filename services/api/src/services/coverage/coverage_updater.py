@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -49,34 +49,3 @@ class CoverageUpdater:
 
     def snapshot(self) -> list[StationCoverageReport]:
         return list(self._last_published)
-
-
-class ClockTick:
-    def __init__(self, updater: CoverageUpdater, interval: timedelta) -> None:
-        self._updater = updater
-        self._interval = interval
-        self._failed_ticks = 0
-
-    async def run(self) -> None:
-        while True:
-            try:
-                await self._updater.refresh()
-            except asyncio.CancelledError:
-                raise
-            except Exception:
-                self._failed_ticks += 1
-                if self._failed_ticks == 1:
-                    logger.exception("Clock tick refresh failed; will keep retrying")
-                else:
-                    logger.debug(
-                        "Clock tick refresh failed again (%d in a row)",
-                        self._failed_ticks,
-                    )
-            else:
-                if self._failed_ticks:
-                    logger.info(
-                        "Clock tick refresh recovered after %d failed ticks",
-                        self._failed_ticks,
-                    )
-                    self._failed_ticks = 0
-            await asyncio.sleep(self._interval.total_seconds())
