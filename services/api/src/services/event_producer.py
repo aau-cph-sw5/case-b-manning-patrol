@@ -117,7 +117,7 @@ class TargetEventNotFoundError(Exception):
     pass
 
 
-class AndroidIddNotFoundError(EventValidationError):
+class AndroidIdNotFoundError(EventValidationError):
     pass
 
 
@@ -132,7 +132,7 @@ async def validate_event(
     android_id_found = await return_android_id(android_id)
 
     if android_id_found is None:
-        raise AndroidIddNotFoundError(f"Android_id '{android_id}' was not found")
+        raise AndroidIdNotFoundError(f"Android_id '{android_id}' was not found")
 
     if beacon_id is not None:
         beacon_found = await return_beacon(beacon_id)
