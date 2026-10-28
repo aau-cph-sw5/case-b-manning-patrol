@@ -10,7 +10,13 @@ from src.db.repository.events import (
     insert_adjustment,
     insert_event,
 )
-from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
+from src.models.event import (
+    Adjustment,
+    AdjustmentStored,
+    CorrectedFact,
+    Event,
+    EventType,
+)
 
 
 class MainProducer:
@@ -22,11 +28,11 @@ class MainProducer:
         device_timestamp: datetime,
         source: str,
         beacon_id: UUID | None = None,
-    ) -> EventModel:
+    ) -> Event:
 
         await validate_event(android_id, beacon_id)
 
-        event_model = EventModel(
+        event = Event(
             event_id=uuid4(),
             event_type=event_type,
             android_id=android_id,
@@ -36,8 +42,8 @@ class MainProducer:
             source=source,
         )
 
-        await insert_event(session, event_model)
-        return event_model
+        await insert_event(session, event)
+        return event
 
     @staticmethod
     async def close_open_connections(
@@ -45,13 +51,13 @@ class MainProducer:
         android_id: UUID,
         device_timestamp: datetime,
         source: str,
-    ) -> list[EventModel]:
+    ) -> list[Event]:
         open_connections = await get_open_connections(session, android_id)
         pending_closures = [
             (connection.android_id, connection.beacon_id)
             for connection in open_connections
         ]
-        closed_connections: list[EventModel] = []
+        closed_connections: list[Event] = []
         for connection_android_id, connection_beacon_id in pending_closures:
             closed_connections.append(
                 await MainProducer.append_event(
@@ -74,7 +80,7 @@ class MainProducer:
         author: str,
         source: str,
         target_event_id: UUID | None = None,
-    ) -> AdjustmentModel:
+    ) -> AdjustmentStored:
 
         if (
             corrected_fact.fact_type == EventType.CONNECT_EVENT
@@ -88,19 +94,21 @@ class MainProducer:
             except Exception:
                 raise EventValidationError("target event id does not exist") from None
 
-        adjustment_model = AdjustmentModel(
+        adjustment = Adjustment(
             adjustment_id=uuid4(),
             target_event_id=target_event_id,
             android_id=android_id,
-            corrected_fact=corrected_fact,
             reason=reason,
             author=author,
             server_timestamp=_now_utc(),
             source=source,
+            corrected_fact_type=corrected_fact.fact_type,
+            corrected_beacon_id=corrected_fact.beacon_id,
+            corrected_occured_at=corrected_fact.occurred_at,
         )
 
-        await insert_adjustment(session, adjustment_model)
-        return adjustment_model
+        await insert_adjustment(session, adjustment)
+        return AdjustmentStored.from_adjustment(adjustment)
 
 
 def _now_utc() -> datetime:

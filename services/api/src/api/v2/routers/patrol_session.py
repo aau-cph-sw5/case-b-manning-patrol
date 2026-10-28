@@ -30,7 +30,7 @@ class PatrolSessionEvent(BaseModel):
 async def connection_event(
     connection_event: ConnectionEvent, session: SessionDep, request: Request
 ):
-    event_model = await MainProducer.append_event(
+    event = await MainProducer.append_event(
         session=session,
         event_type=EventType.CONNECT_EVENT,
         android_id=connection_event.android_id,
@@ -40,14 +40,14 @@ async def connection_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
-    return event_model
+    return event
 
 
 @router.post("/connection/disconnect", status_code=status.HTTP_201_CREATED)
 async def disconnection_event(
     connection_event: ConnectionEvent, session: SessionDep, request: Request
 ):
-    event_model = await MainProducer.append_event(
+    event = await MainProducer.append_event(
         session=session,
         event_type=EventType.DISCONNECT_EVENT,
         android_id=connection_event.android_id,
@@ -57,14 +57,14 @@ async def disconnection_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
-    return event_model
+    return event
 
 
 @router.post("/patrol-session/start", status_code=status.HTTP_201_CREATED)
 async def patrol_session_start_event(
     patrol_session_event: PatrolSessionEvent, session: SessionDep, request: Request
 ):
-    event_model = await MainProducer.append_event(
+    event = await MainProducer.append_event(
         session=session,
         event_type=EventType.START_EVENT,
         android_id=patrol_session_event.android_id,
@@ -73,14 +73,14 @@ async def patrol_session_start_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
-    return event_model
+    return event
 
 
 @router.post("/patrol-session/stop", status_code=status.HTTP_201_CREATED)
 async def patrol_session_stop_event(
     patrol_session_event: PatrolSessionEvent, session: SessionDep, request: Request
 ):
-    event_model = await MainProducer.append_event(
+    event = await MainProducer.append_event(
         session=session,
         event_type=EventType.STOP_EVENT,
         android_id=patrol_session_event.android_id,
@@ -95,4 +95,4 @@ async def patrol_session_stop_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
-    return event_model
+    return event

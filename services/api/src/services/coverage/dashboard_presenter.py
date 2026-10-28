@@ -7,10 +7,6 @@ from src.models.dashboard import Dashboard, DashboardArea, DashboardStation
 
 class DashboardPresenter:
     def __init__(self, stations: list[Station], station_lines: list[StationLine]):
-        """Index the station names and the lines serving each station.
-
-        The dataset has no line per area, so an area gets its station's lines.
-        """
         self._names = {station.id: station.name for station in stations}
         lines: dict[str, list[str]] = {}
         for station_line in sorted(station_lines, key=lambda sl: sl.line_id):
@@ -20,10 +16,6 @@ class DashboardPresenter:
     def present(
         self, reports: list[StationCoverageReport], sent_at: datetime
     ) -> Dashboard:
-        """The Dashboard for the given stations, sent at sent_at.
-
-        No train is tracked by the backend yet, so trains is always empty.
-        """
         return Dashboard(
             stations=[self._station(report) for report in reports],
             trains=[],

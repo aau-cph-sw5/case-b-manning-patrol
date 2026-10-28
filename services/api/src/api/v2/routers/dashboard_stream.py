@@ -12,8 +12,6 @@ from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
 router = APIRouter(tags=["positioning-interface"])
 
 
-# Included in main.py under /api/v2. The stream is specified by the
-# positioning-interface contract.
 @router.get("/dashboard/stream", response_class=EventSourceResponse)
 async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
     broadcaster: SseCoverageBroadcaster = request.app.state.sse_broadcaster

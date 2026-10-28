@@ -21,7 +21,7 @@ from src.models.coverage import (
     OverdueEpisode,
     StationCoverageReport,
 )
-from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
+from src.models.event import Adjustment, Event, EventType
 from src.models.patrol_area import AreaKind
 from src.services.coverage.overdue_tracker import OverdueTracker
 
@@ -43,7 +43,7 @@ async def session() -> AsyncGenerator[AsyncSession]:
     await engine.dispose()
 
 
-def make_event(**overrides: Any) -> EventModel:
+def make_event(**overrides: Any) -> Event:
     fields: dict[str, Any] = {
         "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
@@ -53,10 +53,10 @@ def make_event(**overrides: Any) -> EventModel:
         "server_timestamp": TIMESTAMP,
         "source": "test",
     }
-    return EventModel(**(fields | overrides))
+    return Event(**(fields | overrides))
 
 
-def make_adjustment(**overrides: Any) -> AdjustmentModel:
+def make_adjustment(**overrides: Any) -> Adjustment:
     fields: dict[str, Any] = {
         "adjustment_id": uuid4(),
         "target_event_id": uuid4(),
@@ -65,13 +65,11 @@ def make_adjustment(**overrides: Any) -> AdjustmentModel:
         "author": "supervisor-1",
         "server_timestamp": TIMESTAMP,
         "source": "test",
-        "corrected_fact": CorrectedFact(
-            fact_type=EventType.START_EVENT,
-            beacon_id=UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
-            occurred_at=TIMESTAMP,
-        ),
+        "corrected_fact_type": EventType.START_EVENT,
+        "corrected_beacon_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
+        "corrected_occured_at": TIMESTAMP,
     }
-    return AdjustmentModel(**(fields | overrides))
+    return Adjustment(**(fields | overrides))
 
 
 @pytest.mark.asyncio

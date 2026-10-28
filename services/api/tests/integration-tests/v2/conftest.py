@@ -42,7 +42,7 @@ async def override_db_session() -> AsyncGenerator[None]:
         await conn.run_sync(SQLModel.metadata.create_all)
 
     async def get_test_session() -> AsyncGenerator[AsyncSession]:
-        async with AsyncSession(engine) as session:
+        async with AsyncSession(engine, expire_on_commit=False) as session:
             yield session
 
     app.dependency_overrides[get_session] = get_test_session

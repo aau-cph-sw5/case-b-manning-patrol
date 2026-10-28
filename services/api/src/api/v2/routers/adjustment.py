@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
-from src.models.event import AdjustmentModel, CorrectedFact
+from src.models.event import AdjustmentStored, CorrectedFact
 from src.services.producer import MainProducer
 
 router = APIRouter(tags=["adjustment"])
@@ -25,8 +25,8 @@ class AdjustmentEvent(BaseModel):
 @router.post("/adjustment", status_code=status.HTTP_201_CREATED)
 async def adjustment_event(
     adjustment_event: AdjustmentEvent, session: SessionDep
-) -> AdjustmentModel:
-    adjustment_model = await MainProducer.append_adjustment(
+) -> AdjustmentStored:
+    adjustment = await MainProducer.append_adjustment(
         session=session,
         android_id=adjustment_event.android_id,
         corrected_fact=adjustment_event.corrected_fact,
@@ -36,4 +36,4 @@ async def adjustment_event(
         source="API",
     )
 
-    return adjustment_model
+    return adjustment
