@@ -7,7 +7,7 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
-from src.db.main import get_session
+from src.api.v2.dependencies import get_session
 from src.db.repository import event
 from src.domain.event import EventType
 from src.main import app

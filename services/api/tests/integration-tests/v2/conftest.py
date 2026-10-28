@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
 from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 
-from src.db.main import get_session
+from src.api.v2.dependencies import get_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
 from src.services.station_coverage.coverage_service import CoverageService
