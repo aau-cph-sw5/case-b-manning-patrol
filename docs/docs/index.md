@@ -1,17 +1,56 @@
-# Welcome to MkDocs
+# Manning/Patrol Compliance System
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+A compliance-grade system documenting that stewards are present and active during night operation, against a contractual requirement that:
 
-## Commands
+- **Trains are manned at least 70%** of their running time
+- **Every station level is patrolled** at least once per rolling 60 minutes
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+With a verifiable real-time and historical record.
 
-## Project layout
+!!! info "Semester Project"
+    5th Semester, BSc Software Engineering, AAU Copenhagen · Autumn 2026
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+## System Overview
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Android App    │────▶│   Backend API   │◀────│  Web Dashboard  │
+│  (Steward App)  │     │  (FastAPI/Python)│     │  (React/Vite)   │
+│                 │     │                 │     │                 │
+│ • Beacon scan   │     │ • Event store   │     │ • Real-time SSE │
+│ • Patrol session│     │ • Coverage calc │     │ • Historical    │
+│ • Position post │     │ • Contract APIs │     │   views         │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+         │                       │
+         │              ┌────────┴────────┐
+         └─────────────▶│    PostgreSQL   │
+                        │  (Event store)  │
+                        └─────────────────┘
+```
+
+## Repository Layout
+
+| Directory | Description |
+|-----------|-------------|
+| `apps/android/` | Steward-facing Android app (Expo / React Native) |
+| `apps/web/` | Control-room dashboard (Vite + React 19 + TypeScript) |
+| `services/api/` | Backend service (Python 3.13 / FastAPI) |
+| `contracts/` | Versioned API interfaces (OpenAPI) other teams build against |
+| `docs/` | Architecture Decision Records (ADRs) and this documentation site |
+
+## Quick Links
+
+- [Architecture](architecture.md) — System design and data flow
+- [Development Setup](development/setup.md) — Get the system running locally
+- [Backend API](development/backend.md) — FastAPI service guide
+- [Web Dashboard](development/web.md) — React dashboard guide
+- [Android App](development/android.md) — Steward app guide
+- [Contracts](development/contracts.md) — API contract versioning
+- [ADRs](adr/index.md) — Architecture Decision Records
+
+## Data Handling
+
+!!! warning "Synthetic Data Only"
+    This product runs on **synthetic steward identities** for the whole semester.
+    No personal data is transferred to AAU. Never commit anything Metro supplied —
+    this repository is public.
