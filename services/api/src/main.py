@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.services.producer import EventValidationError
+from src.services.event_producer import EventValidationError
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater

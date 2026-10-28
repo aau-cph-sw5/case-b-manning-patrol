@@ -15,7 +15,7 @@ from src.db.repository.events import (
 from src.domain.event import EventType
 
 
-class MainProducer:
+class EventProducer:
     @staticmethod
     async def append_event(
         session: AsyncSession,
@@ -56,7 +56,7 @@ class MainProducer:
         closed_connections: list[Event] = []
         for connection_android_id, connection_beacon_id in pending_closures:
             closed_connections.append(
-                await MainProducer.append_event(
+                await EventProducer.append_event(
                     session=session,
                     event_type=EventType.DISCONNECT_EVENT,
                     android_id=connection_android_id,

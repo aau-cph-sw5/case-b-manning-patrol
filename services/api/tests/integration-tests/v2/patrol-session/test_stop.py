@@ -11,7 +11,7 @@ from src.db.main import get_session
 from src.db.repository import events
 from src.domain.event import EventType
 from src.main import app
-from src.services.producer import MainProducer
+from src.services.event_producer import EventProducer
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 TIMESTAMP = "2026-09-21T10:00:00+00:00"
@@ -94,7 +94,7 @@ async def test_patrol_session_stop_closes_open_connections(client: TestClient):
             (BEACON_2_ID, started_at + timedelta(minutes=30)),
             (BEACON_3_ID, started_at - timedelta(hours=1)),
         ]:
-            await MainProducer.append_event(
+            await EventProducer.append_event(
                 session=session,
                 event_type=EventType.CONNECT_EVENT,
                 android_id=STEWART_ANDROID_ID,
@@ -102,7 +102,7 @@ async def test_patrol_session_stop_closes_open_connections(client: TestClient):
                 device_timestamp=timestamp,
                 source="test",
             )
-        await MainProducer.append_event(
+        await EventProducer.append_event(
             session=session,
             event_type=EventType.DISCONNECT_EVENT,
             android_id=STEWART_ANDROID_ID,

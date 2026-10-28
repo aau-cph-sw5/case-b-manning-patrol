@@ -7,14 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db import models  # noqa: F401  registers table metadata
-
-from .config import settings
+from .system_config import system_config
 
 ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
 
 engine: AsyncEngine = create_async_engine(
-    settings.DATABASE_URL.get_secret_value(), echo=False
+    system_config.DATABASE_URL.get_secret_value(), echo=False
 )
 
 

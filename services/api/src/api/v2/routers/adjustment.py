@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import AdjustmentStored, CorrectedFact
 from src.db.main import get_session
-from src.services.producer import MainProducer
+from src.services.event_producer import EventProducer
 
 router = APIRouter(tags=["adjustment"])
 
@@ -26,7 +26,7 @@ class AdjustmentEvent(BaseModel):
 async def adjustment_event(
     adjustment_event: AdjustmentEvent, session: SessionDep
 ) -> AdjustmentStored:
-    adjustment = await MainProducer.append_adjustment(
+    adjustment = await EventProducer.append_adjustment(
         session=session,
         android_id=adjustment_event.android_id,
         corrected_fact=adjustment_event.corrected_fact,

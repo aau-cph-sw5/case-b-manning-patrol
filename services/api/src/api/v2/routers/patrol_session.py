@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
 from src.domain.event import EventType
-from src.services.producer import MainProducer
+from src.services.event_producer import EventProducer
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 
 router = APIRouter(tags=["positioning-ingestion"])
@@ -30,7 +30,7 @@ class PatrolSessionEvent(BaseModel):
 async def connection_event(
     connection_event: ConnectionEvent, session: SessionDep, request: Request
 ):
-    event = await MainProducer.append_event(
+    event = await EventProducer.append_event(
         session=session,
         event_type=EventType.CONNECT_EVENT,
         android_id=connection_event.android_id,
@@ -47,7 +47,7 @@ async def connection_event(
 async def disconnection_event(
     connection_event: ConnectionEvent, session: SessionDep, request: Request
 ):
-    event = await MainProducer.append_event(
+    event = await EventProducer.append_event(
         session=session,
         event_type=EventType.DISCONNECT_EVENT,
         android_id=connection_event.android_id,
@@ -64,7 +64,7 @@ async def disconnection_event(
 async def patrol_session_start_event(
     patrol_session_event: PatrolSessionEvent, session: SessionDep, request: Request
 ):
-    event = await MainProducer.append_event(
+    event = await EventProducer.append_event(
         session=session,
         event_type=EventType.START_EVENT,
         android_id=patrol_session_event.android_id,
@@ -80,14 +80,14 @@ async def patrol_session_start_event(
 async def patrol_session_stop_event(
     patrol_session_event: PatrolSessionEvent, session: SessionDep, request: Request
 ):
-    event = await MainProducer.append_event(
+    event = await EventProducer.append_event(
         session=session,
         event_type=EventType.STOP_EVENT,
         android_id=patrol_session_event.android_id,
         device_timestamp=patrol_session_event.timestamp,
         source="API",
     )
-    await MainProducer.close_open_connections(
+    await EventProducer.close_open_connections(
         session=session,
         android_id=patrol_session_event.android_id,
         device_timestamp=patrol_session_event.timestamp,
