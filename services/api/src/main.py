@@ -29,7 +29,14 @@ from src.services.station_coverage.overdue_tracker import OverdueTracker
 from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
-from .api.v2.routers import adjustment, config, dashboard_stream, health, patrol_session
+from .api.v2.routers import (
+    adjustment,
+    config,
+    connection,
+    dashboard_stream,
+    health,
+    patrol_session,
+)
 from .db.ingest import load_stations
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
@@ -116,6 +123,7 @@ app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
+app.include_router(connection.router, prefix=API_PREFIX_V2)
 
 
 @app.get("/ping")
