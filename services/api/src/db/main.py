@@ -1,11 +1,15 @@
 from collections.abc import AsyncGenerator
 from pathlib import Path
+from typing import Annotated
 
 from alembic import command
 from alembic.config import Config
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db import models  # noqa: F401  registers table metadata
 
 from .system_config import system_config
 
@@ -24,6 +28,9 @@ def upgrade_db() -> None:
 async def get_session() -> AsyncGenerator[AsyncSession]:
     async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
+
+
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 async def init_db(engine_: AsyncEngine | None = None) -> None:

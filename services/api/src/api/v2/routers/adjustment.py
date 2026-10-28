@@ -1,15 +1,10 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, status
-from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi import APIRouter, status
 
 from src.api.v2.schemas.adjustment import AdjustmentEventCreate, AdjustmentEventStored
-from src.db.main import get_session
+from src.db.main import SessionDep
 from src.services.event_producer import EventProducer
 
 router = APIRouter(tags=["adjustment"])
-
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.post("/adjustment", status_code=status.HTTP_201_CREATED)

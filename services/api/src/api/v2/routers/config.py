@@ -1,20 +1,15 @@
 # Included in main.py under /api/v2. The endpoints are specified by the
 # positioning-interface contract.
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.main import get_session
+from src.db.main import SessionDep
 from src.db.repository.config import (
     get_or_create_config,
     set_at_risk_threshold_minutes,
 )
 
 router = APIRouter(tags=["config"])
-
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 class AtRiskThreshold(BaseModel):

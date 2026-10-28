@@ -1,17 +1,12 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, Request, status
-from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi import APIRouter, Request, status
 
 from src.api.v2.schemas.ingestion import PatrolSessionEvent
-from src.db.main import get_session
+from src.db.main import SessionDep
 from src.domain.event import EventType
 from src.services.event_producer import EventProducer
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 
 router = APIRouter(tags=["patrol-session"])
-
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.post("/patrol-session/start", status_code=status.HTTP_201_CREATED)

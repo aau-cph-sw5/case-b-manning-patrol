@@ -4,17 +4,12 @@ Health
 Health check endpoint for the backend.
 """
 
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.main import get_session
+from src.db.main import SessionDep
 
 router = APIRouter(tags=["health"])
-
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.get("/health")

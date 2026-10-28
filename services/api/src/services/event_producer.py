@@ -117,11 +117,11 @@ class TargetEventNotFoundError(Exception):
     pass
 
 
-class AndroidIdNotFoundError(EventValidationError):
+class AndroidIdNotFoundError(Exception):
     pass
 
 
-class BeaconNotFoundError(EventValidationError):
+class BeaconNotFoundError(Exception):
     pass
 
 
