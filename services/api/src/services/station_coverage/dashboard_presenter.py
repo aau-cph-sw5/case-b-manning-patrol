@@ -13,7 +13,7 @@ class DashboardPresenter:
             lines.setdefault(station_line.station_id, []).append(station_line.line_id)
         self._lines = lines
 
-    def present(
+    def to_dashboard(
         self, reports: list[StationCoverageReport], sent_at: datetime
     ) -> Dashboard:
         return Dashboard(

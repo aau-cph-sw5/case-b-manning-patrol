@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel
 
-from src.db.models.event import Adjustment, AdjustmentBase
+from src.db.models.adjustment import Adjustment, AdjustmentBase
 from src.domain.event import EventType
 
 

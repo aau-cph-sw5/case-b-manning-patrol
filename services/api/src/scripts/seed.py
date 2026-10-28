@@ -13,7 +13,8 @@ from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import engine, upgrade_db
-from src.db.models.event import Adjustment, Event
+from src.db.models.adjustment import Adjustment
+from src.db.models.event import Event
 from src.domain.event import EventType
 from src.services.positioning_service import load_fixture
 

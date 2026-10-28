@@ -29,5 +29,5 @@ async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
 def _dashboard_event(
     presenter: DashboardPresenter, reports: list[StationCoverageReport]
 ) -> ServerSentEvent:
-    dashboard = presenter.present(reports, sent_at=datetime.now(UTC))
+    dashboard = presenter.to_dashboard(reports, sent_at=datetime.now(UTC))
     return ServerSentEvent(data=dashboard, event="dashboard")

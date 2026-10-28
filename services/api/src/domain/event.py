@@ -9,7 +9,6 @@ class EventType(StrEnum):
     DISCONNECT_EVENT = "disconnect"
     START_EVENT = "shift_start"
     STOP_EVENT = "shift_stop"
-    ADJUSTMENT_EVENT = "adjustment"
 
 
 @dataclass(frozen=True)

@@ -1,17 +1,13 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from fastapi.exceptions import RequestValidationError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import AdjustmentStored, CorrectedFact
-from src.db.models.event import Adjustment, Event
-from src.db.repository.events import (
-    get_event,
-    get_open_connections,
-    insert_adjustment,
-    insert_event,
-)
+from src.db.models.adjustment import Adjustment
+from src.db.models.event import Event
+from src.db.repository.adjustment import insert_adjustment
+from src.db.repository.event import get_event, get_open_connections, insert_event
 from src.domain.event import EventType
 
 
@@ -82,13 +78,15 @@ class EventProducer:
             corrected_fact.fact_type == EventType.CONNECT_EVENT
             or corrected_fact.fact_type == EventType.DISCONNECT_EVENT
         ) and corrected_fact.beacon_id is None:
-            raise RequestValidationError("Connect and Disconnect event needs beacon")
+            raise EventValidationError("Connect and Disconnect event needs beacon")
 
         if target_event_id is not None:
             try:
                 await get_event(session, target_event_id)
             except Exception:
-                raise EventValidationError("target event id does not exist") from None
+                raise TargetEventNotFoundError(
+                    "target event id does not exist"
+                ) from None
 
         adjustment = Adjustment(
             adjustment_id=uuid4(),
@@ -112,6 +110,10 @@ def _now_utc() -> datetime:
 
 
 class EventValidationError(Exception):
+    pass
+
+
+class TargetEventNotFoundError(Exception):
     pass
 
 

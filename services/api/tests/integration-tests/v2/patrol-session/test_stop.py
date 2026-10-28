@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.db.main import get_session
-from src.db.repository import events
+from src.db.repository import event
 from src.domain.event import EventType
 from src.main import app
 from src.services.event_producer import EventProducer
@@ -123,9 +123,9 @@ async def test_patrol_session_stop_closes_open_connections(client: TestClient):
     assert response.json()["event_type"] == "shift_stop"
 
     async with asynccontextmanager(get_test_session)() as session:
-        assert await events.get_open_connections(session, STEWART_ANDROID_ID) == []
+        assert await event.get_open_connections(session, STEWART_ANDROID_ID) == []
 
-        all_events = await events.get_events(session)
+        all_events = await event.get_events(session)
         disconnects = [
             event
             for event in all_events

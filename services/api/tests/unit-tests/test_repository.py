@@ -12,8 +12,9 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models import Line, OverdueLogEntry, PatrolArea, Station, StationLine
-from src.db.models.event import Adjustment, Event
-from src.db.repository import events, overdue_log, patrol_area, station
+from src.db.models.adjustment import Adjustment
+from src.db.models.event import Event
+from src.db.repository import adjustment, event, overdue_log, patrol_area, station
 from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
@@ -179,14 +180,14 @@ async def test_get_patrol_areas_returns_all_areas(session):
 
 @pytest.mark.asyncio
 async def test_insert_event_can_be_read_back(session):
-    event = make_event(event_type=EventType.START_EVENT, beacon_id=None)
-    event_id = event.event_id
+    event_row = make_event(event_type=EventType.START_EVENT, beacon_id=None)
+    event_id = event_row.event_id
 
-    await events.insert_event(session, event)
-    result = await events.get_event(session, event_id)
+    await event.insert_event(session, event_row)
+    result = await event.get_event(session, event_id)
 
     assert result.event_type == EventType.START_EVENT
-    assert result.android_id == event.android_id
+    assert result.android_id == event_row.android_id
     assert result.beacon_id is None
     assert result.source == "test"
 
@@ -194,7 +195,7 @@ async def test_insert_event_can_be_read_back(session):
 @pytest.mark.asyncio
 async def test_get_event_raises_when_missing(session):
     with pytest.raises(NoResultFound):
-        await events.get_event(session, uuid4())
+        await event.get_event(session, uuid4())
 
 
 @pytest.mark.asyncio
@@ -203,9 +204,9 @@ async def test_get_events_returns_all_inserted_events(session):
     second = make_event(event_type=EventType.DISCONNECT_EVENT)
     expected_ids = {first.event_id, second.event_id}
 
-    await events.insert_event(session, first)
-    await events.insert_event(session, second)
-    result = await events.get_events(session)
+    await event.insert_event(session, first)
+    await event.insert_event(session, second)
+    result = await event.get_events(session)
 
     assert {e.event_id for e in result} == expected_ids
 
@@ -222,9 +223,9 @@ async def test_reconnect_to_same_beacon_is_stored_as_new_event(session):
         device_timestamp=TIMESTAMP + timedelta(minutes=5),
     )
 
-    for event in (connect, disconnect, reconnect):
-        await events.insert_event(session, event)
-    result = sorted(await events.get_events(session), key=lambda e: e.device_timestamp)
+    for event_row in (connect, disconnect, reconnect):
+        await event.insert_event(session, event_row)
+    result = sorted(await event.get_events(session), key=lambda e: e.device_timestamp)
 
     assert [e.event_type for e in result] == [
         EventType.CONNECT_EVENT,
@@ -252,11 +253,11 @@ async def test_event_recieved_after_stop_still_stored(session):
         server_timestamp=TIMESTAMP + timedelta(minutes=7),
     )
 
-    for event in (start, stop, connection_event):
-        await events.insert_event(session, event)
+    for event_row in (start, stop, connection_event):
+        await event.insert_event(session, event_row)
     # This query is supposed to mock how a query to build a report could be made based
     # on ordering of the device timestamp
-    result = sorted(await events.get_events(session), key=lambda e: e.device_timestamp)
+    result = sorted(await event.get_events(session), key=lambda e: e.device_timestamp)
     connection = result[1]
     assert connection.device_timestamp == connection_event.device_timestamp
 
@@ -264,11 +265,11 @@ async def test_event_recieved_after_stop_still_stored(session):
 @pytest.mark.asyncio
 async def test_insert_adjustment_can_be_read_back(session):
     target_event_id = uuid4()
-    adjustment = make_adjustment(target_event_id=target_event_id)
-    adjustment_id = adjustment.adjustment_id
+    adjustment_row = make_adjustment(target_event_id=target_event_id)
+    adjustment_id = adjustment_row.adjustment_id
 
-    await events.insert_adjustment(session, adjustment)
-    result = await events.get_adjustment(session, adjustment_id)
+    await adjustment.insert_adjustment(session, adjustment_row)
+    result = await adjustment.get_adjustment(session, adjustment_id)
 
     assert result.target_event_id == target_event_id
     assert result.reason == "Forgot to check in"
@@ -282,9 +283,9 @@ async def test_get_adjustments_returns_all_inserted_adjustments(session):
     second = make_adjustment(target_event_id=None)
     expected_ids = {first.adjustment_id, second.adjustment_id}
 
-    await events.insert_adjustment(session, first)
-    await events.insert_adjustment(session, second)
-    result = await events.get_adjustments(session)
+    await adjustment.insert_adjustment(session, first)
+    await adjustment.insert_adjustment(session, second)
+    result = await adjustment.get_adjustments(session)
 
     assert {a.adjustment_id for a in result} == expected_ids
 
@@ -293,9 +294,9 @@ async def test_get_adjustments_returns_all_inserted_adjustments(session):
 async def test_get_open_connections_returns_unmatched_connects(session):
     open_connect = make_event(beacon_id=OPEN_BEACON_ID)
 
-    await events.insert_event(session, open_connect)
+    await event.insert_event(session, open_connect)
 
-    result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
+    result = await event.get_open_connections(session, STEWARD_ANDROID_ID)
 
     assert [open_connection.event_id for open_connection in result] == [
         open_connect.event_id
@@ -304,19 +305,17 @@ async def test_get_open_connections_returns_unmatched_connects(session):
 
 @pytest.mark.asyncio
 async def test_get_open_connections_ignores_disconnects_without_connect(session):
-    await events.insert_event(
-        session, make_event(event_type=EventType.DISCONNECT_EVENT)
-    )
+    await event.insert_event(session, make_event(event_type=EventType.DISCONNECT_EVENT))
 
-    assert await events.get_open_connections(session, STEWARD_ANDROID_ID) == []
+    assert await event.get_open_connections(session, STEWARD_ANDROID_ID) == []
 
 
 @pytest.mark.asyncio
 async def test_get_open_connections_excludes_disconnected_beacons(session):
-    await events.insert_event(
+    await event.insert_event(
         session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
     )
-    await events.insert_event(
+    await event.insert_event(
         session,
         make_event(
             event_type=EventType.DISCONNECT_EVENT,
@@ -324,25 +323,25 @@ async def test_get_open_connections_excludes_disconnected_beacons(session):
         ),
     )
 
-    assert await events.get_open_connections(session, STEWARD_ANDROID_ID) == []
+    assert await event.get_open_connections(session, STEWARD_ANDROID_ID) == []
 
 
 @pytest.mark.asyncio
 async def test_get_open_connections_returns_reopened_connects(session):
     reopened = make_event(device_timestamp=datetime(2026, 10, 8, 12, tzinfo=UTC))
-    await events.insert_event(
+    await event.insert_event(
         session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
     )
-    await events.insert_event(
+    await event.insert_event(
         session,
         make_event(
             event_type=EventType.DISCONNECT_EVENT,
             device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC),
         ),
     )
-    await events.insert_event(session, reopened)
+    await event.insert_event(session, reopened)
 
-    result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
+    result = await event.get_open_connections(session, STEWARD_ANDROID_ID)
 
     assert [open_connection.event_id for open_connection in result] == [
         reopened.event_id
@@ -351,20 +350,20 @@ async def test_get_open_connections_returns_reopened_connects(session):
 
 @pytest.mark.asyncio
 async def test_get_open_connections_only_returns_events_of_android_id(session):
-    await events.insert_event(session, make_event(android_id=OTHER_ANDROID_ID))
+    await event.insert_event(session, make_event(android_id=OTHER_ANDROID_ID))
 
-    assert await events.get_open_connections(session, STEWARD_ANDROID_ID) == []
+    assert await event.get_open_connections(session, STEWARD_ANDROID_ID) == []
 
 
 @pytest.mark.asyncio
 async def test_get_open_connections_returns_one_event_per_beacon(session):
-    await events.insert_event(
+    await event.insert_event(
         session, make_event(device_timestamp=datetime(2026, 10, 8, 10, tzinfo=UTC))
     )
     latest = make_event(device_timestamp=datetime(2026, 10, 8, 11, tzinfo=UTC))
-    await events.insert_event(session, latest)
+    await event.insert_event(session, latest)
 
-    result = await events.get_open_connections(session, STEWARD_ANDROID_ID)
+    result = await event.get_open_connections(session, STEWARD_ANDROID_ID)
 
     assert [open_connection.event_id for open_connection in result] == [latest.event_id]
 

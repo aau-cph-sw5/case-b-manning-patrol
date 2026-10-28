@@ -17,7 +17,7 @@ def test_present_maps_a_station_to_the_contract(station_report, dashboard_presen
         last_covered_at=last_covered_at,
     )
 
-    dashboard = dashboard_presenter.present([report], sent_at=SENT_AT)
+    dashboard = dashboard_presenter.to_dashboard([report], sent_at=SENT_AT)
 
     assert dashboard.stations == [
         DashboardStation(
@@ -44,7 +44,7 @@ def test_present_stamps_the_send_time_and_has_no_trains(
         "marmorkirken", covered_now=True, as_of=SENT_AT, last_covered_at=SENT_AT
     )
 
-    dashboard = dashboard_presenter.present([report], sent_at=SENT_AT)
+    dashboard = dashboard_presenter.to_dashboard([report], sent_at=SENT_AT)
 
     assert dashboard.time == SENT_AT
     assert dashboard.trains == []
@@ -55,7 +55,7 @@ def test_area_has_no_deadline_while_covered_now(station_report, dashboard_presen
         "marmorkirken", covered_now=True, as_of=SENT_AT, last_covered_at=SENT_AT
     )
 
-    dashboard = dashboard_presenter.present([report], sent_at=SENT_AT)
+    dashboard = dashboard_presenter.to_dashboard([report], sent_at=SENT_AT)
 
     area = dashboard.stations[0].areas[0]
     assert area.covered_now is True
@@ -71,6 +71,6 @@ def test_station_without_lines_gets_an_empty_line_list(station_report):
         "marmorkirken", covered_now=True, as_of=SENT_AT, last_covered_at=SENT_AT
     )
 
-    dashboard = presenter.present([report], sent_at=SENT_AT)
+    dashboard = presenter.to_dashboard([report], sent_at=SENT_AT)
 
     assert dashboard.stations[0].areas[0].line == []

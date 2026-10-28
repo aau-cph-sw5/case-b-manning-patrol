@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.services.event_producer import EventValidationError
+from src.services.event_producer import EventValidationError, TargetEventNotFoundError
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
@@ -84,6 +84,14 @@ app = FastAPI(title="Manning Patrol Backend", lifespan=lifespan)
 async def event_validation_exception_handler(
     _: Request,
     error: EventValidationError,
+) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
+
+
+@app.exception_handler(TargetEventNotFoundError)
+async def target_event_not_found_exception_handler(
+    _: Request,
+    error: TargetEventNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,

@@ -6,7 +6,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.event import Event
 from src.db.models.patrol_area import PatrolArea
-from src.db.repository.events import get_events
+from src.db.repository.event import get_events
 from src.db.repository.patrol_area import get_patrol_areas
 from src.domain.coverage import (
     AreaCoverageReport,
