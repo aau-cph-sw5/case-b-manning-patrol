@@ -23,7 +23,7 @@ from src.models.coverage import (
 )
 from src.models.event import AdjustmentModel, CorrectedFact, EventModel, EventType
 from src.models.patrol_area import AreaKind
-from src.services.overdue_tracker import OverdueTracker
+from src.services.coverage.overdue_tracker import OverdueTracker
 
 TIMESTAMP = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
 STEWARD_ANDROID_ID = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")
