@@ -1,0 +1,73 @@
+.dashboard-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin: 0 0 8px;
+}
+
+.dashboard-title {
+  margin-top: 40px;
+  grid-column: 2;
+  font-size: 84px;
+}
+
+.overdue-count {
+  grid-column: 3;
+  justify-self: end;
+  padding: 8px 16px;
+  border: 3px solid #060001;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-right: 20px;
+  margin-top: -50px;
+  margin-bottom: 50px;
+  color: var(--text-h); /* Same color as the station name */
+}
+
+.overdue-count.has-overdue {
+  border-color: #d0455e;
+}
+
+.attention {
+  contain: size;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.attention .attention-list {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+}
+
+.attention-text {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.attention-more {
+  justify-content: center;
+  font-weight: bold;
+  opacity: 0.7;
+}
+
+@media (max-width: 700px) {
+  .dashboard-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 12px;
+  }
+
+  .dashboard-title,
+  .overdue-count {
+    grid-column: 1;
+    justify-self: center;
+  }
+
+  .dashboard-title {
+    font-size: 36px;
+    text-align: center;
+  }
+}
