@@ -34,7 +34,6 @@ from .db.ingest import load_stations
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
 
-API_PREFIX_V1 = "/api/v1"
 API_PREFIX_V2 = "/api/v2"
 
 
@@ -104,7 +103,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
