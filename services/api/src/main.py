@@ -29,7 +29,6 @@ from src.services.coverage.shift_schedule import ShiftSchedule
 from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
 from src.services.producer import EventValidationError
 
-from .api.v1.routers import positioning_simulator
 from .api.v2.routers import adjustment, config, dashboard_stream, health, patrol_session
 from .db.ingest import load_stations
 from .db.main import engine, init_db
