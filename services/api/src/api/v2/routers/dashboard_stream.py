@@ -16,18 +16,6 @@ router = APIRouter(tags=["positioning-interface"])
 # positioning-interface contract.
 @router.get("/dashboard/stream", response_class=EventSourceResponse)
 async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
-    """Stream the dashboard to one client over SSE.
-
-    1. Subscribe to the broadcaster to get this connection's queue.
-    2. Send updater.snapshot() as the first event, holding every station. No
-       await between steps 1 and 2, so no update is missed or sent twice.
-    3. Wait on the queue and yield one event per refresh, again holding
-       every station, changed or not.
-    4. When the client disconnects, unsubscribe (in a finally block).
-
-    The updater, the broadcaster and the presenter are taken from
-    request.app.state.
-    """
     broadcaster: SseCoverageBroadcaster = request.app.state.sse_broadcaster
     updater: CoverageUpdater = request.app.state.coverage_updater
     presenter: DashboardPresenter = request.app.state.dashboard_presenter
