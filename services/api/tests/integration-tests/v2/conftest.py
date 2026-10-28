@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
 from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 
-from src.api.v2.dependencies import get_session
+from src.api.v2.dependencies import get_async_db_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
 from src.services.station_coverage.coverage_service import CoverageService
@@ -45,7 +45,7 @@ async def override_db_session() -> AsyncGenerator[None]:
         async with AsyncSession(engine, expire_on_commit=False) as session:
             yield session
 
-    app.dependency_overrides[get_session] = get_test_session
+    app.dependency_overrides[get_async_db_session] = get_test_session
 
     sse_broadcaster = SseCoverageBroadcaster()
     coverage_updater = CoverageUpdater(
@@ -74,5 +74,5 @@ async def override_db_session() -> AsyncGenerator[None]:
 
     yield
 
-    app.dependency_overrides.pop(get_session, None)
+    app.dependency_overrides.pop(get_async_db_session, None)
     await engine.dispose()

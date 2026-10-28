@@ -7,7 +7,7 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.v2.dependencies import get_session
+from src.api.v2.dependencies import get_async_db_session
 from src.db.repository import event
 from src.domain.event import EventType
 from src.main import app
@@ -86,7 +86,7 @@ def test_patrol_session_stop_rejects_malformed_timestamp(client):
 async def test_patrol_session_stop_closes_open_connections(client: TestClient):
     started_at = datetime(2026, 10, 9, 10, 0, tzinfo=UTC)
     stopped_at = started_at + timedelta(hours=2)
-    get_test_session = app.dependency_overrides[get_session]
+    get_test_session = app.dependency_overrides[get_async_db_session]
 
     async with asynccontextmanager(get_test_session)() as session:
         producer = EventProducer(session, source="test")
