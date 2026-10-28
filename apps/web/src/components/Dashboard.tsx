@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { STATIONS } from '../data/mockData.tsx'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import StationCard from './StationCard.tsx'
 import {
   formatRemaining,
@@ -12,9 +11,10 @@ import { useNow } from '../hooks/useNow.ts'
 import { useFitCount } from '../hooks/useFitCount.ts'
 import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
+import { toViewStations } from '../api/dashboardMapper.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import Legend from './Legend.tsx'
-        
+
 import './Dashboard.css'
 
 function Dashboard() {
@@ -23,6 +23,10 @@ function Dashboard() {
   const fit = useFitCount(listRef)
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
   const { dashboard, isLoading, error } = useDashboardStream()
+  const stations = useMemo(
+    () => (dashboard ? toViewStations(dashboard) : []),
+    [dashboard],
+  )
 
   useEffect(() => {
     if (dashboard) console.log("Dashboard SSE update:", dashboard);
@@ -47,10 +51,10 @@ function Dashboard() {
     setAtRiskThreshold(value).catch(console.error) 
   }
 
-  const attention = STATIONS.flatMap((station) =>
+  const attention = stations.flatMap((station) =>
     station.levels.map((level) => ({
-      code: `${station.code}_${level.label}`,
-      minutes: remainingMinutes(level, now, station.code),
+      code: `${station.stationId}_${level.label}`,
+      minutes: remainingMinutes(level, now),
     })),
   )
     .filter((item) => item.minutes <= riskTime)
@@ -60,9 +64,9 @@ function Dashboard() {
     attention.length > fit ? attention.slice(0, fit - 1) : attention
   const hiddenCount = attention.length - visibleAttention.length
 
-  const overdueCount = STATIONS.flatMap((station) =>
+  const overdueCount = stations.flatMap((station) =>
     station.levels.filter(
-      (level) => remainingMinutes(level, now, station.code) <= 0,
+      (level) => remainingMinutes(level, now) <= 0,
     ),
   ).length
 
@@ -77,8 +81,17 @@ function Dashboard() {
           Overskredet ({overdueCount})
         </div>
         <section className="station-grid">
-          {STATIONS.map((station) => (
-            <StationCard key={station.code} station={station} now={now} riskTime={riskTime} />
+          {stations.length === 0 && (
+            <p className="dashboard-empty">
+              {error
+                ? `Kunne ikke hente data: ${error.message}`
+                : isLoading
+                  ? 'Henter data…'
+                  : 'Ingen stationer'}
+            </p>
+          )}
+          {stations.map((station) => (
+            <StationCard key={station.stationId} station={station} now={now} riskTime={riskTime} />
           ))}
         </section>
         <aside className="card attention">

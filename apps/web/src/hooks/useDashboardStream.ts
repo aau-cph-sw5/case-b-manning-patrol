@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Dashboard } from "@/api/dashboardApi";
-import { connectDashboardStream, subscribeToDashboard } from "@/api/dashboardApi";
+import { subscribeToDashboard } from "@/api/dashboardApi";
 
 const LOCAL_STORAGE_KEY = "dashboardState";
 
@@ -46,6 +46,7 @@ export function useDashboardStream(): {
         // Save to both state and localStorage
         setDashboard(newDashboard);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newDashboard));
+        setError(null);
         setIsLoading(false);
       },
       (event: Event) => {

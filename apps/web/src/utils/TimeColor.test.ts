@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { StationLevel } from '../data/mockData'
+import type { StationLevel } from '../api/dashboardMapper'
 import { RiskTime } from '../settings'
 import {
   formatRemaining,
@@ -12,45 +12,33 @@ const { MIN, NOW } = vi.hoisted(() => ({
   NOW: Date.UTC(2026, 0, 1, 12, 0),
 }))
 
-vi.mock('../data/mockDeadlines', () => ({
-  LEVEL_DEADLINES: {
-    TST_Perron: NOW + 60 * MIN,
-    TST_Forhal: NOW + 60 * MIN,
-    'TST_Perron 1': NOW,
-  },
-}))
-
-function level(label: string, manned = false): StationLevel {
-  return { label, lastPatrolAt: NOW, manned }
+function level(overdueAt: number | null, manned = false): StationLevel {
+  return { label: 'Perron', overdueAt, manned }
 }
 
 describe('remainingMinutes', () => {
   it('is the full interval at the start', () => {
-    expect(remainingMinutes(level('Perron'), NOW, 'TST')).toBe(60)
+    expect(remainingMinutes(level(NOW + 60 * MIN), NOW)).toBe(60)
   })
 
   it('counts down as time passes', () => {
-    expect(remainingMinutes(level('Perron'), NOW + 15 * MIN, 'TST')).toBe(45)
+    expect(remainingMinutes(level(NOW + 60 * MIN), NOW + 15 * MIN)).toBe(45)
   })
 
   it('goes negative once the deadline has passed', () => {
-    expect(remainingMinutes(level('Forhal'), NOW + 75 * MIN, 'TST')).toBe(-15)
+    expect(remainingMinutes(level(NOW + 60 * MIN), NOW + 75 * MIN)).toBe(-15)
   })
 
   it('is zero exactly at the deadline', () => {
-    expect(remainingMinutes(level('Perron 1'), NOW, 'TST')).toBe(0)
-  })
-
-  it('looks up the deadline by station code and level label', () => {
-    expect(remainingMinutes(level('Perron'), NOW, 'XYZ')).toBe(0)
+    expect(remainingMinutes(level(NOW), NOW)).toBe(0)
   })
 
   it('is zero when the level has no deadline', () => {
-    expect(remainingMinutes(level('Unknown'), NOW, 'TST')).toBe(0)
+    expect(remainingMinutes(level(null), NOW)).toBe(0)
   })
 
   it('stays at the full interval while the area is manned', () => {
-    expect(remainingMinutes(level('Forhal', true), NOW, 'TST')).toBe(60)
+    expect(remainingMinutes(level(null, true), NOW)).toBe(60)
   })
 })
 
