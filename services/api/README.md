@@ -54,6 +54,7 @@ services/api/
 │   │   └── repository/          # Database query functions; overdue_log.py is the overdue log
 │   ├── api/
 │   │   └── v2/
+│   │       ├── dependencies.py  # FastAPI dependencies (AsyncDbSessionDep, EventProducerDep)
 │   │       ├── routers/
 │   │       │   ├── adjustment.py       # Adjustment route (contracts/positioning-adjustment v2)
 │   │       │   ├── config.py           # At-risk threshold config
@@ -64,9 +65,9 @@ services/api/
 │   │       └── schemas/         # Request/response payloads (dashboard, adjustment, ingestion)
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
-│       ├── station_coverage/    # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007)
+│       ├── event_producer.py    # Appends events/adjustments to the append-only store
 │       ├── positioning_service.py
-│       └── producer.py          # Event/adjustment producer
+│       └── station_coverage/    # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007)
 ├── fixtures/
 │   └── fixture-events-v1.json   # Event timeline inserted by the seed script
 ├── tests/

@@ -89,26 +89,23 @@ async def test_patrol_session_stop_closes_open_connections(client: TestClient):
     get_test_session = app.dependency_overrides[get_session]
 
     async with asynccontextmanager(get_test_session)() as session:
+        producer = EventProducer(session, source="test")
         for beacon_id, timestamp in [
             (BEACON_1_ID, started_at),
             (BEACON_2_ID, started_at + timedelta(minutes=30)),
             (BEACON_3_ID, started_at - timedelta(hours=1)),
         ]:
-            await EventProducer.append_event(
-                session=session,
+            await producer.append_event(
                 event_type=EventType.CONNECT_EVENT,
                 android_id=STEWART_ANDROID_ID,
                 beacon_id=beacon_id,
                 device_timestamp=timestamp,
-                source="test",
             )
-        await EventProducer.append_event(
-            session=session,
+        await producer.append_event(
             event_type=EventType.DISCONNECT_EVENT,
             android_id=STEWART_ANDROID_ID,
             beacon_id=BEACON_3_ID,
             device_timestamp=started_at,
-            source="test",
         )
 
     response = client.post(

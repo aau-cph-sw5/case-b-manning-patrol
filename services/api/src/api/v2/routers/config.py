@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from src.db.main import SessionDep
+from src.api.v2.dependencies import AsyncDbSessionDep
 from src.db.repository.config import (
     get_or_create_config,
     set_at_risk_threshold_minutes,
@@ -17,14 +17,14 @@ class AtRiskThreshold(BaseModel):
 
 
 @router.get("/config/at-risk-threshold")
-async def get_at_risk_threshold(session: SessionDep) -> AtRiskThreshold:
+async def get_at_risk_threshold(session: AsyncDbSessionDep) -> AtRiskThreshold:
     config = await get_or_create_config(session)
     return AtRiskThreshold(at_risk_threshold_minutes=config.at_risk_threshold_minutes)
 
 
 @router.post("/config/at-risk-threshold")
 async def set_at_risk_threshold(
-    threshold: AtRiskThreshold, session: SessionDep
+    threshold: AtRiskThreshold, session: AsyncDbSessionDep
 ) -> AtRiskThreshold:
     config = await set_at_risk_threshold_minutes(
         session, minutes=threshold.at_risk_threshold_minutes
