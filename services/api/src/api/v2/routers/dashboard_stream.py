@@ -5,9 +5,9 @@ from fastapi import APIRouter, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from src.models.coverage import StationCoverageReport
-from src.services.coverage.coverage_updater import CoverageUpdater
-from src.services.coverage.dashboard_presenter import DashboardPresenter
-from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
+from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 router = APIRouter(tags=["positioning-interface"])
 

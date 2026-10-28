@@ -13,8 +13,8 @@ from src.models.coverage import (
     StewardPatrolInterval,
 )
 from src.models.patrol_area import PatrolArea
-from src.services.coverage.coverage_window import CoverageWindow
-from src.services.coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.coverage_window import CoverageWindow
+from src.services.station_coverage.interval_builder import IntervalBuilder
 
 
 class CoverageService:

@@ -5,7 +5,7 @@ import pytest
 
 from src.models.coverage import AreaReference, OverdueEpisode, StewardPatrolInterval
 from src.models.patrol_area import AreaKind
-from src.services.coverage.coverage_window import (
+from src.services.station_coverage.coverage_window import (
     MIN_QUALIFYING_DURATIONS,
     TIME_UNTIL_NEXT_NEEDED_PATROL,
     CoverageWindow,

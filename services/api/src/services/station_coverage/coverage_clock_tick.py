@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from src.services.coverage.coverage_updater import CoverageUpdater
+from src.services.station_coverage.coverage_updater import CoverageUpdater
 
 logger = logging.getLogger(__name__)
 

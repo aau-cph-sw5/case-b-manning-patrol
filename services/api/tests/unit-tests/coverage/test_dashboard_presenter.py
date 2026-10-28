@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from src.models import Station
 from src.models.dashboard import DashboardArea, DashboardStation
 from src.models.patrol_area import AreaKind
-from src.services.coverage.dashboard_presenter import DashboardPresenter
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 
 SENT_AT = datetime(2026, 9, 21, 10, 15, tzinfo=UTC)
 

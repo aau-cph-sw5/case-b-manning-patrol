@@ -17,13 +17,13 @@ from src.models.coverage import (
 )
 from src.models.patrol_area import AreaKind
 from src.scripts.seed import FIXTURE, load_events
-from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_window import (
+from src.services.station_coverage.coverage_service import CoverageService
+from src.services.station_coverage.coverage_window import (
     MIN_QUALIFYING_DURATIONS,
     TIME_UNTIL_NEXT_NEEDED_PATROL,
     CoverageWindow,
 )
-from src.services.coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.interval_builder import IntervalBuilder
 
 STATION_BEACONS = {
     "STN-2": UUID("550e8400-e29b-41d4-a716-000000000002"),

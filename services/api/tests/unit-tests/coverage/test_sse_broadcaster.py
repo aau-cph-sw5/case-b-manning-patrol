@@ -1,4 +1,4 @@
-from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 
 def test_subscriber_starts_with_empty_queue():

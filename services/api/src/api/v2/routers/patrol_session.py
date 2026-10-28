@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
 from src.models.event import EventType
-from src.services.coverage.coverage_updater import CoverageUpdater
+from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.producer import MainProducer
 
 router = APIRouter(tags=["positioning-ingestion"])

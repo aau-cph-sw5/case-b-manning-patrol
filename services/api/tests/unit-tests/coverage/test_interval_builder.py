@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from src.models.event import Event, EventType
-from src.services.coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.interval_builder import IntervalBuilder
 
 STEWARD_1 = UUID("660e8400-e29b-41d4-a716-446655440001")
 STEWARD_2 = UUID("660e8400-e29b-41d4-a716-446655440002")

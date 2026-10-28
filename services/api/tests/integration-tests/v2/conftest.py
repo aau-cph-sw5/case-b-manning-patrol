@@ -13,18 +13,18 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 from src.db.main import get_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
-from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_updater import CoverageUpdater
-from src.services.coverage.coverage_window import (
+from src.services.station_coverage.coverage_service import CoverageService
+from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.services.station_coverage.coverage_window import (
     MIN_QUALIFYING_DURATIONS,
     TIME_UNTIL_NEXT_NEEDED_PATROL,
     CoverageWindow,
 )
-from src.services.coverage.dashboard_presenter import DashboardPresenter
-from src.services.coverage.interval_builder import IntervalBuilder
-from src.services.coverage.overdue_tracker import OverdueTracker
-from src.services.coverage.shift_schedule import ShiftSchedule
-from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
+from src.services.station_coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.overdue_tracker import OverdueTracker
+from src.services.station_coverage.shift_schedule import ShiftSchedule
+from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 

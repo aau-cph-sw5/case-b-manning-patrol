@@ -14,19 +14,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.services.coverage.coverage_clock_tick import CoverageClockTick
-from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_updater import CoverageUpdater
-from src.services.coverage.coverage_window import (
+from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
+from src.services.station_coverage.coverage_service import CoverageService
+from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.services.station_coverage.coverage_window import (
     MIN_QUALIFYING_DURATIONS,
     TIME_UNTIL_NEXT_NEEDED_PATROL,
     CoverageWindow,
 )
-from src.services.coverage.dashboard_presenter import DashboardPresenter
-from src.services.coverage.interval_builder import IntervalBuilder
-from src.services.coverage.overdue_tracker import OverdueTracker
-from src.services.coverage.shift_schedule import ShiftSchedule
-from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
+from src.services.station_coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.overdue_tracker import OverdueTracker
+from src.services.station_coverage.shift_schedule import ShiftSchedule
+from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 from src.services.producer import EventValidationError
 
 from .api.v2.routers import adjustment, config, dashboard_stream, health, patrol_session

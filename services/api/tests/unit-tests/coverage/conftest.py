@@ -11,7 +11,7 @@ from src.models.coverage import (
     StationCoverageReport,
 )
 from src.models.patrol_area import AreaKind
-from src.services.coverage.dashboard_presenter import DashboardPresenter
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 
 
 @pytest.fixture

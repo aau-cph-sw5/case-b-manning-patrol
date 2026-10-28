@@ -7,7 +7,7 @@ from fastapi.sse import ServerSentEvent
 from src.api.v2.routers.dashboard_stream import stream
 from src.main import app as main_app
 from src.models.dashboard import Dashboard
-from src.services.coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 
 class FakeUpdater:
