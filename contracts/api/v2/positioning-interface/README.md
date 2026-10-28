@@ -47,7 +47,7 @@ data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 ### Area
 - `area_id`: string
 - `name`: string
-- `line`: string
+- `line`: string[] — the metro lines the area serves (e.g. `["M1", "M2"]` for an interchange)
 - `area_type`: enum `"platform"` | `"concourse"`
 - `covered_now`: boolean
 - `overdue_at`: Date | null — when the area becomes (or became) overdue; null while covered now or when never patrolled

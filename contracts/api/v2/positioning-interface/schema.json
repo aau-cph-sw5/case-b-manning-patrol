@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Interface API",
 		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. A single Server-Sent Events (SSE) stream pushes the Dashboard to every client.",
-		"version": "2.1.0"
+		"version": "2.2.0"
 	},
 	"servers": [
 		{
@@ -171,9 +171,12 @@
 						"example": "Platform A"
 					},
 					"line": {
-						"type": "string",
-						"description": "The metro line(s) the area serves.",
-						"example": "M1 & M2"
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The metro lines the area serves.",
+						"example": ["M1", "M2"]
 					},
 					"area_type": {
 						"type": "string",

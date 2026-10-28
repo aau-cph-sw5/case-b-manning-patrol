@@ -14,7 +14,7 @@ from src.models.patrol_area import AreaKind
 class DashboardArea(BaseModel):
     area_id: str
     name: str
-    line: str
+    line: list[str]
     area_type: AreaKind
     covered_now: bool
     overdue_at: datetime | None
