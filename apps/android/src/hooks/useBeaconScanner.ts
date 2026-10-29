@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { postConnectionEvent } from "@/api/postConnectionEvent";
 import { BeaconEventService } from "@/services/BeaconEventService";
 import { scanReducer } from "@/state/scanReducer";
+import { showToast } from "@/state/toast";
 import { initialScanState, type BeaconConnectionEvent } from "@/types/beacon";
 import type { BeaconScanner } from "@/types/BeaconScanner";
 
@@ -22,6 +23,14 @@ export function useBeaconScanner(scanner: BeaconScanner): UseBeaconScannerResult
   const eventService = useMemo(
     () =>
       new BeaconEventService((event) => {
+        // fires once per confirmed connection: the beacon survived qualification (connect)
+        // or the disconnect confirmation delay, i.e. the same moment the POST leaves the phone.
+        const message =
+          event.event === "CONNECTED"
+            ? `Forbundet til beacon ${event.beacon_id}`
+            : `Afbrudt fra beacon ${event.beacon_id}`;
+        showToast(message);
+
         postConnectionEvent(event).catch((error: unknown) => {
           console.warn(`could not forward ${event.event} for ${event.beacon_id}:`, error);
         });
