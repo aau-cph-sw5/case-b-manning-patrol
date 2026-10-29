@@ -32,9 +32,9 @@ function Dashboard() {
 
   useEffect(() => {
     getAtRiskThreshold()
-      .then((minutes) => {
-        setRiskTime(minutes)
-        setRiskTimeState(minutes)
+      .then((threshold) => {
+        setRiskTime(threshold.at_risk_threshold_minutes)
+        setRiskTimeState(threshold.at_risk_threshold_minutes)
       })
       .catch((error) => {
         console.error('Error fetching at-risk threshold:', error)
@@ -45,7 +45,9 @@ function Dashboard() {
     setRiskTime(value)
     setRiskTimeState(value)
     // Update the backend with the new risk time
-    setAtRiskThreshold(value).catch(console.error) 
+    setAtRiskThreshold(value)
+      .then((updated) => setRiskTimeState(updated.at_risk_threshold_minutes))
+      .catch(console.error)
   }
 
   const attention = STATIONS.flatMap((station) =>

@@ -38,10 +38,7 @@ export function useDashboardStream(): {
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-
-    // Connect to SSE stream
+      // Connect to SSE stream
     eventSourceRef.current = subscribeToDashboard(
       (newDashboard: Dashboard) => {
         // Save to both state and localStorage
