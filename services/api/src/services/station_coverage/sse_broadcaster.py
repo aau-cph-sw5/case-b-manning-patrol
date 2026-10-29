@@ -1,10 +1,10 @@
 import asyncio
 
-from src.models.coverage import StationCoverageReport
-from src.services.coverage.coverage_publisher import CoveragePublisher
+from src.domain.coverage import StationCoverageReport
+from src.services.station_coverage.coverage_publisher import CoveragePublisher
 
 
-class SseBroadcaster(CoveragePublisher):
+class SseCoverageBroadcaster(CoveragePublisher):
     def __init__(self) -> None:
         self._subscribers: set[asyncio.Queue[list[StationCoverageReport]]] = set()
 

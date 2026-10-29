@@ -7,11 +7,10 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
-import src.models  # noqa: F401  registers table metadata
-from src.db.config import settings
+from src.db.system_config import system_config
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.get_secret_value())
+config.set_main_option("sqlalchemy.url", system_config.DATABASE_URL.get_secret_value())
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.models.coverage import StewardPatrolInterval
+from src.domain.coverage import StewardPatrolInterval
 
 
 @pytest.fixture

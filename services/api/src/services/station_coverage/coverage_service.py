@@ -4,17 +4,19 @@ from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.repository.events import get_events
+from src.db.models.event import Event
+from src.db.models.patrol_area import PatrolArea
+from src.db.repository.event import get_events
 from src.db.repository.patrol_area import get_patrol_areas
-from src.models.coverage import (
+from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
     StationCoverageReport,
     StewardPatrolInterval,
 )
-from src.models.patrol_area import PatrolArea
-from src.services.coverage.coverage_window import CoverageWindow
-from src.services.coverage.interval_builder import IntervalBuilder
+from src.domain.event import EventRecord
+from src.services.station_coverage.coverage_window import CoverageWindow
+from src.services.station_coverage.interval_builder import IntervalBuilder
 
 
 class CoverageService:
@@ -31,7 +33,8 @@ class CoverageService:
         events = await get_events(session)
         areas = await get_patrol_areas(session)
 
-        intervals = self._interval_builder.build(events)
+        records = [_to_record(event) for event in events]
+        intervals = self._interval_builder.build(records)
         if shift_start_time is not None:
             intervals = self._within_shift(intervals, shift_start_time, now)
         intervals_by_beacon = self._group_by_beacon(intervals)
@@ -54,7 +57,7 @@ class CoverageService:
             else []
         )
         return self._rule.evaluate(
-            AreaReference.from_patrol_area(area), intervals, shift_start_time, now
+            _to_area_reference(area), intervals, shift_start_time, now
         )
 
     @staticmethod
@@ -108,3 +111,18 @@ class CoverageService:
             )
             for station_id, reports in sorted(reports_by_station.items())
         ]
+
+
+def _to_record(event: Event) -> EventRecord:
+    return EventRecord(
+        event_id=event.event_id,
+        event_type=event.event_type,
+        android_id=event.android_id,
+        beacon_id=event.beacon_id,
+        device_timestamp=event.device_timestamp,
+        server_timestamp=event.server_timestamp,
+    )
+
+
+def _to_area_reference(area: PatrolArea) -> AreaReference:
+    return AreaReference(area.station_id, area.area_id, area.area_kind)

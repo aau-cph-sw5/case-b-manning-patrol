@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from src.models.coverage import StationCoverageReport
+from src.domain.coverage import StationCoverageReport
 
 
 class CoveragePublisher(Protocol):

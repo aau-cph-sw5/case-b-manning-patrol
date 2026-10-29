@@ -5,7 +5,7 @@ Repository of functions used to query the database related to Station
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import Station, StationLine
+from src.db.models import Station, StationLine
 
 
 async def get_station(session: AsyncSession, id: str) -> Station:
