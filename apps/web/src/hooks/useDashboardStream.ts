@@ -44,6 +44,7 @@ export function useDashboardStream(): {
         // Save to both state and localStorage
         setDashboard(newDashboard);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newDashboard));
+        setError(null);
         setIsLoading(false);
       },
       (event: Event) => {
