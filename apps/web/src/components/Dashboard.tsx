@@ -14,7 +14,8 @@ import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import Legend from './Legend.tsx'
-        
+import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
+
 import './Dashboard.css'
 
 function Dashboard() {
@@ -22,7 +23,7 @@ function Dashboard() {
   const listRef = useRef<HTMLUListElement>(null)
   const fit = useFitCount(listRef)
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
-  const { dashboard, error } = useDashboardStream()
+  const { dashboard, error, lastUpdated } = useDashboardStream()
 
   useEffect(() => {
     if (dashboard) console.log("Dashboard SSE update:", dashboard);
@@ -73,9 +74,10 @@ function Dashboard() {
       <section className="dashboard-header">
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
         <h1 className='dashboard-title'>Patrulje Overblik</h1>
+        <div className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</div>
       </section>
       <div className="dash">
-        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
+        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2, marginTop: "10px" }}>
           Overskredet ({overdueCount})
         </div>
         <section className="station-grid">
