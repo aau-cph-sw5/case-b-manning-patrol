@@ -7,7 +7,7 @@ from src.services.train_manning.train_manning_updater import TrainManningUpdater
 logger = logging.getLogger(__name__)
 
 
-class CoverageClockTick:
+class TrainManningClockTick:
     def __init__(self, updater: TrainManningUpdater, interval: timedelta) -> None:
         self._updater = updater
         self._interval = interval

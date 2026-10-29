@@ -1,4 +1,2 @@
-
-
 class ManningWindow:
-    def evalute()
+    def evaluate(self) -> None: ...

@@ -2,14 +2,15 @@ import asyncio
 from collections.abc import Callable
 from datetime import datetime
 
-from services.api.src.services.station_coverage.shift_schedule import ShiftSchedule
-from services.api.src.services.train_manning.train_manning_publisher import (
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.services.station_coverage.shift_schedule import ShiftSchedule
+from src.services.train_manning.train_manning_publisher import (
     TrainManningPublisher,
 )
-from services.api.src.services.train_manning.train_manning_service import (
+from src.services.train_manning.train_manning_service import (
     TrainManningService,
 )
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 class TrainManningUpdater:
@@ -20,7 +21,14 @@ class TrainManningUpdater:
         session_factory: Callable[[], AsyncSession],
         clock: Callable[[], datetime],
         shift_schedule: ShiftSchedule,
-    ) -> None: ...
+    ) -> None:
+        self._service = service
+        self._publisher = publisher
+        self._session_factory = session_factory
+        self._clock = clock
+        self._shift_schedule = shift_schedule
+        self._lock = asyncio.Lock()
+        self._last_published: list[TrainManningReport] = []
 
     async def refresh(self) -> None:
         async with self._lock:
@@ -34,4 +42,5 @@ class TrainManningUpdater:
             self._last_published = reports
             self._publisher.publish(reports)
 
-    def snapshot(self) -> list[TrainManningReport]: ...
+    def snapshot(self) -> list[TrainManningReport]:
+        return list(self._last_published)
