@@ -45,7 +45,7 @@ export const STATIONS: Station[] = [
   },
   {
     code: 'KNG',
-    name: 'Kongens',
+    name: 'Kongens Nytorv',
     levels: [
       { label: 'Perron 1', lastPatrolAt: Date.now() - 41 * MIN, manned: false },
       { label: 'Perron 2', lastPatrolAt: Date.now() - 50 * MIN, manned: false },
