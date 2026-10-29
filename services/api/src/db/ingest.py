@@ -5,10 +5,8 @@ from uuid import UUID
 from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import PatrolArea, Station
-from src.models.line import Line
-from src.models.patrol_area import AreaKind
-from src.models.station_line import StationLine
+from src.db.models import Line, PatrolArea, Station, StationLine
+from src.domain.patrol_area import AreaKind
 
 STATIONS_FILE = Path(__file__).parent.parent / "data" / "stations.v1.json"
 

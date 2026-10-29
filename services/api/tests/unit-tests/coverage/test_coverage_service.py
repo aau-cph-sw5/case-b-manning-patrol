@@ -9,16 +9,17 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import Event, EventType, PatrolArea, Station
-from src.models.coverage import CoverageStatus, StationCoverageReport
-from src.models.patrol_area import AreaKind
-from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_window import (
+from src.db.models import Event, PatrolArea, Station
+from src.domain.coverage import CoverageStatus, StationCoverageReport
+from src.domain.event import EventType
+from src.domain.patrol_area import AreaKind
+from src.services.station_coverage.coverage_service import CoverageService
+from src.services.station_coverage.coverage_window import (
     MIN_QUALIFYING_DURATIONS,
     TIME_UNTIL_NEXT_NEEDED_PATROL,
     CoverageWindow,
 )
-from src.services.coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.interval_builder import IntervalBuilder
 
 NOW = datetime(2026, 10, 8, 12, 0, 0, tzinfo=UTC)
 WINDOW = TIME_UNTIL_NEXT_NEEDED_PATROL

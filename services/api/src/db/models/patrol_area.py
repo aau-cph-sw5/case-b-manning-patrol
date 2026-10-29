@@ -1,12 +1,8 @@
-from enum import StrEnum
 from uuid import UUID
 
 from sqlmodel import Field, SQLModel
 
-
-class AreaKind(StrEnum):
-    CONCOURSE = "concourse"
-    PLATFORM = "platform"
+from src.domain.patrol_area import AreaKind
 
 
 class PatrolArea(SQLModel, table=True):

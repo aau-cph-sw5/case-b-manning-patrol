@@ -9,9 +9,7 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.ingest import load_stations
-from src.models import PatrolArea, Station
-from src.models.line import Line
-from src.models.station_line import StationLine
+from src.db.models import Line, PatrolArea, Station, StationLine
 
 # Mock data shaped exactly like services/api/src/data/stations.v1.json.
 STATION = {

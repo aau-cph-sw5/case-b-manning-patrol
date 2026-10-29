@@ -1,16 +1,11 @@
 import json
-from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from src.domain.shift import Shift
+
 SHIFTS_FILE = Path(__file__).parents[2] / "data" / "shifts.v1.json"
-
-
-@dataclass(frozen=True)
-class Shift:
-    start: datetime
-    end: datetime
 
 
 class ShiftSchedule:

@@ -4,17 +4,12 @@ Health
 Health check endpoint for the backend.
 """
 
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.main import get_session
+from src.api.v2.dependencies import AsyncDbSessionDep
 
 router = APIRouter(tags=["health"])
-
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.get("/health")
@@ -24,7 +19,7 @@ def health_check():
 
 
 @router.get("/health/db")
-async def db_health(session: SessionDep) -> dict:
+async def db_health(session: AsyncDbSessionDep) -> dict:
     """Check that the database connection works."""
     result = await session.exec(select(1))
     result.one()

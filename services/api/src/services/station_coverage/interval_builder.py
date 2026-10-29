@@ -2,14 +2,14 @@ import logging
 from datetime import datetime
 from uuid import UUID
 
-from src.models.coverage import StewardPatrolInterval
-from src.models.event import Event, EventType
+from src.domain.coverage import StewardPatrolInterval
+from src.domain.event import EventRecord, EventType
 
 logger = logging.getLogger(__name__)
 
 
 class IntervalBuilder:
-    def build(self, events: list[Event]) -> list[StewardPatrolInterval]:
+    def build(self, events: list[EventRecord]) -> list[StewardPatrolInterval]:
         events = self._in_time_order(events)
         open_visits: dict[tuple[UUID, UUID], datetime] = {}
         intervals: list[StewardPatrolInterval] = []
@@ -65,7 +65,7 @@ class IntervalBuilder:
         )
 
     @staticmethod
-    def _in_time_order(events: list[Event]) -> list[Event]:
+    def _in_time_order(events: list[EventRecord]) -> list[EventRecord]:
         return sorted(
             events,
             key=lambda event: (

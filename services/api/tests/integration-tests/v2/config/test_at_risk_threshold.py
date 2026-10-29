@@ -1,6 +1,6 @@
 """Tests for the at-risk threshold config endpoints (AtRiskThreshold)."""
 
-from src.models.config import DEFAULT_AT_RISK_THRESHOLD_MINUTES
+from src.db.models.config import DEFAULT_AT_RISK_THRESHOLD_MINUTES
 
 
 def test_at_risk_threshold_returns_200(client):

@@ -1,8 +1,8 @@
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.coverage import OverdueCleared, OverdueDetected
-from src.models.overdue_log import OverdueLogEntry
+from src.db.models.overdue_log import OverdueLogEntry
+from src.domain.coverage import OverdueCleared, OverdueDetected
 
 
 async def get_entry_ids(session: AsyncSession) -> set[str]:

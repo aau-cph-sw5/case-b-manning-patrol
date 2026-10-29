@@ -4,8 +4,8 @@ Repository of functions used to query the database related to Config
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models import Config
-from src.models.config import DEFAULT_AT_RISK_THRESHOLD_MINUTES
+from src.db.models import Config
+from src.db.models.config import DEFAULT_AT_RISK_THRESHOLD_MINUTES
 
 CONFIG_ROW_ID = 1
 
