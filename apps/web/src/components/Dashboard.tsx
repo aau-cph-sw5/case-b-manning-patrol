@@ -14,6 +14,7 @@ import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { toViewStations } from '../api/dashboardMapper.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import Legend from './Legend.tsx'
+import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
 import './Dashboard.css'
 
@@ -22,7 +23,7 @@ function Dashboard() {
   const listRef = useRef<HTMLUListElement>(null)
   const fit = useFitCount(listRef)
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
-  const { dashboard, isLoading, error } = useDashboardStream()
+  const { dashboard, isLoading, error, lastUpdated } = useDashboardStream()
   const stations = useMemo(
     () => (dashboard ? toViewStations(dashboard) : []),
     [dashboard],
@@ -35,9 +36,9 @@ function Dashboard() {
 
   useEffect(() => {
     getAtRiskThreshold()
-      .then((minutes) => {
-        setRiskTime(minutes)
-        setRiskTimeState(minutes)
+      .then((threshold) => {
+        setRiskTime(threshold.at_risk_threshold_minutes)
+        setRiskTimeState(threshold.at_risk_threshold_minutes)
       })
       .catch((error) => {
         console.error('Error fetching at-risk threshold:', error)
@@ -48,7 +49,9 @@ function Dashboard() {
     setRiskTime(value)
     setRiskTimeState(value)
     // Update the backend with the new risk time
-    setAtRiskThreshold(value).catch(console.error) 
+    setAtRiskThreshold(value)
+      .then((updated) => setRiskTimeState(updated.at_risk_threshold_minutes))
+      .catch(console.error)
   }
 
   const attention = stations.flatMap((station) =>
@@ -75,9 +78,10 @@ function Dashboard() {
       <section className="dashboard-header">
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
         <h1 className='dashboard-title'>Patrulje Overblik</h1>
+        <div className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</div>
       </section>
       <div className="dash">
-        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2 }}>
+        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2, marginTop: "10px" }}>
           Overskredet ({overdueCount})
         </div>
         <section className="station-grid">

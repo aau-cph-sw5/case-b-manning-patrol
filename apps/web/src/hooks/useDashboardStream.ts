@@ -27,6 +27,7 @@ export function useDashboardStream(): {
   dashboard: Dashboard | null;
   isLoading: boolean;
   error: Error | null;
+  lastUpdated: string | null;
 } {
   const [dashboard, setDashboard] = useState<Dashboard | null>(() => {
     // Initialize from localStorage if available
@@ -37,10 +38,7 @@ export function useDashboardStream(): {
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-
-    // Connect to SSE stream
+      // Connect to SSE stream
     eventSourceRef.current = subscribeToDashboard(
       (newDashboard: Dashboard) => {
         // Save to both state and localStorage
@@ -65,7 +63,7 @@ export function useDashboardStream(): {
     };
   }, []);
 
-  return { dashboard, isLoading, error };
+  return { dashboard, isLoading, error, lastUpdated: dashboard?.time || null };
 }
 
 /**
