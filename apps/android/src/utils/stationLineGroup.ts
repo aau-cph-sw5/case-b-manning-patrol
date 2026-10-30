@@ -7,6 +7,6 @@ export const LINE_GROUP_ROUTES: Record<LineGroup, string[]> = {
 
 export function stationServesLineGroup(station: Station, lineGroup: LineGroup): boolean {
   return station.areas.some((area) =>
-    LINE_GROUP_ROUTES[lineGroup].includes(area.line),
+    area.line.some((line) => LINE_GROUP_ROUTES[lineGroup].includes(line)),
   );
 }

@@ -7,11 +7,11 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
-from src.db.main import get_session
-from src.db.repository import events
+from src.api.v2.dependencies import get_async_db_session
+from src.db.repository import event
+from src.domain.event import EventType
 from src.main import app
-from src.models.event import EventType
-from src.services.producer import MainProducer
+from src.services.event_producer import EventProducer
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 TIMESTAMP = "2026-09-21T10:00:00+00:00"
@@ -86,29 +86,26 @@ def test_patrol_session_stop_rejects_malformed_timestamp(client):
 async def test_patrol_session_stop_closes_open_connections(client: TestClient):
     started_at = datetime(2026, 10, 9, 10, 0, tzinfo=UTC)
     stopped_at = started_at + timedelta(hours=2)
-    get_test_session = app.dependency_overrides[get_session]
+    get_test_session = app.dependency_overrides[get_async_db_session]
 
     async with asynccontextmanager(get_test_session)() as session:
+        producer = EventProducer(session, source="test")
         for beacon_id, timestamp in [
             (BEACON_1_ID, started_at),
             (BEACON_2_ID, started_at + timedelta(minutes=30)),
             (BEACON_3_ID, started_at - timedelta(hours=1)),
         ]:
-            await MainProducer.append_event(
-                session=session,
+            await producer.append_event(
                 event_type=EventType.CONNECT_EVENT,
                 android_id=STEWART_ANDROID_ID,
                 beacon_id=beacon_id,
                 device_timestamp=timestamp,
-                source="test",
             )
-        await MainProducer.append_event(
-            session=session,
+        await producer.append_event(
             event_type=EventType.DISCONNECT_EVENT,
             android_id=STEWART_ANDROID_ID,
             beacon_id=BEACON_3_ID,
             device_timestamp=started_at,
-            source="test",
         )
 
     response = client.post(
@@ -123,9 +120,9 @@ async def test_patrol_session_stop_closes_open_connections(client: TestClient):
     assert response.json()["event_type"] == "shift_stop"
 
     async with asynccontextmanager(get_test_session)() as session:
-        assert await events.get_open_connections(session, STEWART_ANDROID_ID) == []
+        assert await event.get_open_connections(session, STEWART_ANDROID_ID) == []
 
-        all_events = await events.get_events(session)
+        all_events = await event.get_events(session)
         disconnects = [
             event
             for event in all_events

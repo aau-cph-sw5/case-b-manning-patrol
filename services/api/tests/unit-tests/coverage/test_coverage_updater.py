@@ -4,8 +4,9 @@ import datetime
 import logging
 from datetime import timedelta
 
-from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
-from src.services.coverage.shift_schedule import Shift
+from src.domain.shift import Shift
+from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
+from src.services.station_coverage.coverage_updater import CoverageUpdater
 
 
 class FakeSession:
@@ -207,7 +208,7 @@ async def test_clock_tick_refreshes_until_cancelled():
             self.refreshes += 1
 
     fake_updater = FakeTickUpdater()
-    tick = ClockTick(
+    tick = CoverageClockTick(
         fake_updater,  # ty: ignore[invalid-argument-type]
         interval=timedelta(milliseconds=10),
     )
@@ -233,7 +234,7 @@ async def test_clock_tick_survives_a_failed_refresh():
                 raise RuntimeError("database hiccup")
 
     fake_updater = FlakyThenSteadyUpdater()
-    tick = ClockTick(
+    tick = CoverageClockTick(
         fake_updater,  # ty: ignore[invalid-argument-type]
         interval=timedelta(milliseconds=10),
     )
@@ -260,7 +261,7 @@ async def test_clock_tick_logs_a_persistent_failure_once(caplog):
             raise RuntimeError("database down")
 
     fake_updater = AlwaysFailingUpdater()
-    tick = ClockTick(
+    tick = CoverageClockTick(
         fake_updater,  # ty: ignore[invalid-argument-type]
         interval=timedelta(milliseconds=10),
     )
@@ -290,7 +291,7 @@ async def test_clock_tick_logs_recovery_once_and_resets_the_streak(caplog):
                 raise RuntimeError("database hiccup")
 
     fake_updater = FailsRecoversThenFailsAgainUpdater()
-    tick = ClockTick(
+    tick = CoverageClockTick(
         fake_updater,  # ty: ignore[invalid-argument-type]
         interval=timedelta(milliseconds=10),
     )

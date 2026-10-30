@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from uuid import UUID
 
-from src.models.patrol_area import AreaKind, PatrolArea
+from src.domain.patrol_area import AreaKind
 
 
 class CoverageStatus(StrEnum):
@@ -22,10 +22,6 @@ class AreaReference:
     station_id: str | None
     area_id: str
     kind: AreaKind
-
-    @staticmethod
-    def from_patrol_area(area: PatrolArea) -> AreaReference:
-        return AreaReference(area.station_id, area.area_id, area.area_kind)
 
 
 @dataclass(frozen=True)

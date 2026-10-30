@@ -14,27 +14,33 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.services.coverage.coverage_service import CoverageService
-from src.services.coverage.coverage_updater import ClockTick, CoverageUpdater
-from src.services.coverage.coverage_window import (
+from src.services.event_producer import EventValidationError, TargetEventNotFoundError
+from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
+from src.services.station_coverage.coverage_service import CoverageService
+from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.services.station_coverage.coverage_window import (
     MIN_QUALIFYING_DURATIONS,
     TIME_UNTIL_NEXT_NEEDED_PATROL,
     CoverageWindow,
 )
-from src.services.coverage.dashboard_presenter import DashboardPresenter
-from src.services.coverage.interval_builder import IntervalBuilder
-from src.services.coverage.shift_schedule import ShiftSchedule
-from src.services.coverage.sse_broadcaster import SseBroadcaster
-from src.services.overdue_tracker import OverdueTracker
-from src.services.producer import EventValidationError
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
+from src.services.station_coverage.interval_builder import IntervalBuilder
+from src.services.station_coverage.overdue_tracker import OverdueTracker
+from src.services.station_coverage.shift_schedule import ShiftSchedule
+from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
-from .api.v1.routers import positioning_simulator
-from .api.v2.routers import adjustment, config, dashboard_stream, health, patrol_session
+from .api.v2.routers import (
+    adjustment,
+    config,
+    connection,
+    dashboard_stream,
+    health,
+    patrol_session,
+)
 from .db.ingest import load_stations
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
 
-API_PREFIX_V1 = "/api/v1"
 API_PREFIX_V2 = "/api/v2"
 
 
@@ -52,7 +58,7 @@ async def lifespan(app: FastAPI):
         time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
         min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
-    sse_broadcaster = SseBroadcaster()
+    sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
     service = CoverageService(builder, rule)
     coverage_updater = CoverageUpdater(
@@ -65,7 +71,9 @@ async def lifespan(app: FastAPI):
     )
 
     await coverage_updater.refresh()
-    tick = asyncio.create_task(ClockTick(coverage_updater, timedelta(seconds=5)).run())
+    tick = asyncio.create_task(
+        CoverageClockTick(coverage_updater, timedelta(seconds=5)).run()
+    )
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
@@ -83,6 +91,14 @@ app = FastAPI(title="Manning Patrol Backend", lifespan=lifespan)
 async def event_validation_exception_handler(
     _: Request,
     error: EventValidationError,
+) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
+
+
+@app.exception_handler(TargetEventNotFoundError)
+async def target_event_not_found_exception_handler(
+    _: Request,
+    error: TargetEventNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
@@ -102,12 +118,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(positioning_simulator.router, prefix=API_PREFIX_V1)
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
+app.include_router(connection.router, prefix=API_PREFIX_V2)
 
 
 @app.get("/ping")

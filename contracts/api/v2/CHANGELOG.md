@@ -1,5 +1,32 @@
 # Changelog
 
+## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
+- Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
+  returns `RecordList`, one steward's patrol records for the current shift only.
+- Each `Record` bundles one connect event with its matching disconnect event (closed
+  at the shift stop event, or left open while the steward is still connected),
+  resolves the beacon to its `RecordArea`, and states `min_patrol_duration_secs`
+  (10 for platform, 20 for concourse), whether that threshold has been passed
+  (`patrolled`), and a `status` of `pending` (connection still running) or
+  `registered` (disconnect event stored, closing the record).
+- The steward's Android app uses this for its patrol history view: pending records
+  as current connections with a client-side running timer, registered records as
+  closed records with their duration.
+- Positioning Ingestion: the `POST /api/v2/connection/connect` 201 acknowledgement
+  now returns the stored event plus the beacon's resolved area
+  (`connect-event-stored`), so the client can display where it is immediately
+  instead of a pending placeholder. The body was previously unspecified, so no
+  published interface breaks.
+- Positioning Ingestion: the 201 acknowledgements now specify their bodies via
+  `stored-event` (and `connect-event-stored` for connect). The
+  `POST /api/v2/connection/disconnect` acknowledgement registers the record
+  server-side — the moment the record's status becomes `registered`.
+
+## v2.2.0 - Positioning Interface: `line` is an array of strings
+- Positioning Interface: `Area.line` changed from a single string (e.g.
+  `"M1 & M2"`) to an array of line ids (e.g. `["M1", "M2"]`). The field was
+  introduced in the unpublished v2.0.1 draft, so no published interface breaks.
+
 ## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
 - Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
   the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the

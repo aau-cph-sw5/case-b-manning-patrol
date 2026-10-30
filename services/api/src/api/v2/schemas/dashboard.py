@@ -8,13 +8,13 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from src.models.patrol_area import AreaKind
+from src.domain.patrol_area import AreaKind
 
 
 class DashboardArea(BaseModel):
     area_id: str
     name: str
-    line: str
+    line: list[str]
     area_type: AreaKind
     covered_now: bool
     overdue_at: datetime | None
@@ -26,7 +26,7 @@ class DashboardStation(BaseModel):
     areas: list[DashboardArea]
 
 
-class Train(BaseModel):
+class DashboardTrain(BaseModel):
     train_id: UUID
     slug: str
     total_time_secs: int
@@ -36,5 +36,5 @@ class Train(BaseModel):
 
 class Dashboard(BaseModel):
     stations: list[DashboardStation]
-    trains: list[Train]
+    trains: list[DashboardTrain]
     time: datetime

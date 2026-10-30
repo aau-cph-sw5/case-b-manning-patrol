@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
 
-from src.models.coverage import (
+from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
     OverdueEpisode,
     StewardPatrolInterval,
     TimeSpan,
 )
-from src.models.patrol_area import AreaKind
+from src.domain.patrol_area import AreaKind
 
 TIME_UNTIL_NEXT_NEEDED_PATROL = timedelta(minutes=60)
 MIN_QUALIFYING_DURATIONS = {

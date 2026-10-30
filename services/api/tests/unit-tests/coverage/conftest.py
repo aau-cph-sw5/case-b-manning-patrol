@@ -4,14 +4,14 @@ from datetime import timedelta
 
 import pytest
 
-from src.models import Station, StationLine
-from src.models.coverage import (
+from src.db.models import Station, StationLine
+from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
     StationCoverageReport,
 )
-from src.models.patrol_area import AreaKind
-from src.services.coverage.dashboard_presenter import DashboardPresenter
+from src.domain.patrol_area import AreaKind
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 
 
 @pytest.fixture

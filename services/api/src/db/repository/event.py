@@ -8,13 +8,8 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.models.event import (
-    Adjustment,
-    AdjustmentModel,
-    Event,
-    EventModel,
-    EventType,
-)
+from src.db.models.event import Event
+from src.domain.event import EventType
 
 
 async def get_event(session: AsyncSession, event_id: UUID) -> Event:
@@ -67,36 +62,8 @@ async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[
     return list(open_connections.values())
 
 
-async def insert_event(session: AsyncSession, event: EventModel) -> Event:
-    event_row = Event(**event.model_dump())
-    session.add(event_row)
+async def insert_event(session: AsyncSession, event: Event) -> Event:
+    session.add(event)
     await session.commit()
-    return event_row
-
-
-async def get_adjustment(session: AsyncSession, adjustment_id: UUID) -> Adjustment:
-    result = await session.exec(
-        select(Adjustment).where(Adjustment.adjustment_id == adjustment_id)
-    )
-    return result.one()
-
-
-async def get_adjustments(session: AsyncSession) -> list[Adjustment]:
-    result = await session.exec(select(Adjustment))
-
-    return list(result.all())
-
-
-async def insert_adjustment(
-    session: AsyncSession,
-    adjustment: AdjustmentModel,
-) -> Adjustment:
-    adjustment_row = Adjustment(
-        **adjustment.model_dump(exclude={"corrected_fact"}),
-        corrected_fact_type=adjustment.corrected_fact.fact_type,
-        corrected_beacon_id=adjustment.corrected_fact.beacon_id,
-        corrected_occured_at=adjustment.corrected_fact.occurred_at,
-    )
-    session.add(adjustment_row)
-    await session.commit()
-    return adjustment_row
+    await session.refresh(event)
+    return event

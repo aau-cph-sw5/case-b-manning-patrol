@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.overdue_log import append_entries, get_entry_ids
-from src.models.coverage import (
+from src.domain.coverage import (
     AreaCoverageReport,
     OverdueCleared,
     OverdueDetected,

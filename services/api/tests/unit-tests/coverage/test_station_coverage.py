@@ -3,13 +3,13 @@ from uuid import UUID
 
 import pytest
 
-from src.models.coverage import (
+from src.domain.coverage import (
     AreaCoverageReport,
     AreaReference,
     CoverageStatus,
     StationCoverageReport,
 )
-from src.models.patrol_area import AreaKind
+from src.domain.patrol_area import AreaKind
 
 STEWARD_1 = UUID("00000000-0000-0000-0000-000000000001")
 STEWARD_2 = UUID("00000000-0000-0000-0000-000000000002")
