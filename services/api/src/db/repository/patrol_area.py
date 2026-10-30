@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to PatrolArea
-"""
+"""Queries for patrol areas and their beacons."""
 
 from uuid import UUID
 

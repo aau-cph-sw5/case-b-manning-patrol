@@ -14,7 +14,10 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health")
 def health_check():
-    """Health check endpoint."""
+    """Report that the API process is up and serving requests.
+
+    Does not touch the database; use `/health/db` to check that too.
+    """
     return {"status": "ok", "message": "Manning Patrol Backend running"}
 
 

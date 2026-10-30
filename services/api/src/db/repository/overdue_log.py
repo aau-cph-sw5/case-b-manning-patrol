@@ -1,3 +1,5 @@
+"""Queries for the append-only overdue log."""
+
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 

@@ -13,6 +13,13 @@ class EventType(StrEnum):
 
 @dataclass(frozen=True)
 class EventRecord:
+    """A steward event as used by the coverage calculation.
+
+    ``device_timestamp`` is when the phone saw the event and is the time
+    coverage is based on; ``server_timestamp`` is when the backend received
+    it. ``beacon_id`` is normally None for START and STOP events.
+    """
+
     event_id: UUID
     event_type: EventType
     android_id: UUID

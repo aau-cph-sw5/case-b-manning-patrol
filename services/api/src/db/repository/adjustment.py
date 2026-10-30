@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to Adjustments
-"""
+"""Queries for supervisor adjustments to recorded events."""
 
 from uuid import UUID
 

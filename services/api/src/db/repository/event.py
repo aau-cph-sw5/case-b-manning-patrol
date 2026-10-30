@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to Events
-"""
+"""Queries for steward events."""
 
 from datetime import datetime
 from uuid import UUID
@@ -25,6 +23,11 @@ async def get_events(session: AsyncSession) -> list[Event]:
 
 
 async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[Event]:
+    """Return the steward's CONNECT events that have not been disconnected.
+
+    For each beacon, returns the latest CONNECT if it is later than the latest
+    DISCONNECT for that beacon, by device timestamp.
+    """
     connects = await session.exec(
         select(Event).where(
             Event.android_id == android_id,

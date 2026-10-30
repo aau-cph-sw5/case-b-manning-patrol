@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to Config
-"""
+"""Queries for the single-row system configuration."""
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 

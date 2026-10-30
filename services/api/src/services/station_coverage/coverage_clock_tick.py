@@ -1,3 +1,5 @@
+"""Periodic background refresh of station coverage."""
+
 import asyncio
 import logging
 from datetime import timedelta
@@ -8,12 +10,26 @@ logger = logging.getLogger(__name__)
 
 
 class CoverageClockTick:
+    """Refresh coverage on a fixed interval so overdue areas appear without events.
+
+    Coverage changes as time passes even when no steward events arrive, so
+    the dashboard needs a clock-driven refresh in addition to event-driven
+    ones.
+    """
+
     def __init__(self, updater: CoverageUpdater, interval: timedelta) -> None:
         self._updater = updater
         self._interval = interval
         self._failed_ticks = 0
 
     async def run(self) -> None:
+        """Call ``updater.refresh()`` forever, sleeping ``interval`` between calls.
+
+        A failing refresh never stops the loop. The first failure in a row is
+        logged with its traceback, later consecutive failures only at debug
+        level, and the first success afterwards logs a recovery message.
+        Only cancellation ends the loop.
+        """
         while True:
             try:
                 await self._updater.refresh()

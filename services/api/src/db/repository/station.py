@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to Station
-"""
+"""Queries for stations and station lines."""
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession

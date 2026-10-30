@@ -1,3 +1,5 @@
+"""Compute per-station patrol coverage from the event log."""
+
 from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
@@ -20,6 +22,8 @@ from src.services.station_coverage.interval_builder import IntervalBuilder
 
 
 class CoverageService:
+    """Build coverage reports for every patrol area, grouped by station."""
+
     def __init__(self, builder: IntervalBuilder, rule: CoverageWindow) -> None:
         self._interval_builder = builder
         self._rule = rule
@@ -30,6 +34,23 @@ class CoverageService:
         now: datetime,
         shift_start_time: datetime | None = None,
     ) -> list[StationCoverageReport]:
+        """Return the coverage of all stations as of ``now``.
+
+        Loads every event and patrol area, builds visit intervals and
+        evaluates each area with the coverage rule. ``now`` is passed in
+        instead of read from the clock so results are deterministic and
+        testable.
+
+        ``shift_start_time`` is the scheduled shift start from
+        ``ShiftSchedule``, never a START event. When given, intervals are
+        clipped to ``[shift_start_time, now]``: intervals that start after
+        ``now`` or end at or before the shift start are dropped, start times
+        are moved up to the shift start, and intervals ending after ``now``
+        are treated as still open. When ``None``, no clipping is done.
+
+        Areas without a beacon get no intervals, areas without a station are
+        left out, and stations and their areas are sorted by ID.
+        """
         events = await get_events(session)
         areas = await get_patrol_areas(session)
 
