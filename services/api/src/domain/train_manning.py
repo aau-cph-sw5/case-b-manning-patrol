@@ -23,7 +23,6 @@ class TrainManningReport:
     manned_time: timedelta
     manned_now: bool
     current_steward_ids: frozenset[UUID]
-    required_ratio: float
     as_of: datetime
 
     @property
