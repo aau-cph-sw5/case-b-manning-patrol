@@ -19,7 +19,7 @@ export function createMockStations(now: number): Station[] {
   ): Area => ({
     areaId,
     name,
-    line,
+    line: [line],
     areaType,
     coveredNow,
     overdueAt: at(minutesTillOverdue),
