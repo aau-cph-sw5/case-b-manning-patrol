@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.domain.train_manning import TrainManningReport
 from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.train_manning.train_manning_publisher import (
     TrainManningPublisher,

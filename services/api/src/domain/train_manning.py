@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from enum import StrEnum
 from uuid import UUID
 
 
@@ -33,15 +32,8 @@ class TrainManningReport:
             return None
         return self.manned_time / self.running_time
 
-    @property
-    def manning_status(self) -> ManningStatus:
-        if self.manned_ratio is None or self.manned_ratio >= self.required_ratio:
-            return ManningStatus.COMPLIANT
-        return ManningStatus.UNDERMANNED
-
     def state(self) -> tuple:
         return (
             self.manned_now,
-            self.manning_status,
             self.current_steward_ids,
         )
