@@ -4,7 +4,6 @@ from fastapi import APIRouter
 
 from src.api.v2.dependencies import AsyncDbSessionDep
 
-
 router = APIRouter(tags=["patrol_record"])
 
 
