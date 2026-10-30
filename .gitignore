@@ -54,5 +54,8 @@ htmlcov/
 *.log
 logs/
 
+# MkDocs
+site/
+
 # OS files
 Thumbs.db
