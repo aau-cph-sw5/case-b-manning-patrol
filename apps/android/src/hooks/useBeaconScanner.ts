@@ -27,8 +27,8 @@ export function useBeaconScanner(scanner: BeaconScanner): UseBeaconScannerResult
         // or the disconnect confirmation delay, i.e. the same moment the POST leaves the phone.
         const message =
           event.event === "CONNECTED"
-            ? `Forbundet til beacon ${event.beacon_id}`
-            : `Afbrudt fra beacon ${event.beacon_id}`;
+            ? `Forbundet til beacon`
+            : `Afbrudt fra beacon`;
         showToast(message);
 
         postConnectionEvent(event).catch((error: unknown) => {
