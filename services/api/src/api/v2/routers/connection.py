@@ -1,3 +1,5 @@
+"""Endpoints for beacon connect and disconnect events from steward phones."""
+
 from fastapi import APIRouter, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
@@ -12,6 +14,11 @@ router = APIRouter(tags=["connection"])
 async def connection_event(
     connection_event: ConnectionEvent, producer: EventProducerDep, request: Request
 ):
+    """Record that a steward's phone connected to a beacon.
+
+    Stores the event, recalculates station coverage and pushes it to the
+    dashboard stream, then returns the stored event.
+    """
     event = await producer.append_event(
         event_type=EventType.CONNECT_EVENT,
         android_id=connection_event.android_id,
@@ -27,6 +34,11 @@ async def connection_event(
 async def disconnection_event(
     connection_event: ConnectionEvent, producer: EventProducerDep, request: Request
 ):
+    """Record that a steward's phone lost its connection to a beacon.
+
+    Stores the event, recalculates station coverage and pushes it to the
+    dashboard stream, then returns the stored event.
+    """
     event = await producer.append_event(
         event_type=EventType.DISCONNECT_EVENT,
         android_id=connection_event.android_id,

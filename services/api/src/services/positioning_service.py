@@ -1,3 +1,5 @@
+"""Load event fixtures and replay them as a simulated positioning stream."""
+
 import asyncio
 import json
 from datetime import datetime

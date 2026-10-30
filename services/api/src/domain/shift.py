@@ -1,3 +1,5 @@
+"""A single scheduled shift."""
+
 from dataclasses import dataclass
 from datetime import datetime
 

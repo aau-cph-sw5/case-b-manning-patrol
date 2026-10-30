@@ -1,3 +1,5 @@
+"""Steward event types and the event record used by the coverage calculation."""
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -5,6 +7,8 @@ from uuid import UUID
 
 
 class EventType(StrEnum):
+    """Kinds of event a steward's phone sends."""
+
     CONNECT_EVENT = "connect"
     DISCONNECT_EVENT = "disconnect"
     START_EVENT = "shift_start"

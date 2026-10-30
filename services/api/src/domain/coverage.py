@@ -11,6 +11,8 @@ from src.domain.patrol_area import AreaKind
 
 
 class CoverageStatus(StrEnum):
+    """Whether an area or station is within its patrol deadline."""
+
     COMPLIANT = "compliant"
     OVERDUE = "overdue"
 
@@ -109,9 +111,11 @@ class OverdueEpisode:
     cleared_at: datetime | None
 
     def is_open(self) -> bool:
+        """Return True if the area is still overdue."""
         return self.cleared_at is None
 
     def duration(self, now: datetime) -> timedelta:
+        """Return how long the area was overdue, or has been so far at ``now``."""
         if self.cleared_at is not None:
             return self.cleared_at - self.overdue_at
         return now - self.overdue_at
@@ -153,6 +157,7 @@ class AreaCoverageReport:
 
     @property
     def overdue_by(self) -> timedelta | None:
+        """Return how far ``as_of`` is past ``overdue_at``; negative if before it."""
         if self.overdue_at is None:
             return None
         return self.as_of - self.overdue_at
@@ -187,6 +192,7 @@ class StationCoverageReport:
     areas: tuple[AreaCoverageReport, ...]
 
     def areas_of(self, kind: AreaKind) -> tuple[AreaCoverageReport, ...]:
+        """Return the station's areas of the given kind."""
         return tuple(area for area in self.areas if area.area.kind == kind)
 
     @property
@@ -236,4 +242,5 @@ class OverdueCleared:
         return f"{self.area.station_id}:{self.area.area_id}:{datestring}:CLEARED"
 
     def overdue_for(self) -> timedelta:
+        """Return how long the area was overdue."""
         return self.cleared_at - self.overdue_at

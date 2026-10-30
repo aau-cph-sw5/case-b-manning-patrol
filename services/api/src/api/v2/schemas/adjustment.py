@@ -1,3 +1,5 @@
+"""Request and response bodies for the adjustment endpoint."""
+
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel
@@ -7,12 +9,19 @@ from src.domain.event import EventType
 
 
 class CorrectedFact(BaseModel):
+    """What the event should have recorded.
+
+    `beacon_id` is required when `fact_type` is connect or disconnect.
+    """
+
     fact_type: EventType
     beacon_id: UUID | None = None
     occurred_at: AwareDatetime
 
 
 class AdjustmentEventCreate(BaseModel):
+    """A supervisor's correction; `target_event_id` is the event it corrects."""
+
     android_id: UUID
     corrected_fact: CorrectedFact
     reason: str
@@ -21,11 +30,14 @@ class AdjustmentEventCreate(BaseModel):
 
 
 class AdjustmentEventStored(AdjustmentBase):
+    """A stored correction as returned by the API."""
+
     adjustment_id: UUID
     corrected_fact: CorrectedFact
 
     @classmethod
     def from_adjustment(cls, adjustment: Adjustment) -> "AdjustmentEventStored":
+        """Build the API response from an adjustment table row."""
         return cls(
             adjustment_id=adjustment.adjustment_id,
             target_event_id=adjustment.target_event_id,
