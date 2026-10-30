@@ -1,23 +1,30 @@
-// the patrol session for a screen: its state, and start/stop actions that call the session api.
-// network code lives in @/api/session, so connecting the real api doesn't touch this hook.
 import { useReducer, useRef } from "react";
 
 import { startPatrolSession, stopPatrolSession } from "@/api/postPatrolSessionEvent";
 import { sessionReducer } from "@/state/sessionReducer";
 import { initialSessionState, type PatrolSessionState } from "@/types/patrol_session/patrolSession";
 
-// shown to the steward. the api's own error message is meant for developers.
+/** Shown to the steward. The API's own error message is meant for developers. */
 const START_ERROR = "Kunne ikke starte sessionen. Prøv igen.";
 const STOP_ERROR = "Kunne ikke stoppe sessionen. Prøv igen.";
 
+/** What {@link usePatrolSession} returns. */
 export type UsePatrolSessionResult = {
   state: PatrolSessionState;
-  // starts a stopped session. does nothing otherwise, or while a request is in flight.
+  /** Start a stopped session. Does nothing otherwise, or while a request is in flight. */
   start: () => Promise<void>;
-  // stops an active session. does nothing otherwise, or while a request is in flight.
+  /** Stop an active session. Does nothing otherwise, or while a request is in flight. */
   stop: () => Promise<void>;
 };
 
+/**
+ * Hold the patrol session for a screen and start or stop it on the backend.
+ *
+ * `start` and `stop` POST to the session API in @/api/postPatrolSessionEvent,
+ * so connecting the real API does not touch this hook. They never reject: a
+ * failed request rolls the state back and sets a Danish message for the
+ * steward in `state.error`.
+ */
 export function usePatrolSession(): UsePatrolSessionResult {
   const [state, dispatch] = useReducer(sessionReducer, initialSessionState);
   // a second slide can complete before the slider re-renders as locked; this stops a second request

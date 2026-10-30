@@ -1,11 +1,17 @@
-const MIN = 60000 //ms
-const shiftStart = Date.now() 
+/** One minute in milliseconds. */
+const MIN = 60000
+const shiftStart = Date.now()
+/** One patrolled area of a station, e.g. a platform or the concourse. */
 export interface StationLevel {
+  /** Display name, also used in the `LEVEL_DEADLINES` key. */
   label: string
+  /** Time of the last patrol in ms since epoch. Not read by the dashboard. */
   lastPatrolAt: number
+  /** A steward is on the level right now, so its countdown is paused. */
   manned: boolean
 }
 
+/** A station on the dashboard and its patrolled levels. */
 export interface Station {
   code: string
   name: string
@@ -13,6 +19,11 @@ export interface Station {
 }
 
 
+/**
+ * Mock stations the dashboard shows until it reads them from the backend.
+ *
+ * Timestamps are computed once when the module loads, not per render.
+ */
 export const STATIONS: Station[] = [
   {
     code: 'VAN',

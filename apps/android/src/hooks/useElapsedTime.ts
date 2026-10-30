@@ -1,8 +1,17 @@
-// milliseconds since startedAt, refreshed every second. 0 while there is no start time.
 import { useEffect, useState } from "react";
 
 const TICK_MS = 1000;
 
+/**
+ * Return the milliseconds since `startedAt`, re-rendering the caller every
+ * second.
+ *
+ * Returns 0 while `startedAt` is null, and never a negative value. The
+ * interval only runs while there is a start time; it is cleared when
+ * `startedAt` changes and on unmount.
+ *
+ * @param startedAt - Start time in ms since epoch, or null for no session.
+ */
 export function useElapsedTime(startedAt: number | null): number {
   const [now, setNow] = useState(() => Date.now());
 

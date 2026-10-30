@@ -1,10 +1,13 @@
-// stands in for the real BLE scanner: simulates a steward walking past beacons, connecting
-// to one, holding it for a while, losing it, then reaching the next. no Bluetooth is
-// involved, so it runs in Expo Go and on the emulator; the real scanner can be dropped in
-// behind the same BeaconScanner interface.
 import type { BeaconConnectionEvent } from "@/types/beacon";
 import type { BeaconScanner } from "@/types/BeaconScanner";
 
+/**
+ * Create the real BLE beacon scanner. Not implemented yet.
+ *
+ * Placeholder behind the {@link BeaconScanner} interface: both `start` and
+ * `stop` throw "Not implemented yet.". Nothing calls it yet; the app uses
+ * `createMockBeaconScanner` instead.
+ */
 export function createBeaconScanner(): BeaconScanner {
   // commented out for now, since we don't have a real scanner yet. when we do, we'll just drop it in behind the same interface.
   // let listener: ((event: BeaconConnectionEvent) => void) | null = null;
@@ -21,7 +24,6 @@ export function createBeaconScanner(): BeaconScanner {
     }
 
     function stopFunction(): void {
-      // stop searching...
       throw new Error("Not implemented yet.")
     }
 

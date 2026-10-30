@@ -1,5 +1,3 @@
-// slide-to-start / slide-to-stop control for a session. ui only: it draws the status it's given
-// and reports a completed slide through onStart / onStop.
 import { useState } from "react";
 import {
   StyleSheet,
@@ -18,7 +16,7 @@ import type { PatrolSessionStatus } from "@/types/patrol_session/patrolSession";
 
 const TRACK_HEIGHT = 76;
 const TRACK_BORDER = 4;
-// gap between the inside of the track border and the thumb
+/** Gap between the inside of the track border and the thumb. */
 const THUMB_INSET = (TRACK_HEIGHT - 2 * TRACK_BORDER - THUMB_SIZE) / 2;
 
 const colors = {
@@ -32,15 +30,16 @@ const colors = {
 
 type Side = "left" | "right";
 
+/** How the slider looks in one session status. */
 type Appearance = {
-  // null shows the elapsed time instead of a label
+  /** Null shows the elapsed time instead of a label. */
   label: string | null;
-  // what a screen reader announces
+  /** What a screen reader announces. */
   accessibilityLabel: string;
-  // where the thumb rests. the label sits on the other side.
+  /** Where the thumb rests. The label sits on the other side. */
   thumbSide: Side;
   thumbColor: string;
-  // green track while a session is running
+  /** Green track while a session is running. */
   filled: boolean;
 };
 
@@ -77,16 +76,22 @@ const appearance: Record<PatrolSessionStatus, Appearance> = {
 
 type SessionSliderProps = {
   status: PatrolSessionStatus;
-  // when the current session started (ms since epoch), shown as elapsed time while active
+  /** When the current session started (ms since epoch), shown as elapsed time while active. */
   startedAt: number | null;
-  // message from the last failed request, shown under the slider
+  /** Message from the last failed request, shown under the slider. */
   error?: string | null;
-  // called when the steward slides right while stopped, or activates the slider with a screen reader
+  /** Called when the steward slides right while stopped, or activates the slider with a screen reader. */
   onStart: () => void;
-  // called when the steward slides left while active, or activates the slider with a screen reader
+  /** Called when the steward slides left while active, or activates the slider with a screen reader. */
   onStop: () => void;
 };
 
+/**
+ * Slide-to-start / slide-to-stop control for a patrol session.
+ *
+ * UI only: it draws the status it is given and reports a completed slide
+ * through `onStart` / `onStop`. Locked while a request is in flight.
+ */
 export function SessionSlider({ status, startedAt, error, onStart, onStop }: SessionSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const { label, accessibilityLabel, thumbSide, thumbColor, filled } = appearance[status];

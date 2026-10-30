@@ -1,7 +1,10 @@
 import type { BeaconConnectionEvent } from "@/types/beacon";
 
+/** Timing overrides for {@link BeaconEventService}, mainly for tests. */
 export type BeaconEventServiceOptions = {
+  /** How long a beacon must stay connected before the connect counts. Defaults to 3 s. */
   minimumConnectionDurationMs?: number;
+  /** How long a disconnect must last before it counts. Defaults to 10 s. */
   disconnectConfirmationDelayMs?: number;
 };
 
@@ -16,11 +19,28 @@ type BeaconConnectionState = {
 const MINIMUM_CONNECTION_DURATION_MS = 3_000;
 const DISCONNECT_CONFIRMATION_DELAY_MS = 10_000;
 
+/**
+ * Debounce raw scanner events into confirmed connects and disconnects.
+ *
+ * Tracks each beacon separately and forwards an event only once it holds:
+ * - A connect is forwarded after the beacon has stayed connected for the
+ *   minimum duration. A disconnect before that drops the connection silently.
+ * - A disconnect is forwarded after the confirmation delay, unless the beacon
+ *   reconnects first, which cancels it.
+ *
+ * Forwarded events keep their original timestamp, not the time they were
+ * confirmed. Uses timers; call {@link BeaconEventService.reset} to cancel
+ * them.
+ */
 export class BeaconEventService {
   private readonly connections = new Map<string, BeaconConnectionState>();
   private readonly minimumConnectionDurationMs: number;
   private readonly disconnectConfirmationDelayMs: number;
 
+  /**
+   * @param forwardEvent - Called once per confirmed event, from a timer
+   * callback.
+   */
   constructor(
     private readonly forwardEvent: (event: BeaconConnectionEvent) => void,
     options: BeaconEventServiceOptions = {},
@@ -31,6 +51,13 @@ export class BeaconEventService {
       options.disconnectConfirmationDelayMs ?? DISCONNECT_CONFIRMATION_DELAY_MS;
   }
 
+  /**
+   * Feed one raw scanner event in.
+   *
+   * A connect for a beacon already tracked only cancels its pending
+   * disconnect, if any. A disconnect for an untracked beacon and a second
+   * disconnect while one is pending are ignored.
+   */
   handleEvent(event: BeaconConnectionEvent): void {
     const connection = this.connections.get(event.beacon_id);
 
@@ -60,6 +87,11 @@ export class BeaconEventService {
     }, this.disconnectConfirmationDelayMs);
   }
 
+  /**
+   * Cancel every pending timer and forget all beacons.
+   *
+   * Pending connects and disconnects are dropped, not forwarded.
+   */
   reset(): void {
     for (const connection of this.connections.values()) {
       this.clearTimer(connection.qualificationTimer);

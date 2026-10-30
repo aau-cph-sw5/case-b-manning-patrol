@@ -84,6 +84,30 @@ npm run coverage   # vitest with v8 coverage, fails below 80%
 - React Compiler is enabled; do not add manual memoization without checking
   whether the compiler already handles it.
 
+## TypeScript doc comments (apps/web, apps/android)
+
+Code is read by groups who did not write it. A reader should understand an
+exported function, hook, component or type from its doc comment without
+reading the body.
+
+- TSDoc block comments (`/** ... */`) directly above the declaration, so
+  editors show them on hover. `//` comments are not shown on hover.
+- Required on every exported function, hook, class, service and API client,
+  and every exported type or constant whose meaning is not obvious from its
+  name. Components: one line, only when the purpose is not obvious from the
+  name and props. Non-exported helpers: only when non-obvious.
+- First line: one-sentence summary as a command ("Return ...",
+  "Subscribe ..."), ending with a period. Details after a blank line.
+- Do not repeat TypeScript: no `{type}` annotations, no `@param`/`@returns`
+  that restate names and types. Use them only to add meaning: units
+  ("minutes, negative means overdue"), what `null`/`undefined` means, side
+  effects, thrown errors.
+- Describe behavior, intent and edge cases, and side effects: network calls,
+  storage, timers, subscriptions and how they are cleaned up.
+- Avoid inline `//` comments. Keep one only for a non-obvious *why* inside a
+  function body that cannot live in the doc comment.
+- When changing behavior, update the doc comment in the same commit.
+
 ## Contracts and docs
 
 - `contracts/` are published, versioned interfaces. Other teams build against

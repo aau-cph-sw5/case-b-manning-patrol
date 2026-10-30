@@ -18,6 +18,7 @@ type StationFilterProps = {
 const SEGMENT_WIDTH = 78;
 const SEGMENT_HEIGHT = 40;
 
+/** Render a segmented control for picking the line group; the highlight slides to the selected segment. */
 export default function StationFilter({ selected, onSelect }: StationFilterProps) {
   const thumbX = useSharedValue(0);
 

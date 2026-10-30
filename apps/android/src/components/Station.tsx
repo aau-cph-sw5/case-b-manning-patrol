@@ -14,6 +14,7 @@ type StationProps = {
   now: number;
 };
 
+/** Render the column headings above the station rows: Station, Perron, Forhal. */
 export function StationListHeader() {
   return (
     <View style={styles.header} accessibilityRole="header">
@@ -28,6 +29,10 @@ export function StationListHeader() {
   );
 }
 
+/**
+ * Render one station row: its line badges, its name, and a countdown cell for
+ * the most urgent platform and the most urgent concourse.
+ */
 export default function Station({ station, now }: StationProps) {
   const lines = [...new Set(station.areas.flatMap((area) => area.line))];
 
@@ -61,9 +66,14 @@ export default function Station({ station, now }: StationProps) {
   );
 }
 
-// one deadline cell. the colour carries the risk (AC 1) and the caption says why
-// a level needs no round right now: someone else is patrolling it (AC 2). an
-// area with no deadline yet renders the same placeholder as a missing one.
+/**
+ * Render one deadline cell.
+ *
+ * The colour carries the risk (AC 1) and the caption says why a level needs
+ * no round right now: someone else is patrolling it (AC 2). A covered cell is
+ * grey and keeps counting, even past the deadline. An area with no deadline
+ * yet renders the same "--" placeholder as a missing one.
+ */
 function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
   if (!area || area.overdueAt === null) {
     return (
@@ -99,6 +109,7 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
   );
 }
 
+/** Badge background style per metro line. Lines not listed get a grey default at the call site. */
 export const routeColors: Record<string, object> = {
   M1: { backgroundColor: "#007D55" },
   M2: { backgroundColor: "#FFC82D" },

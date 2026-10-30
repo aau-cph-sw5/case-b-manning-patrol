@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { Toast } from "@/components/Toast";
 
+/** Wrap the app in the gesture handler root and mount the app-wide toast above the screens. */
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>

@@ -1,17 +1,16 @@
-// stands in for the real BLE scanner: simulates a steward walking past beacons, connecting
-// to one, holding it for a while, losing it, then reaching the next. no Bluetooth is
-// involved, so it runs in Expo Go and on the emulator; the real scanner can be dropped in
-// behind the same BeaconScanner interface.
 import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
 import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import type { BeaconScanner } from "@/types/BeaconScanner";
 
+/** Options for {@link createMockBeaconScanner}. */
 export type MockBeaconScannerOptions = {
-  // the device this phone claims to be.
+  /** The device this phone claims to be. Currently not read by the mock. */
   android_id: string;
+  /** Beacons to cycle through, in order. Defaults to {@link MOCK_BEACON_IDS}. */
   beacon_ids?: readonly string[];
-  // how long a beacon stays connected and how long until the next beacon arrival.
+  /** Min and max ms a beacon stays connected. Defaults to 1–12 s. */
   connectionDurationRangeMs?: readonly [number, number];
+  /** Min and max ms until the next beacon arrives. Defaults to 2–12 s. */
   nextBeaconArrivalDelayRangeMs?: readonly [number, number];
 };
 
@@ -25,6 +24,19 @@ function randomDelay(range: readonly [number, number]): number {
   return range[0] + Math.random() * (range[1] - range[0]);
 }
 
+/**
+ * Create a mock beacon scanner that stands in for the real BLE scanner.
+ *
+ * Simulates a steward walking past beacons: connecting to one, holding it for
+ * a random while, losing it, then reaching the next. Beacons are visited in
+ * round-robin order, and several can be connected at once. No Bluetooth is
+ * involved, so it runs in Expo Go and on the emulator; the real scanner can be
+ * dropped in behind the same {@link BeaconScanner} interface.
+ *
+ * `start` connects the next beacon in the rotation immediately. `stop`, and
+ * `start` while already running, cancel all timers without emitting
+ * DISCONNECTED for beacons that are still connected.
+ */
 export function createMockBeaconScanner(options: MockBeaconScannerOptions): BeaconScanner {
   const {
     beacon_ids = MOCK_BEACON_IDS,

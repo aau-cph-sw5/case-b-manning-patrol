@@ -1,17 +1,26 @@
-// decides the next session state. pure: no requests, timers or other side effects.
-// the start time comes in with START_REQUESTED, so the reducer never reads the clock itself.
-//
-// action           only when status is   new status   error     startedAt
-// START_REQUESTED  stopped               starting     null      from action
-// START_SUCCEEDED  starting              active       null      kept
-// START_FAILED     starting              stopped      message   null
-// STOP_REQUESTED   active                stopping     null      kept
-// STOP_SUCCEEDED   stopping              stopped      null      null
-// STOP_FAILED      stopping              active       message   kept
-//
-// any other combination (double-taps, late responses) is ignored and returns the same state.
 import type { PatrolSessionAction, PatrolSessionState } from "@/types/patrol_session/patrolSession";
 
+/**
+ * Return the next session state.
+ *
+ * Pure: no requests, timers or other side effects. The start time comes in
+ * with START_REQUESTED, so the reducer never reads the clock itself.
+ *
+ * ```
+ * action           only when status is   new status   error     startedAt
+ * START_REQUESTED  stopped               starting     null      from action
+ * START_SUCCEEDED  starting              active       null      kept
+ * START_FAILED     starting              stopped      message   null
+ * STOP_REQUESTED   active                stopping     null      kept
+ * STOP_SUCCEEDED   stopping              stopped      null      null
+ * STOP_FAILED      stopping              active       message   kept
+ * ```
+ *
+ * Any other combination (double-taps, late responses) is ignored and returns
+ * the same state.
+ *
+ * @throws Error for an action type it does not know.
+ */
 export function sessionReducer(state: PatrolSessionState, action: PatrolSessionAction): PatrolSessionState {
   switch (action.type) {
     case "START_REQUESTED":

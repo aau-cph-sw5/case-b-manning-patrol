@@ -14,6 +14,13 @@ interface LegendItem {
   isEditable?: boolean
 }
 
+/**
+ * Explain the three risk colours and let the user edit the at-risk threshold.
+ *
+ * The edit saves on Enter or blur and is cancelled by Escape. The input is
+ * read with `parseInt`, so decimals are truncated; a value that is not a
+ * number or is negative is dropped without calling `onRiskTimeChange`.
+ */
 export default function Legend({ riskTime, onRiskTimeChange }: LegendProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState<string>(riskTime.toString())

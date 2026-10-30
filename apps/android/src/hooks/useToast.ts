@@ -1,11 +1,16 @@
-// holds the toast currently on screen: a new message replaces the old one and
-// restarts the hide timer. null means no toast is showing.
 import { useEffect, useRef, useState } from "react";
 
 import { subscribeToToasts } from "@/state/toast";
 
 const TOAST_DURATION_MS = 4_000;
 
+/**
+ * Return the toast message currently on screen, or null when none is showing.
+ *
+ * Subscribes to `showToast` messages on mount. A new message replaces
+ * the old one and restarts the 4-second hide timer. On unmount it
+ * unsubscribes and clears the timer.
+ */
 export function useToast(): string | null {
   const [message, setMessage] = useState<string | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

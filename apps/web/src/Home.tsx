@@ -4,6 +4,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
 
+/** Render the Vite + React starter page from the project template; not part of the dashboard. */
 function Home() {
   const [count, setCount] = useState(0)
 

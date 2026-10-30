@@ -1,8 +1,3 @@
-// the steward's patrol screen. the session slider drives everything above it: swiping
-// start opens the patrol session and starts the mock beacon scan at once; swiping stop ends both.
-// every event the scanner produces prints in the terminal and is forwarded to the
-// backend as it arrives. below it, the stations stream in over SSE (seeded with
-// the mock broadcast until the stream is live) and are ordered into the round.
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -20,6 +15,7 @@ import { LINE_GROUPS, type LineGroup } from "@/types/station";
 import { stationServesLineGroup } from "@/utils/stationLineGroup";
 
 
+/** Format a timestamp in ms since epoch as local HH:MM. */
 function formatClock(timestamp: number): string {
   const date = new Date(timestamp);
   return [date.getHours(), date.getMinutes()]
@@ -27,6 +23,16 @@ function formatClock(timestamp: number): string {
     .join(":");
 }
 
+/**
+ * Show the steward's patrol screen.
+ *
+ * The session slider drives the beacon scan: once the session is active the
+ * mock beacon scan (first two mock beacons) starts, and it stops in every
+ * other status. Confirmed connects and disconnects are logged in the terminal
+ * and POSTed to the backend. Below the slider, the stations stream in over SSE,
+ * are filtered by the selected line group and ordered into the round. The
+ * list is empty until the first SSE event arrives.
+ */
 export default function Index() {
   const scanner = useMemo(
     () =>

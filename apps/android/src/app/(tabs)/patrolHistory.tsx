@@ -1,6 +1,7 @@
 import { StackScreen } from 'expo-router/build/layouts/stack-utils';
 import { StyleSheet, View, Text } from 'react-native';
 
+/** Render a placeholder for the Patruljehistorik tab. */
 export default function NotFoundScreen () {
     return (
         <>

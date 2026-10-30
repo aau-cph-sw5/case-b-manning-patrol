@@ -1,8 +1,15 @@
-const MIN = 60000; //ms
+/** One minute in milliseconds. */
+const MIN = 60000;
 const shiftStart = Date.now();
-//timestamp should be inserted into the spaces here, with VAN_Perron serving as a clarification example
+/**
+ * Mock patrol deadline per level, in ms since epoch, keyed
+ * `${stationCode}_${level.label}`.
+ *
+ * Stands in for deadlines from the backend. The values are offsets from the
+ * moment the module loads; a fixed deadline is a plain timestamp instead,
+ * e.g. `'VAN_Perron': 1792672588507`.
+ */
 export const LEVEL_DEADLINES: Record<string, number> = {
-  //'VAN_Perron': 1792672588507,
   'VAN_Perron': shiftStart + 60 * MIN,
   'FLT_Perron': shiftStart + 6 * MIN,
   'FLT_Forhal': shiftStart - 5 * MIN,

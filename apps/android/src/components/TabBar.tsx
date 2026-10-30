@@ -9,6 +9,7 @@ const TAB_ICONS: Record<string, React.ComponentProps<typeof Feather>["name"]> = 
   patrolHistory: "folder",
 };
 
+/** Render the bottom tab bar with icon-only buttons; screen readers get each screen's title as the label. */
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.bar}>

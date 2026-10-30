@@ -1,6 +1,7 @@
 import { StackScreen } from 'expo-router/build/layouts/stack-utils';
 import { StyleSheet, View, Text } from 'react-native';
 
+/** Render a placeholder for the Data Gennemsigtighed tab. */
 export default function NotFoundScreen () {
     return (
         <>

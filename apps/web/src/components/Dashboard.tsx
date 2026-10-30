@@ -16,6 +16,13 @@ import Legend from './Legend.tsx'
         
 import './Dashboard.css'
 
+/**
+ * Show every mock station's patrol countdowns, the overdue count and the list
+ * of levels at or below the at-risk threshold.
+ *
+ * Fetches the threshold from the backend on mount and posts it back when the
+ * legend changes it; failures are only logged to the console.
+ */
 function Dashboard() {
   const now = useNow()
   const listRef = useRef<HTMLUListElement>(null)
@@ -36,7 +43,6 @@ function Dashboard() {
   const handleRiskTimeChange = (value: number) => {
     setRiskTime(value)
     setRiskTimeState(value)
-    // Update the backend with the new risk time
     setAtRiskThreshold(value).catch(console.error) 
   }
 
