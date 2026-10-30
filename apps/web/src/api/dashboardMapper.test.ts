@@ -13,7 +13,7 @@ function dashboard(areas: Partial<Dashboard['stations'][0]['areas'][0]>[]): Dash
         areas: areas.map((area, index) => ({
           area_id: `area-${index}`,
           name: 'Perron',
-          line: 'M1 & M2',
+          line: ['M1', 'M2'],
           area_type: 'platform',
           covered_now: false,
           overdue_at: OVERDUE_AT,

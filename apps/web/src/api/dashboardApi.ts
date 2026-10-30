@@ -14,7 +14,7 @@ export type AreaType = "platform" | "concourse";
 export interface Area {
   area_id: string;
   name: string;
-  line: string;
+  line: string[];
   area_type: AreaType;
   covered_now: boolean;
   overdue_at: string | null; // ISO 8601 date-time with offset, or null
