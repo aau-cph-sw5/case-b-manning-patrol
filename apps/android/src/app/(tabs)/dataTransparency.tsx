@@ -1,10 +1,10 @@
-import { StackScreen } from 'expo-router/build/layouts/stack-utils';
+import { Stack } from 'expo-router';
 import { StyleSheet, View, Text } from 'react-native';
 
 export default function NotFoundScreen () {
     return (
         <>
-            <StackScreen options={{title: 'Data Gennemsigtighed'}} />
+            <Stack.Screen options={{title: 'Data Gennemsigtighed'}} />
             <View style={styles.container}>
                 <Text style={styles.text}>
                     Placeholder Data Gennemsigtighed
