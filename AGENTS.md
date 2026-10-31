@@ -55,6 +55,30 @@ uv run positioning-simulator
 - Lint rules: E, W, F, I, N, UP, B. Modern syntax (py313): `X | None`,
   `dict[...]`, `datetime.UTC`, sorted imports.
 
+### Docstrings and comments (PEP 8 / PEP 257)
+
+Code is read by other groups who did not write it. Follow
+[PEP 8](https://peps.python.org/pep-0008/) and its docstring conventions
+([PEP 257](https://peps.python.org/pep-0257/)) so a reader understands a
+module, class or function from its docstring without reading the body.
+`src/scripts/seed.py` is the reference example.
+
+- Every module, public class and public function/method gets a docstring.
+  Private helpers (`_name`) only need one when their purpose is not obvious.
+- Use `"""triple double quotes"""`. One-liners fit on one line, are a
+  sentence in imperative mood ("Return ...", not "Returns ..."), and end
+  with a period.
+- Multi-line: summary line, blank line, then details; closing `"""` on its
+  own line.
+- Describe behavior and intent the name does not already say: edge cases,
+  what `None` means, ordering, side effects (DB writes, commits). Never just
+  restate the name ("Health check endpoint.").
+- FastAPI route docstrings are published in the OpenAPI docs; write them for
+  API consumers.
+- Avoid inline `#` comments. Prefer clear names and docstrings; keep a
+  comment only for a non-obvious *why* that cannot live in a docstring.
+- When changing behavior, update the docstring in the same commit.
+
 ## Android frontend (apps/android)
 
 Also read `apps/android/AGENTS.md`. Expo versions move

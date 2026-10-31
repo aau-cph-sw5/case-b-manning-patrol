@@ -1,3 +1,5 @@
+"""Convert coverage reports into the dashboard payload sent to the web app."""
+
 from datetime import datetime
 
 from src.api.v2.schemas.dashboard import Dashboard, DashboardArea, DashboardStation
@@ -6,6 +8,12 @@ from src.domain.coverage import AreaCoverageReport, StationCoverageReport
 
 
 class DashboardPresenter:
+    """Add station names and lines to coverage reports for the dashboard.
+
+    Station names and lines are read once at construction, so the presenter
+    must be rebuilt if stations change.
+    """
+
     def __init__(self, stations: list[Station], station_lines: list[StationLine]):
         self._names = {station.id: station.name for station in stations}
         lines: dict[str, list[str]] = {}
@@ -16,6 +24,11 @@ class DashboardPresenter:
     def to_dashboard(
         self, reports: list[StationCoverageReport], sent_at: datetime
     ) -> Dashboard:
+        """Return the dashboard for ``reports``, stamped with ``sent_at``.
+
+        Trains are not reported yet, so ``trains`` is always empty. Raises
+        KeyError if a report refers to a station that was not loaded.
+        """
         return Dashboard(
             stations=[self._station(report) for report in reports],
             trains=[],

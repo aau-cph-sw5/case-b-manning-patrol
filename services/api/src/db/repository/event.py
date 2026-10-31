@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to Events
-"""
+"""Queries for steward events."""
 
 from datetime import datetime
 from uuid import UUID
@@ -13,18 +11,25 @@ from src.domain.event import EventType
 
 
 async def get_event(session: AsyncSession, event_id: UUID) -> Event:
+    """Return the event with this ID, or raise NoResultFound."""
     result = await session.exec(select(Event).where(Event.event_id == event_id))
 
     return result.one()
 
 
 async def get_events(session: AsyncSession) -> list[Event]:
+    """Return every event, in no particular order."""
     result = await session.exec(select(Event))
 
     return list(result.all())
 
 
 async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[Event]:
+    """Return the steward's CONNECT events that have not been disconnected.
+
+    For each beacon, returns the latest CONNECT if it is later than the latest
+    DISCONNECT for that beacon, by device timestamp.
+    """
     connects = await session.exec(
         select(Event).where(
             Event.android_id == android_id,
@@ -63,6 +68,7 @@ async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[
 
 
 async def insert_event(session: AsyncSession, event: Event) -> Event:
+    """Insert and commit the event, then reload it from the database."""
     session.add(event)
     await session.commit()
     await session.refresh(event)

@@ -1,6 +1,4 @@
-"""
-Repository of functions used to query the database related to Config
-"""
+"""Queries for the single-row system configuration."""
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -11,6 +9,7 @@ CONFIG_ROW_ID = 1
 
 
 async def get_or_create_config(session: AsyncSession) -> Config:
+    """Return the settings row, creating it with defaults if missing."""
     config = await session.get(Config, CONFIG_ROW_ID)
     if config is None:
         config = Config(
@@ -24,6 +23,7 @@ async def get_or_create_config(session: AsyncSession) -> Config:
 
 
 async def set_at_risk_threshold_minutes(session: AsyncSession, minutes: int) -> Config:
+    """Update and commit the at-risk threshold, returning the settings row."""
     config = await get_or_create_config(session)
     config.at_risk_threshold_minutes = minutes
     session.add(config)
