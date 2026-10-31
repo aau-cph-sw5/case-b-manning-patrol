@@ -40,10 +40,10 @@ class TrainManningService:
         reports = []
         for train in trains:
             reference = TrainReference(
-                id=train.id,
+                train_id=train.train_id,
                 slug=train.slug,
                 beacon_id=train.beacon_id,
-                line_ids=frozenset(lines_by_train.get(train.id, ())),
+                line_ids=frozenset(lines_by_train.get(train.train_id, ())),
             )
             train_intervals = intervals_by_beacon.get(train.beacon_id, [])
             reports.append(

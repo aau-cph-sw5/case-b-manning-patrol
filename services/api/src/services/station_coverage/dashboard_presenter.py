@@ -66,7 +66,7 @@ class DashboardPresenter:
     @staticmethod
     def _train(report: TrainManningReport) -> DashboardTrain:
         return DashboardTrain(
-            id=report.train.id,
+            train_id=report.train.train_id,
             slug=report.train.slug,
             total_time_secs=int(report.running_time.total_seconds()),
             manned_time_secs=int(report.manned_time.total_seconds()),
