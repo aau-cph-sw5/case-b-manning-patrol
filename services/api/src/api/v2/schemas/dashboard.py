@@ -27,11 +27,12 @@ class DashboardStation(BaseModel):
 
 
 class DashboardTrain(BaseModel):
-    train_id: UUID
+    id: UUID
     slug: str
     total_time_secs: int
     manned_time_secs: int
-    current_steward_id: UUID | None
+    current_steward_ids: list[UUID]
+    line: list[str]
 
 
 class Dashboard(BaseModel):

@@ -33,11 +33,12 @@ export interface Station {
  * Train information for the dashboard
  */
 export interface Train {
-  train_id: string; // UUID
+  id: string; // UUID
   slug: string;
   total_time_secs: number;
   manned_time_secs: number;
-  current_steward_id: string | null; // UUID or null
+  current_steward_ids: string[]; // UUIDs of stewards currently manning the train; empty when unmanned
+  line: string[]; // e.g. ["M1", "M2"] — position-interface v2.4.0
 }
 
 /**

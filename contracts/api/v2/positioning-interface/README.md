@@ -53,11 +53,12 @@ data: {"stations": [...], "trains": [...], "time": "2026-09-21T10:15:00+00:00"}
 - `overdue_at`: Date | null — when the area becomes (or became) overdue; null while covered now or when never patrolled
 
 ### Train
-- `train_id`: UUID
+- `id`: UUID
 - `slug`: string
 - `total_time_secs`: integer
 - `manned_time_secs`: integer
-- `current_steward_id`: UUID | null
+- `current_steward_ids`: UUID[] — the stewards currently manning the train; empty when unmanned
+- `line`: string[] — the metro lines the train serves (e.g. `["M1", "M2"]`)
 
 ### AtRiskThreshold
 - `at_risk_threshold_minutes`: integer (minimum 1) — minutes before an area becomes overdue when it is considered at-risk

@@ -120,7 +120,7 @@
 			"Train": {
 				"type": "object",
 				"properties": {
-					"train_id": {
+					"id": {
 						"type": "string",
 						"format": "uuid",
 						"description": "Train UUID.",
@@ -141,20 +141,31 @@
 						"description": "Total time, in seconds, the train has been manned by a steward.",
 						"example": 9600
 					},
-					"current_steward_id": {
-						"type": "string",
-						"format": "uuid",
-						"nullable": true,
-						"description": "UUID of the steward currently manning the train, or null if unmanned.",
-						"example": "660e8400-e29b-41d4-a716-446655440001"
+					"current_steward_ids": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"format": "uuid"
+						},
+						"description": "UUIDs of the stewards currently manning the train; empty if unmanned.",
+						"example": ["660e8400-e29b-41d4-a716-446655440001"]
+					},
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The metro lines the train serves (e.g. [\"M1\", \"M2\"]).",
+						"example": ["M1", "M2"]
 					}
 				},
 				"required": [
-					"train_id",
+					"id",
 					"slug",
 					"total_time_secs",
 					"manned_time_secs",
-					"current_steward_id"
+					"current_steward_ids",
+					"line"
 				]
 			},
 			"Area": {
