@@ -6,6 +6,7 @@ from src.api.v2.dependencies import EventProducerDep
 from src.api.v2.schemas.ingestion import ConnectionEvent
 from src.domain.event import EventType
 from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.services.train_manning.train_manning_updater import TrainManningUpdater
 
 router = APIRouter(tags=["connection"])
 
@@ -27,6 +28,8 @@ async def connection_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
+    train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
+    await train_manning_updater.refresh()
     return event
 
 
@@ -47,4 +50,6 @@ async def disconnection_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
+    train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
+    await train_manning_updater.refresh()
     return event
