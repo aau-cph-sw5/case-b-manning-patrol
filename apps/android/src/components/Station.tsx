@@ -29,7 +29,7 @@ export function StationListHeader() {
 }
 
 export default function Station({ station, now }: StationProps) {
-  const lines = [...new Set(station.areas.map((area) => area.line))];
+  const lines = [...new Set(station.areas.flatMap((area) => area.line))];
 
   return (
     <View style={styles.row} accessibilityLabel={station.name}>

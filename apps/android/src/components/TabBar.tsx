@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import type { BottomTabBarProps } from "expo-router/build/react-navigation/bottom-tabs";
+import type { BottomTabBarProps } from "expo-router/tabs";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -9,7 +9,7 @@ const TAB_ICONS: Record<string, React.ComponentProps<typeof Feather>["name"]> = 
   patrolHistory: "folder",
 };
 
-export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export default function TabBar({ state, descriptors, navigateToTab }: BottomTabBarProps) {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.bar}>
       <View style={styles.row}>
@@ -21,7 +21,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
           return (
             <Pressable
               key={route.key}
-              onPress={() => navigation.navigate(route.name, route.params)}
+              onPress={() => navigateToTab(route.key)}
               style={styles.item}
               accessibilityRole="tab"
               accessibilityLabel={label}
