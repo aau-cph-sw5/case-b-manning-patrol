@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.4.0 - Positioning Interface: `line` on Train, `train_id`->`id`, `current_steward_ids` array
+- Positioning Interface: `Train` gained a required `line: string[]` field — the
+  metro lines the train serves (e.g. `["M1", "M2"]`, same convention as
+  `Area.line` from v2.2.0) — so the dashboard can group manned trains per line
+  (M1M2 / M3M4).
+- Positioning Interface: `Train.train_id` renamed to `Train.id` (the train's
+  own id, no need to repeat "train" inside the train object).
+- Positioning Interface: `Train.current_steward_id` (UUID | null) changed to
+  `Train.current_steward_ids` (UUID[]) so multiple stewards on one train are
+  all visible; empty array means unmanned.
+- `Dashboard.trains` was previously always emitted empty, so no published
+  interface breaks.
+
 ## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
 - Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
   returns `RecordList`, one steward's patrol records for the current shift only.

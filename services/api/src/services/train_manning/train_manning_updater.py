@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -14,34 +15,32 @@ from src.services.train_manning.train_manning_service import (
 )
 
 
+@dataclass
+class TrainManningDeps:
+    session_factory: Callable[[], AsyncSession]
+    clock: Callable[[], datetime]
+    shift_schedule: ShiftSchedule
+
+
+@dataclass
 class TrainManningUpdater:
-    def __init__(
-        self,
-        service: TrainManningService,
-        publisher: TrainManningPublisher,
-        session_factory: Callable[[], AsyncSession],
-        clock: Callable[[], datetime],
-        shift_schedule: ShiftSchedule,
-    ) -> None:
-        self._service = service
-        self._publisher = publisher
-        self._session_factory = session_factory
-        self._clock = clock
-        self._shift_schedule = shift_schedule
-        self._lock = asyncio.Lock()
-        self._last_published: list[TrainManningReport] = []
+    service: TrainManningService
+    publisher: TrainManningPublisher
+    deps: TrainManningDeps
+    _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    _last_published: list[TrainManningReport] = field(default_factory=list)
 
     async def refresh(self) -> None:
         async with self._lock:
-            now = self._clock()
-            shift = self._shift_schedule.latest_shift(now)
+            now = self.deps.clock()
+            shift = self.deps.shift_schedule.latest_shift(now)
             as_of = min(now, shift.end)
-            async with self._session_factory() as session:
-                reports = await self._service.compute_manning_reports(
+            async with self.deps.session_factory() as session:
+                reports = await self.service.compute_manning_reports(
                     session, as_of, shift_start_time=shift.start
                 )
             self._last_published = reports
-            self._publisher.publish(reports)
+            self.publisher.publish(reports)
 
     def snapshot(self) -> list[TrainManningReport]:
         return list(self._last_published)

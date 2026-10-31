@@ -34,7 +34,10 @@ from src.services.train_manning.train_manning_publisher import (
     SseTrainManningBroadcaster,
 )
 from src.services.train_manning.train_manning_service import TrainManningService
-from src.services.train_manning.train_manning_updater import TrainManningUpdater
+from src.services.train_manning.train_manning_updater import (
+    TrainManningDeps,
+    TrainManningUpdater,
+)
 
 from .api.v2.routers import (
     adjustment,
@@ -81,9 +84,11 @@ async def lifespan(app: FastAPI):
     train_manning_updater = TrainManningUpdater(
         service=TrainManningService(builder, TrainManningEvaluator()),
         publisher=train_manning_broadcaster,
-        session_factory=lambda: AsyncSession(engine),
-        clock=lambda: datetime.now(UTC),
-        shift_schedule=shift_schedule,
+        deps=TrainManningDeps(
+            session_factory=lambda: AsyncSession(engine),
+            clock=lambda: datetime.now(UTC),
+            shift_schedule=shift_schedule,
+        ),
     )
 
     await coverage_updater.refresh()
