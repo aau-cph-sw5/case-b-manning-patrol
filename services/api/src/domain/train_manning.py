@@ -11,7 +11,8 @@ from uuid import UUID
 
 @dataclass(frozen=True)
 class TrainReference:
-    train_id: str
+    id: UUID
+    slug: str
     beacon_id: UUID
     line_ids: frozenset[str]
 

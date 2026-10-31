@@ -1,8 +1,14 @@
 from datetime import datetime
 
-from src.api.v2.schemas.dashboard import Dashboard, DashboardArea, DashboardStation
+from src.api.v2.schemas.dashboard import (
+    Dashboard,
+    DashboardArea,
+    DashboardStation,
+    DashboardTrain,
+)
 from src.db.models import Station, StationLine
 from src.domain.coverage import AreaCoverageReport, StationCoverageReport
+from src.domain.train_manning import TrainManningReport
 
 
 class DashboardPresenter:
@@ -14,11 +20,14 @@ class DashboardPresenter:
         self._lines = lines
 
     def to_dashboard(
-        self, reports: list[StationCoverageReport], sent_at: datetime
+        self,
+        station_reports: list[StationCoverageReport],
+        train_reports: list[TrainManningReport],
+        sent_at: datetime,
     ) -> Dashboard:
         return Dashboard(
-            stations=[self._station(report) for report in reports],
-            trains=[],
+            stations=[self._station(report) for report in station_reports],
+            trains=[self._train(report) for report in train_reports],
             time=sent_at,
         )
 
@@ -39,4 +48,15 @@ class DashboardPresenter:
             area_type=report.area.kind,
             covered_now=report.covered_now,
             overdue_at=report.overdue_at,
+        )
+
+    @staticmethod
+    def _train(report: TrainManningReport) -> DashboardTrain:
+        return DashboardTrain(
+            id=report.train.id,
+            slug=report.train.slug,
+            total_time_secs=int(report.running_time.total_seconds()),
+            manned_time_secs=int(report.manned_time.total_seconds()),
+            current_steward_ids=sorted(report.current_steward_ids),
+            line=sorted(report.train.line_ids),
         )
