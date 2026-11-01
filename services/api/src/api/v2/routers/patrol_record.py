@@ -61,11 +61,10 @@ async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
         # connection event it should work
         connect = open_connects.pop(event.beacon_id, None)
         if connect is not None:
-            records.append(
-                build_record(
-                    event.beacon_id, areas[event.beacon_id], connect, event, now
-                )
+            record = build_record(
+                event.beacon_id, areas[event.beacon_id], connect, event, now
             )
+            records.append(record)
     for beacon_id, connect in open_connects.items():
         records.append(build_record(beacon_id, areas[beacon_id], connect, None, now))
 
