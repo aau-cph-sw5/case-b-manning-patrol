@@ -55,10 +55,12 @@ async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
             continue
         if event.event_type == EventType.CONNECT_EVENT:
             open_connects[event.beacon_id] = event
+            continue
         # I think this is gonna work but we may need to talk about it.
         # Since a disconnection event should not be sent without an earlier
         # connection event it should work
-        elif (connect := open_connects.pop(event.beacon_id, None)) is not None:
+        connect = open_connects.pop(event.beacon_id, None)
+        if connect is not None:
             records.append(
                 build_record(
                     event.beacon_id, areas[event.beacon_id], connect, event, now
