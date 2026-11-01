@@ -1,3 +1,5 @@
+"""Tests for building a steward's patrol records from shift events."""
+
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -26,6 +28,7 @@ UNKNOWN_BEACON_ID = UUID("f4a3b2c3-5d6e-4f7a-9b2c-3d4e5f6a7b8c")
 
 @pytest_asyncio.fixture
 async def session() -> AsyncGenerator[AsyncSession]:
+    """Yield an in-memory database with one station and two patrol areas."""
     engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
@@ -60,6 +63,7 @@ async def session() -> AsyncGenerator[AsyncSession]:
 
 
 async def add_event(session: AsyncSession, **overrides: Any) -> None:
+    """Store a steward CONNECT event at shift start, with `overrides` applied."""
     fields: dict[str, Any] = {
         "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
@@ -74,6 +78,7 @@ async def add_event(session: AsyncSession, **overrides: Any) -> None:
 
 
 async def start_shift(session: AsyncSession, at: datetime = SHIFT_START) -> None:
+    """Store a shift START event for the steward at `at`."""
     await add_event(
         session,
         event_type=EventType.START_EVENT,
@@ -83,6 +88,7 @@ async def start_shift(session: AsyncSession, at: datetime = SHIFT_START) -> None
 
 
 async def connect(session: AsyncSession, offset_secs: int, **overrides: Any) -> None:
+    """Store a CONNECT event `offset_secs` after shift start."""
     await add_event(
         session,
         device_timestamp=SHIFT_START + timedelta(seconds=offset_secs),
@@ -91,6 +97,7 @@ async def connect(session: AsyncSession, offset_secs: int, **overrides: Any) -> 
 
 
 async def disconnect(session: AsyncSession, offset_secs: int, **overrides: Any) -> None:
+    """Store a DISCONNECT event `offset_secs` after shift start."""
     await add_event(
         session,
         event_type=EventType.DISCONNECT_EVENT,
@@ -101,6 +108,7 @@ async def disconnect(session: AsyncSession, offset_secs: int, **overrides: Any) 
 
 @pytest.mark.asyncio
 async def test_build_records_is_empty_without_shift_start(session):
+    """Events count only once the steward has started a shift."""
     await connect(session, 10)
 
     result = await build_records(session, STEWARD_ANDROID_ID)
@@ -110,6 +118,7 @@ async def test_build_records_is_empty_without_shift_start(session):
 
 @pytest.mark.asyncio
 async def test_build_records_pairs_connect_and_disconnect(session):
+    """A connect followed by a disconnect becomes one registered record."""
     await start_shift(session)
     await connect(session, 10)
     await disconnect(session, 55)
@@ -129,6 +138,7 @@ async def test_build_records_pairs_connect_and_disconnect(session):
 
 @pytest.mark.asyncio
 async def test_build_records_resolves_area(session):
+    """The record's area is named after its station and lists its lines."""
     await start_shift(session)
     await connect(session, 10)
 
@@ -144,6 +154,7 @@ async def test_build_records_resolves_area(session):
 
 @pytest.mark.asyncio
 async def test_build_records_leaves_unmatched_connect_pending(session):
+    """A connect with no disconnect yet becomes a pending record."""
     await start_shift(session)
     await connect(session, 10)
 
@@ -158,6 +169,7 @@ async def test_build_records_leaves_unmatched_connect_pending(session):
 
 @pytest.mark.asyncio
 async def test_build_records_marks_short_visit_not_patrolled(session):
+    """A visit shorter than the area's minimum duration is not patrolled."""
     await start_shift(session)
     await connect(session, 10, beacon_id=CONCOURSE_BEACON_ID)
     await disconnect(session, 25, beacon_id=CONCOURSE_BEACON_ID)
@@ -172,6 +184,7 @@ async def test_build_records_marks_short_visit_not_patrolled(session):
 
 @pytest.mark.asyncio
 async def test_build_records_excludes_events_before_shift_start(session):
+    """Events from before the latest shift start are ignored."""
     await connect(session, -100)
     await disconnect(session, -50)
     await start_shift(session)
@@ -183,6 +196,7 @@ async def test_build_records_excludes_events_before_shift_start(session):
 
 @pytest.mark.asyncio
 async def test_build_records_excludes_other_stewards(session):
+    """Only the requested steward's events are used."""
     await start_shift(session)
     await connect(session, 10, android_id=OTHER_ANDROID_ID)
 
@@ -193,6 +207,7 @@ async def test_build_records_excludes_other_stewards(session):
 
 @pytest.mark.asyncio
 async def test_build_records_ignores_disconnect_without_connect(session):
+    """A disconnect with no earlier connect produces no record."""
     await start_shift(session)
     await disconnect(session, 10)
 
@@ -203,6 +218,7 @@ async def test_build_records_ignores_disconnect_without_connect(session):
 
 @pytest.mark.asyncio
 async def test_build_records_skips_beacons_without_area(session):
+    """Events from beacons with no patrol area produce no record."""
     await start_shift(session)
     await connect(session, 10, beacon_id=UNKNOWN_BEACON_ID)
     await disconnect(session, 50, beacon_id=UNKNOWN_BEACON_ID)
@@ -214,6 +230,7 @@ async def test_build_records_skips_beacons_without_area(session):
 
 @pytest.mark.asyncio
 async def test_build_records_returns_most_recent_first(session):
+    """Records are sorted by start time, most recent first."""
     await start_shift(session)
     await connect(session, 10)
     await disconnect(session, 30)

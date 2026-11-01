@@ -1,3 +1,5 @@
+"""Response bodies for the patrol record endpoint."""
+
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
@@ -6,16 +8,22 @@ from pydantic import BaseModel
 
 
 class Status(Enum):
+    """Whether a record is still open or has been closed by a disconnect."""
+
     PENDING = "pending"
     REGISTERED = "registered"
 
 
 class AreaType(Enum):
+    """The kind of patrol area a record was made in."""
+
     PLATFORM = "platform"
-    CONCOURCE = "concourse"
+    CONCOURSE = "concourse"
 
 
 class RecordArea(BaseModel):
+    """The patrol area a record was made in, named after its station."""
+
     area_id: str
     name: str
     line: list[str]
@@ -24,6 +32,11 @@ class RecordArea(BaseModel):
 
 
 class Record(BaseModel):
+    """One visit by a steward to a patrol area.
+
+    `ended_at` and `duration_secs` are None while the record is pending.
+    """
+
     android_id: UUID  # Will be given by GET request
     beacon_id: UUID  # Will be fetched from Event tables
     started_at: datetime  # If ConnectionEvent -> derived
@@ -36,5 +49,7 @@ class Record(BaseModel):
 
 
 class RecordList(BaseModel):
+    """A steward's records for the current shift and the time they were built."""
+
     records: list[Record]
     time: datetime

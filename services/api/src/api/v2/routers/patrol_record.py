@@ -1,3 +1,5 @@
+"""Endpoint for a steward's patrol records in the current shift."""
+
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -39,8 +41,8 @@ async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
 
     A disconnect closes its beacon's open connect as a registered record; connects
     still open at the end become pending. Beacons without a patrol area are skipped.
-
-    Returns: RecordList sorted [latest, ..., earliest] for one android_id
+    Returns the records sorted by start time, most recent first, or an empty list
+    if the steward has not started a shift.
     """
     now = datetime.now(UTC)
     events: list[Event] = await get_shift_connection_events(session, android_id)
@@ -108,7 +110,11 @@ def build_record(
     disconnect: Event | None,
     now: datetime,
 ) -> Record:
-    """Build a registered record, or a pending one measured up to `now`."""
+    """Build a registered record, or a pending one measured up to `now`.
+
+    `disconnect` is None for a pending record. The area counts as patrolled once
+    the visit lasts at least the minimum qualifying duration for its area type.
+    """
     min_duration = MIN_QUALIFYING_DURATIONS[AreaKind(area.area_type.value)]
     ended_at = disconnect.device_timestamp if disconnect is not None else None
     duration = (ended_at or now) - connect.device_timestamp
