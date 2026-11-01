@@ -30,7 +30,7 @@ router = APIRouter(tags=["patrol_record"])
 async def get_records(android_id: UUID, session: AsyncDbSessionDep) -> RecordList:
     """Return the steward's patrol records for the current shift, most recent first."""
     # This endpoint needs some error handling such as
-    # Custom errors etc
+    # Custom errors, HTTP exceptions etc
     return await build_records(session, android_id)
 
 
