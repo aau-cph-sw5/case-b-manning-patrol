@@ -43,7 +43,7 @@ async def get_latest_start_event(
 async def get_connection_events_by_android_id(
     session: AsyncSession, android_id: UUID, since: datetime
 ) -> list[Event]:
-    """Return the steward's connect/disconnect events from since on, oldest first."""
+    """Return the steward's connect/disconnect events from `since` on, oldest first."""
     result = await session.exec(
         select(Event)
         .where(
