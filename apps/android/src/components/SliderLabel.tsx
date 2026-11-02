@@ -1,18 +1,23 @@
-// the text inside the session slider: a label, or the elapsed time while a session runs.
+/** The text inside the session slider. */
 import { StyleSheet, Text, View } from "react-native";
 
 import { ElapsedTime } from "@/components/ElapsedTime";
 
 type SliderLabelProps = {
-  // null shows the elapsed time instead
+  /** Label to show; null shows the elapsed time instead. */
   text: string | null;
-  // when the session started, used for the elapsed time
+  /** When the session started (epoch ms), used for the elapsed time. */
   startedAt: number | null;
+  /** Side of the track the text is aligned to, opposite the thumb. */
   side: "left" | "right";
-  // white text on the green track, dark text on the grey one
+  /** White text on the green track, dark text on the grey one. */
   onFilledTrack: boolean;
 };
 
+/**
+ * Render a label, or the live elapsed time while a session runs, over the
+ * whole track.
+ */
 export function SliderLabel({ text, startedAt, side, onFilledTrack }: SliderLabelProps) {
   const color = onFilledTrack ? styles.lightText : styles.darkText;
 
