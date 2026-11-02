@@ -141,8 +141,8 @@ def build_record(
     """
     min_duration = MIN_QUALIFYING_DURATIONS[AreaKind(area.area_type.value)]
     ended_at = disconnect.device_timestamp if disconnect is not None else None
-    duration = (ended_at or now) - connect.device_timestamp
-
+    effective_end = ended_at if ended_at is not None else now
+    duration = effective_end - connect.device_timestamp
     return Record(
         android_id=connect.android_id,
         beacon_id=beacon_id,
@@ -151,6 +151,6 @@ def build_record(
         duration_secs=int(duration.total_seconds()),
         min_patrol_duration_secs=int(min_duration.total_seconds()),
         patrolled=duration >= min_duration,
-        status=Status.CLOSED if ended_at else Status.OPEN,
+        status=Status.CLOSED if ended_at is not None else Status.OPEN,
         area=area,
     )
