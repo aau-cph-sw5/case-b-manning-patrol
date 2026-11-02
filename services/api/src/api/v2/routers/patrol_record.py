@@ -39,8 +39,9 @@ async def get_records(android_id: UUID, session: AsyncDbSessionDep) -> RecordLis
 async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
     """Pair the steward's shift connects and disconnects into records per beacon.
 
-    A disconnect closes its beacon's open connect as a registered record; connects
-    still open at the end become pending. Beacons without a patrol area are skipped.
+    A disconnect closes its beacon's open connect as a closed record; connects
+    still open at the end become open records. Beacons without a patrol area are
+    skipped.
     Returns the records sorted by start time, most recent first, or an empty list
     if the steward has not started a shift.
     """
@@ -111,9 +112,9 @@ def build_record(
     disconnect: Event | None,
     now: datetime,
 ) -> Record:
-    """Build a registered record, or a pending one measured up to `now`.
+    """Build a closed record, or an open one measured up to `now`.
 
-    `disconnect` is None for a pending record. The area counts as patrolled once
+    `disconnect` is None for an open record. The area counts as patrolled once
     the visit lasts at least the minimum qualifying duration for its area type.
     """
     min_duration = MIN_QUALIFYING_DURATIONS[AreaKind(area.area_type.value)]
@@ -128,6 +129,6 @@ def build_record(
         duration_secs=int(duration.total_seconds()) if ended_at else None,
         min_patrol_duration_secs=int(min_duration.total_seconds()),
         patrolled=duration >= min_duration,
-        status=Status.REGISTERED if ended_at else Status.PENDING,
+        status=Status.CLOSED if ended_at else Status.OPEN,
         area=area,
     )

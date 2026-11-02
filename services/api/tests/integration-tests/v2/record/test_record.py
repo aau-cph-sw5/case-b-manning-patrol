@@ -85,7 +85,7 @@ def test_get_records_empty_when_no_shift_started(client):
     assert datetime.fromisoformat(body["time"])
 
 
-def test_get_records_returns_pending_and_registered_most_recent_first(client):
+def test_get_records_returns_open_and_closed_most_recent_first(client):
     _post(client, "patrol-session/start", _event_body(ANDROID_ID, SHIFT_START))
     _post(
         client,
@@ -111,18 +111,18 @@ def test_get_records_returns_pending_and_registered_most_recent_first(client):
     records = body["records"]
     assert len(records) == 2
 
-    pending = records[0]
-    assert pending["android_id"] == ANDROID_ID
-    assert pending["beacon_id"] == BEACON_CONCOURSE
-    assert datetime.fromisoformat(pending["started_at"]) == SHIFT_START + timedelta(
+    open_record = records[0]
+    assert open_record["android_id"] == ANDROID_ID
+    assert open_record["beacon_id"] == BEACON_CONCOURSE
+    assert datetime.fromisoformat(open_record["started_at"]) == SHIFT_START + timedelta(
         seconds=180
     )
-    assert pending["ended_at"] is None
-    assert pending["duration_secs"] is None
-    assert pending["min_patrol_duration_secs"] == 20
-    assert pending["patrolled"] is True
-    assert pending["status"] == "pending"
-    assert pending["area"] == {
+    assert open_record["ended_at"] is None
+    assert open_record["duration_secs"] is None
+    assert open_record["min_patrol_duration_secs"] == 20
+    assert open_record["patrolled"] is True
+    assert open_record["status"] == "open"
+    assert open_record["area"] == {
         "area_id": "PA-001-C",
         "name": "Station 01 concourse",
         "line": ["M1"],
@@ -130,22 +130,22 @@ def test_get_records_returns_pending_and_registered_most_recent_first(client):
         "area_type": "concourse",
     }
 
-    registered = records[1]
-    assert registered["beacon_id"] == BEACON_PLATFORM
-    assert datetime.fromisoformat(registered["started_at"]) == CONNECT_AT
-    assert datetime.fromisoformat(registered["ended_at"]) == SHIFT_START + timedelta(
+    closed = records[1]
+    assert closed["beacon_id"] == BEACON_PLATFORM
+    assert datetime.fromisoformat(closed["started_at"]) == CONNECT_AT
+    assert datetime.fromisoformat(closed["ended_at"]) == SHIFT_START + timedelta(
         seconds=120
     )
-    assert registered["duration_secs"] == 60
-    assert registered["min_patrol_duration_secs"] == 10
-    assert registered["patrolled"] is True
-    assert registered["status"] == "registered"
-    assert registered["area"]["area_id"] == "PA-001-P"
-    assert registered["area"]["name"] == "Station 01 platform"
-    assert registered["area"]["area_type"] == "platform"
+    assert closed["duration_secs"] == 60
+    assert closed["min_patrol_duration_secs"] == 10
+    assert closed["patrolled"] is True
+    assert closed["status"] == "closed"
+    assert closed["area"]["area_id"] == "PA-001-P"
+    assert closed["area"]["name"] == "Station 01 platform"
+    assert closed["area"]["area_type"] == "platform"
 
 
-def test_get_records_registered_below_min_duration_is_not_patrolled(client):
+def test_get_records_closed_below_min_duration_is_not_patrolled(client):
     _post(client, "patrol-session/start", _event_body(ANDROID_ID, SHIFT_START))
     _post(
         client,
@@ -159,7 +159,7 @@ def test_get_records_registered_below_min_duration_is_not_patrolled(client):
     )
 
     record = _single_record(client)
-    assert record["status"] == "registered"
+    assert record["status"] == "closed"
     assert record["duration_secs"] == 15
     assert record["min_patrol_duration_secs"] == 20
     assert record["patrolled"] is False
@@ -192,7 +192,7 @@ def test_get_records_after_shift_stop_returns_closed_records(client):
     _post(client, "patrol-session/stop", _event_body(ANDROID_ID, stop_at))
 
     record = _single_record(client)
-    assert record["status"] == "registered"
+    assert record["status"] == "closed"
     assert datetime.fromisoformat(record["ended_at"]) == stop_at
     assert record["duration_secs"] == 7140
     assert record["patrolled"] is True
