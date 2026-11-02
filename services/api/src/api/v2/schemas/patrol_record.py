@@ -27,7 +27,7 @@ class RecordArea(BaseModel):
     area_id: str
     name: str
     line: list[str]
-    station_id: str  # Why not just station name??
+    station_id: str
     area_type: AreaType
 
 
