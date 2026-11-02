@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.services.event_producer import EventValidationError, TargetEventNotFoundError
+from src.services.station_coverage.at_risk_tracker import AtRiskTracker
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
@@ -67,10 +68,12 @@ async def lifespan(app: FastAPI):
     )
     sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
+    at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
     coverage_updater = CoverageUpdater(
         service=service,
-        tracker=overdue_tracker,
+        overdue_tracker=overdue_tracker,
+        at_risk_tracker=at_risk_tracker,
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),

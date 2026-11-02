@@ -13,6 +13,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 from src.api.v2.dependencies import get_async_db_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
+from src.services.station_coverage.at_risk_tracker import AtRiskTracker
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.station_coverage.coverage_window import (
@@ -56,7 +57,8 @@ async def override_db_session() -> AsyncGenerator[None]:
                 min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
             ),
         ),
-        tracker=OverdueTracker(),
+        overdue_tracker=OverdueTracker(),
+        at_risk_tracker=AtRiskTracker(),
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
