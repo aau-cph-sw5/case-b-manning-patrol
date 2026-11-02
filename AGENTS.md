@@ -11,7 +11,7 @@ Metro "manning/patrol" compliance system: documents that trains are manned >= 70
 contracts/                        versioned interfaces other teams build against
 docs/adr/                         architecture decision records
 services/api                       Python 3.13 / FastAPI, uv
-apps/android                       Expo SDK 57 / React Native steward app
+apps/android                       Expo SDK 58 / React Native steward app
 apps/web                           Vite + React 19 + TypeScript dashboard
 ```
 
@@ -58,7 +58,7 @@ uv run positioning-simulator
 ## Android frontend (apps/android)
 
 Also read `apps/android/AGENTS.md`. Expo versions move
-fast: check the versioned docs (https://docs.expo.dev/versions/v57.0.0/)
+fast: check the versioned docs (https://docs.expo.dev/versions/v58.0.0/)
 before using an API.
 
 ```bash
@@ -67,7 +67,7 @@ npm run lint               # expo lint
 ```
 
 CI runs `npm ci && npm run build --if-present && npm test --if-present` on
-Node 20 and 22; adding a `test` script makes CI run it.
+Node 22 and 24; adding a `test` script makes CI run it.
 
 ## Desktop frontend (apps/web)
 

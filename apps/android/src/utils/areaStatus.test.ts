@@ -19,7 +19,7 @@ function area(overrides: Partial<Area>): Area {
   return {
     areaId: "platform-1",
     name: "Perron",
-    line: "M1",
+    line: ["M1"],
     areaType: "platform",
     coveredNow: false,
     overdueAt: new Date(NOW + 45 * MINUTE),

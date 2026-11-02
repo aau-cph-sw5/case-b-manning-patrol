@@ -6,7 +6,7 @@ import { stationServesLineGroup } from "@/utils/stationLineGroup";
 const area = (line: string): Area => ({
   areaId: `${line.toLowerCase()}-1`,
   name: "Perron",
-  line,
+  line: [line],
   areaType: "platform",
   coveredNow: false,
   overdueAt: null,
@@ -34,6 +34,14 @@ describe("stationServesLineGroup", () => {
 
     expect(stationServesLineGroup(frederiksberg, "M1/M2")).toBe(true);
     expect(stationServesLineGroup(frederiksberg, "M3/M4")).toBe(true);
+  });
+
+  it("matches a single area that serves lines from both groups", () => {
+    const shared: Area = { ...area("M2"), line: ["M2", "M3"] };
+    const kongensNytorv = station({ name: "Kongens Nytorv", areas: [shared] });
+
+    expect(stationServesLineGroup(kongensNytorv, "M1/M2")).toBe(true);
+    expect(stationServesLineGroup(kongensNytorv, "M3/M4")).toBe(true);
   });
 
   it("matches an M4 station in the M3/M4 group only", () => {

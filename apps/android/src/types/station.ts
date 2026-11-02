@@ -14,7 +14,7 @@ export const LINE_GROUPS: LineGroup[] = ["M1/M2", "M3/M4"];
 const WireAreaSchema = z.object({
   area_id: z.string(),
   name: z.string(),
-  line: z.string(),
+  line: z.string().array(),
   area_type: z.enum(["platform", "concourse"]),
   covered_now: z.boolean(),
   overdue_at: z.coerce.date().nullable(),
