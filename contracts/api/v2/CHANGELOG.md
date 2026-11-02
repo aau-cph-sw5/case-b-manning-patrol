@@ -5,6 +5,9 @@
   `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
   runs, closed once the disconnect event is stored. No client consumes the field
   yet, so the rename is made in v2 rather than a new major version.
+- Patrol Record: `Record.duration_secs` is no longer nullable. Open records state
+  the duration as of the response time (`time - started_at`), like `patrolled`;
+  clients still render their own running timer from `started_at`.
 
 ## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
 - Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
