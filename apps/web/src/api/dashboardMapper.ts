@@ -12,6 +12,7 @@ export interface StationLevel {
 export interface Station {
   stationId: string
   name: string
+  lines: string[] 
   levels: StationLevel[]
 }
 
@@ -34,6 +35,7 @@ export function toViewStations(dashboard: Dashboard): Station[] {
   return dashboard.stations.map((station) => ({
     stationId: station.station_id,
     name: station.name,
+    lines: [...new Set(station.areas.flatMap((area) => area.line))],
     levels: station.areas.map((area, index) => ({
       label: areaLabel(station.areas, index),
       overdueAt: area.overdue_at ? Date.parse(area.overdue_at) : null,
