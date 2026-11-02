@@ -32,6 +32,7 @@ from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 from .api.v2.routers import (
     adjustment,
+    at_risk_tracker,
     config,
     connection,
     dashboard_stream,
@@ -70,6 +71,7 @@ async def lifespan(app: FastAPI):
     overdue_tracker = OverdueTracker()
     at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
+    shift_schedule = ShiftSchedule.from_file()
     coverage_updater = CoverageUpdater(
         service=service,
         overdue_tracker=overdue_tracker,
@@ -77,7 +79,7 @@ async def lifespan(app: FastAPI):
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
-        shift_schedule=ShiftSchedule.from_file(),
+        shift_schedule=shift_schedule,
     )
 
     await coverage_updater.refresh()
@@ -88,6 +90,7 @@ async def lifespan(app: FastAPI):
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
+    app.state.shift_schedule = shift_schedule
 
     yield
     tick.cancel()
@@ -132,6 +135,7 @@ app.add_middleware(
 )
 
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(at_risk_tracker.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)

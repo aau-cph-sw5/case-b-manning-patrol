@@ -49,6 +49,7 @@ async def override_db_session() -> AsyncGenerator[None]:
     app.dependency_overrides[get_async_db_session] = get_test_session
 
     sse_broadcaster = SseCoverageBroadcaster()
+    shift_schedule = ShiftSchedule.from_file()
     coverage_updater = CoverageUpdater(
         service=CoverageService(
             IntervalBuilder(),
@@ -62,7 +63,7 @@ async def override_db_session() -> AsyncGenerator[None]:
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
-        shift_schedule=ShiftSchedule.from_file(),
+        shift_schedule=shift_schedule,
     )
 
     async with AsyncSession(engine) as session:
@@ -73,6 +74,7 @@ async def override_db_session() -> AsyncGenerator[None]:
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
+    app.state.shift_schedule = shift_schedule
 
     yield
 

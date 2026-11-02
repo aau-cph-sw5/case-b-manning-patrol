@@ -66,8 +66,11 @@ class CoverageUpdater:
                 )
                 await self._overdue_tracker.track(session, reports, now)
                 config = await get_or_create_config(session)
-                self._at_risk_tracker.observe(
-                    reports, as_of, timedelta(minutes=config.at_risk_threshold_minutes)
+                await self._at_risk_tracker.track(
+                    session,
+                    reports,
+                    as_of,
+                    timedelta(minutes=config.at_risk_threshold_minutes),
                 )
                 await session.commit()
             self._last_published = reports
