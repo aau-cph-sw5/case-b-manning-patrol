@@ -1,4 +1,4 @@
-import type { Station } from '../data/mockData'
+import type { Station } from '../api/dashboardMapper'
 import {
   formatRemaining,
   remainingMinutes,
@@ -13,7 +13,7 @@ function StationCard({ station, now, riskTime }: { station: Station; now: number
       <h2>{station.name}</h2>
       <ul className="levels">
         {station.levels.map((level) => {
-          const minutes = remainingMinutes(level, now, station.code)
+          const minutes = remainingMinutes(level, now)
           const color = timeColorClass(minutes, riskTime) as TimeColor
           const StatusIcon = STATUS_ICONS[color]
           return (
