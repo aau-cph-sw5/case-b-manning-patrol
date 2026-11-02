@@ -126,9 +126,7 @@ def build_record(
         beacon_id=beacon_id,
         started_at=connect.device_timestamp,
         ended_at=ended_at,
-        duration_secs=(
-            int(duration.total_seconds()) if disconnect is not None else None
-        ),
+        duration_secs=int(duration.total_seconds()),
         min_patrol_duration_secs=int(min_duration.total_seconds()),
         patrolled=duration >= min_duration,
         status=Status.CLOSED if ended_at else Status.OPEN,

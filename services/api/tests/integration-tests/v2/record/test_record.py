@@ -118,7 +118,10 @@ def test_get_records_returns_open_and_closed_most_recent_first(client):
         seconds=180
     )
     assert open_record["ended_at"] is None
-    assert open_record["duration_secs"] is None
+    open_duration = datetime.fromisoformat(body["time"]) - datetime.fromisoformat(
+        open_record["started_at"]
+    )
+    assert open_record["duration_secs"] == int(open_duration.total_seconds())
     assert open_record["min_patrol_duration_secs"] == 20
     assert open_record["patrolled"] is True
     assert open_record["status"] == "open"
