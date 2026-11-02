@@ -1,11 +1,10 @@
-import {Link} from 'expo-router';
-import { StackScreen } from 'expo-router/build/layouts/stack-utils';
+import {Link, Stack} from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 export default function NotFoundScreen () {
     return (
         <>
-            <StackScreen options={{title: 'Ups! Side ikke fundet'}} />
+            <Stack.Screen options={{title: 'Ups! Side ikke fundet'}} />
             <View style={styles.container}>
                 <Link href={'/'} style={styles.button}>
                     Gå tilbage til Hjemmeside!

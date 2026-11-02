@@ -43,7 +43,7 @@ const validPayload = JSON.stringify({
         {
           area_id: "platform-1",
           name: "Perron 1",
-          line: "M1",
+          line: ["M1", "M2"],
           area_type: "platform",
           covered_now: false,
           overdue_at: "2026-10-23T10:00:00.000Z",
@@ -92,6 +92,7 @@ describe("connectToStationUpdates", () => {
     expect(overview.stations[0].areas[0].overdueAt).toEqual(
       new Date("2026-10-23T10:00:00.000Z"),
     );
+    expect(overview.stations[0].areas[0].line).toEqual(["M1", "M2"]);
     expect(onError).not.toHaveBeenCalled();
   });
 

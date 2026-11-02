@@ -1,5 +1,4 @@
-import type { StationLevel } from "../data/mockData"
-import { LEVEL_DEADLINES } from "../data/mockDeadlines"
+import type { StationLevel } from "../api/dashboardMapper"
 import { BsEmojiFrown, BsEmojiNeutral, BsEmojiSmile } from 'react-icons/bs'
 import type { IconType } from 'react-icons'
 
@@ -15,14 +14,16 @@ const MIN = 60000 //ms
 const PATROL_INTERVAL_MIN = 60
 
 // minutes until the area must be patrolled again; negative means overdue.
-// a manned area is frozen at the full interval.
-export function remainingMinutes(level: StationLevel, now: number, stationCode: string): number {
+// a manned area is frozen at the full interval; an area with no deadline
+// counts as due.
+export function remainingMinutes(level: StationLevel, now: number): number {
   if (level.manned) {
     return PATROL_INTERVAL_MIN
   }
-  const key = `${stationCode}_${level.label}`
-  const deadline = LEVEL_DEADLINES[key] || now
-  return (deadline - now) / MIN
+  if (level.overdueAt === null) {
+    return 0
+  }
+  return (level.overdueAt - now) / MIN
 }
 
 export function formatRemaining(minutes: number): string {

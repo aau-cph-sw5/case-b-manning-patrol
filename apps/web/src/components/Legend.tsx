@@ -25,7 +25,7 @@ export default function Legend({ riskTime, onRiskTimeChange }: LegendProps) {
 
   const handleSave = () => {
     const numValue = parseInt(editValue, 10)
-    if (!isNaN(numValue) && numValue >= 0) {
+    if (!isNaN(numValue) && numValue >= 1) {
       onRiskTimeChange(numValue)
     }
     setIsEditing(false)
@@ -47,6 +47,7 @@ export default function Legend({ riskTime, onRiskTimeChange }: LegendProps) {
       label: isEditing ? 
         <input 
           type="number" 
+          min={1}
           value={editValue} 
           onChange={(e) => setEditValue(e.target.value)} 
           onBlur={handleSave}
