@@ -46,6 +46,7 @@ from .api.v2.routers import (
     dashboard_stream,
     health,
     patrol_session,
+    trains_stream,
 )
 from .db.ingest import load_stations
 from .db.main import engine, init_db
@@ -162,6 +163,7 @@ app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 app.include_router(connection.router, prefix=API_PREFIX_V2)
+app.include_router(trains_stream.router, prefix=API_PREFIX_V2)
 
 
 @app.get("/ping")

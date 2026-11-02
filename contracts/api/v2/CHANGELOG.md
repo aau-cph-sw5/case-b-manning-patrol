@@ -1,6 +1,11 @@
 # Changelog
 
-## v2.4.0 - Positioning Interface: `line` on Train, `current_steward_ids` array
+## v2.4.0 - Positioning Interface: separate trains stream; `line` and `current_steward_ids` on Train
+- Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
+  message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
+  (`trains: Train[]`, `time`). Train manning no longer rides on the dashboard
+  stream: `Dashboard` is stations-only again (`stations`, `time`), so the
+  steward Android app only ever receives stations.
 - Positioning Interface: `Train` gained a required `line: string[]` field — the
   metro lines the train serves (e.g. `["M1", "M2"]`, same convention as
   `Area.line` from v2.2.0) — so the dashboard can group manned trains per line

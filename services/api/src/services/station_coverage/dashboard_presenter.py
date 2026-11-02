@@ -6,8 +6,8 @@ from src.api.v2.schemas.dashboard import (
     Dashboard,
     DashboardArea,
     DashboardStation,
-    DashboardTrain,
 )
+from src.api.v2.schemas.trains import Train, TrainsUpdate
 from src.db.models import Station, StationLine
 from src.domain.coverage import AreaCoverageReport, StationCoverageReport
 from src.domain.train_manning import TrainManningReport
@@ -30,16 +30,22 @@ class DashboardPresenter:
     def to_dashboard(
         self,
         station_reports: list[StationCoverageReport],
-        train_reports: list[TrainManningReport],
         sent_at: datetime,
     ) -> Dashboard:
         """Return the dashboard for ``reports``, stamped with ``sent_at``.
 
-        Trains are not reported yet, so ``trains`` is always empty. Raises
-        KeyError if a report refers to a station that was not loaded.
+        Raises KeyError if a report refers to a station that was not loaded.
         """
         return Dashboard(
             stations=[self._station(report) for report in station_reports],
+            time=sent_at,
+        )
+
+    def to_trains_update(
+        self, train_reports: list[TrainManningReport], sent_at: datetime
+    ) -> TrainsUpdate:
+        """Return the trains update for ``train_reports``, stamped with ``sent_at``."""
+        return TrainsUpdate(
             trains=[self._train(report) for report in train_reports],
             time=sent_at,
         )
@@ -64,8 +70,8 @@ class DashboardPresenter:
         )
 
     @staticmethod
-    def _train(report: TrainManningReport) -> DashboardTrain:
-        return DashboardTrain(
+    def _train(report: TrainManningReport) -> Train:
+        return Train(
             train_id=report.train.train_id,
             slug=report.train.slug,
             total_time_secs=int(report.running_time.total_seconds()),

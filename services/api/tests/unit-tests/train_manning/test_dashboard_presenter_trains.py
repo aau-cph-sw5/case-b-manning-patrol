@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from src.api.v2.schemas.dashboard import DashboardTrain
+from src.api.v2.schemas.trains import Train
 from src.domain.train_manning import TrainManningReport, TrainReference
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 
@@ -38,10 +38,10 @@ def make_report(
 def test_present_maps_a_train_to_the_contract():
     presenter = make_presenter()
 
-    dashboard = presenter.to_dashboard([], [make_report()], sent_at=SENT_AT)
+    update = presenter.to_trains_update([make_report()], sent_at=SENT_AT)
 
-    assert dashboard.trains == [
-        DashboardTrain(
+    assert update.trains == [
+        Train(
             train_id=TRAIN_ID,
             slug="a29",
             total_time_secs=12 * 3600,
@@ -55,38 +55,37 @@ def test_present_maps_a_train_to_the_contract():
 def test_unmanned_train_has_empty_current_steward_ids():
     presenter = make_presenter()
 
-    dashboard = presenter.to_dashboard([], [make_report()], sent_at=SENT_AT)
+    update = presenter.to_trains_update([make_report()], sent_at=SENT_AT)
 
-    assert dashboard.trains[0].current_steward_ids == []
+    assert update.trains[0].current_steward_ids == []
 
 
-def test_manned_train_exposes_the_current_steward():
+def test_manned_train_exposes_the_current_stewards():
     presenter = make_presenter()
 
-    dashboard = presenter.to_dashboard(
-        [], [make_report(stewards=frozenset({STEWARD_A}))], sent_at=SENT_AT
+    update = presenter.to_trains_update(
+        [make_report(stewards=frozenset({STEWARD_A}))], sent_at=SENT_AT
     )
 
-    assert dashboard.trains[0].current_steward_ids == [STEWARD_A]
+    assert update.trains[0].current_steward_ids == [STEWARD_A]
 
 
 def test_multiple_current_stewards_are_all_listed():
     presenter = make_presenter()
 
-    dashboard = presenter.to_dashboard(
-        [],
+    update = presenter.to_trains_update(
         [make_report(stewards=frozenset({STEWARD_B, STEWARD_A}))],
         sent_at=SENT_AT,
     )
 
-    assert dashboard.trains[0].current_steward_ids == sorted([STEWARD_A, STEWARD_B])
+    assert update.trains[0].current_steward_ids == sorted([STEWARD_A, STEWARD_B])
 
 
 def test_train_payload_has_exactly_the_contract_fields():
     presenter = make_presenter()
 
-    dashboard = presenter.to_dashboard([], [make_report()], sent_at=SENT_AT)
-    payload = dashboard.model_dump(mode="json")
+    update = presenter.to_trains_update([make_report()], sent_at=SENT_AT)
+    payload = update.model_dump(mode="json")
 
     assert set(payload["trains"][0]) == {
         "train_id",
@@ -98,11 +97,10 @@ def test_train_payload_has_exactly_the_contract_fields():
     }
 
 
-def test_present_keeps_stations_and_trains_together():
+def test_trains_update_is_stamped_with_the_send_time():
     presenter = make_presenter()
 
-    dashboard = presenter.to_dashboard([], [make_report()], sent_at=SENT_AT)
+    update = presenter.to_trains_update([make_report()], sent_at=SENT_AT)
 
-    assert dashboard.stations == []
-    assert len(dashboard.trains) == 1
-    assert dashboard.time == SENT_AT
+    assert len(update.trains) == 1
+    assert update.time == SENT_AT

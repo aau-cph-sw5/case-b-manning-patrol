@@ -2,7 +2,7 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Positioning Interface API",
-		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. A single Server-Sent Events (SSE) stream pushes the Dashboard to every client.",
+		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. Two Server-Sent Events (SSE) streams are served: /api/v2/dashboard/stream pushes the Dashboard (stations) to every client, and /api/v2/trains/stream pushes TrainsUpdate (train manning) to dashboard clients that need it.",
 		"version": "2.2.0"
 	},
 	"servers": [
@@ -89,7 +89,7 @@
 		"/api/v2/dashboard/stream": {
 			"get": {
 				"summary": "Subscribe to dashboard updates",
-				"description": "Server-Sent Events stream (text/event-stream). Every message is an SSE event named `dashboard` whose `data` is a JSON-encoded Dashboard. Every event contains every station and train, changed or not, so clients replace their whole state on each event. An event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically, even when nothing changed. The stream stays open until the client disconnects.",
+				"description": "Server-Sent Events stream (text/event-stream). Every message is an SSE event named `dashboard` whose `data` is a JSON-encoded Dashboard. Every event contains every station, changed or not, so clients replace their whole state on each event. An event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically, even when nothing changed. The stream stays open until the client disconnects.",
 				"responses": {
 					"200": {
 						"description": "Open SSE stream. Each event's data is a Dashboard.",
@@ -97,6 +97,34 @@
 							"text/event-stream": {
 								"schema": {
 									"$ref": "#/components/schemas/Dashboard"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error before the stream was opened",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v2/trains/stream": {
+			"get": {
+				"summary": "Subscribe to train manning updates",
+				"description": "Server-Sent Events stream (text/event-stream). Every message is an SSE event named `trains` whose `data` is a JSON-encoded TrainsUpdate. Every event contains every train, changed or not, so clients replace their whole state on each event. An event is sent each time the server recomputes train manning: when a positioning or patrol session event arrives, and periodically, even when nothing changed. The stream stays open until the client disconnects.",
+				"responses": {
+					"200": {
+						"description": "Open SSE stream. Each event's data is a TrainsUpdate.",
+						"content": {
+							"text/event-stream": {
+								"schema": {
+									"$ref": "#/components/schemas/TrainsUpdate"
 								}
 							}
 						}
@@ -249,6 +277,18 @@
 							"$ref": "#/components/schemas/Station"
 						}
 					},
+					"time": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the server sent this event. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:15:00+00:00"
+					}
+				},
+				"required": ["stations", "time"]
+			},
+			"TrainsUpdate": {
+				"type": "object",
+				"properties": {
 					"trains": {
 						"type": "array",
 						"items": {
@@ -262,7 +302,7 @@
 						"example": "2026-09-21T10:15:00+00:00"
 					}
 				},
-				"required": ["stations", "trains", "time"]
+				"required": ["trains", "time"]
 			},
 			"AtRiskThreshold": {
 				"type": "object",

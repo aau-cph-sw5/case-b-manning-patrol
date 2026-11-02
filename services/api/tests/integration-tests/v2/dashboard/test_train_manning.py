@@ -103,12 +103,8 @@ async def test_dashboard_payload_exposes_train_with_line(client, db_engine):
     post_event(client, "/api/v2/connection/connect", TIMESTAMP)
 
     presenter = app.state.dashboard_presenter
-    dashboard = presenter.to_dashboard(
-        app.state.coverage_updater.snapshot(),
-        train_snapshot(),
-        sent_at=datetime.now(UTC),
-    )
-    payload = dashboard.model_dump(mode="json")
+    update = presenter.to_trains_update(train_snapshot(), sent_at=datetime.now(UTC))
+    payload = update.model_dump(mode="json")
 
     assert len(payload["trains"]) == 1
     train = payload["trains"][0]
@@ -118,4 +114,3 @@ async def test_dashboard_payload_exposes_train_with_line(client, db_engine):
     assert train["current_steward_ids"] == [ANDROID_ID]
     assert isinstance(train["total_time_secs"], int)
     assert isinstance(train["manned_time_secs"], int)
-    assert payload["stations"] is not None

@@ -42,10 +42,18 @@ export interface Train {
 }
 
 /**
- * Complete dashboard state pushed via SSE
+ * Complete dashboard state pushed via SSE on the dashboard stream (stations only)
  */
 export interface Dashboard {
   stations: Station[];
+  time: string; // ISO 8601 date-time with offset when server sent the event
+}
+
+/**
+ * Train manning state pushed via SSE on the separate trains stream
+ * (GET /api/v2/trains/stream, event "trains")
+ */
+export interface TrainsUpdate {
   trains: Train[];
   time: string; // ISO 8601 date-time with offset when server sent the event
 }
