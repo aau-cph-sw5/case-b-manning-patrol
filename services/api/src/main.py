@@ -35,6 +35,7 @@ from .api.v2.routers import (
     connection,
     dashboard_stream,
     health,
+    patrol_record,
     patrol_session,
 )
 from .db.ingest import load_stations
@@ -132,6 +133,7 @@ app.include_router(adjustment.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
+app.include_router(patrol_record.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 app.include_router(connection.router, prefix=API_PREFIX_V2)
 
