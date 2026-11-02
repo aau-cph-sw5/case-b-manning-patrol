@@ -1,10 +1,10 @@
-import { StackScreen } from 'expo-router/build/layouts/stack-utils';
+import { Stack } from 'expo-router';
 import { StyleSheet, View, Text } from 'react-native';
 
 export default function NotFoundScreen () {
     return (
         <>
-            <StackScreen options={{title: 'Patruljehistorik'}} />
+            <Stack.Screen options={{title: 'Patruljehistorik'}} />
             <View style={styles.container}>
                 <Text style={styles.text}>
                     Placeholder Patruljehistorik
