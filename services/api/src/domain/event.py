@@ -1,3 +1,5 @@
+"""Steward event types and the event record used by the coverage calculation."""
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -5,6 +7,8 @@ from uuid import UUID
 
 
 class EventType(StrEnum):
+    """Kinds of event a steward's phone sends."""
+
     CONNECT_EVENT = "connect"
     DISCONNECT_EVENT = "disconnect"
     START_EVENT = "shift_start"
@@ -13,6 +17,13 @@ class EventType(StrEnum):
 
 @dataclass(frozen=True)
 class EventRecord:
+    """A steward event as used by the coverage calculation.
+
+    ``device_timestamp`` is when the phone saw the event and is the time
+    coverage is based on; ``server_timestamp`` is when the backend received
+    it. ``beacon_id`` is normally None for START and STOP events.
+    """
+
     event_id: UUID
     event_type: EventType
     android_id: UUID

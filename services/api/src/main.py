@@ -46,6 +46,13 @@ API_PREFIX_V2 = "/api/v2"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Set up the database and coverage pipeline, and shut them down on exit.
+
+    Creates missing tables, reloads stations from the data file, computes
+    coverage once and starts the 5-second clock tick. The coverage updater,
+    SSE broadcaster and dashboard presenter are put on ``app.state`` for the
+    routers.
+    """
     await init_db()
     async with AsyncSession(engine) as session:
         await load_stations(session)
@@ -92,6 +99,7 @@ async def event_validation_exception_handler(
     _: Request,
     error: EventValidationError,
 ) -> JSONResponse:
+    """Answer 400 with the error message for an invalid event or adjustment."""
     return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
@@ -100,6 +108,7 @@ async def target_event_not_found_exception_handler(
     _: Request,
     error: TargetEventNotFoundError,
 ) -> JSONResponse:
+    """Answer 404 when an adjustment targets an unknown event."""
     return JSONResponse(
         status_code=404,
         content={"code": "404", "message": str(error)},
@@ -108,6 +117,7 @@ async def target_event_not_found_exception_handler(
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, error: RequestValidationError):
+    """Answer request validation errors with 400 instead of FastAPI's 422."""
     return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
@@ -128,12 +138,13 @@ app.include_router(connection.router, prefix=API_PREFIX_V2)
 
 @app.get("/ping")
 async def ping():
+    """Return a minimal response showing the server is up."""
     return {"message": "up"}
 
 
 @app.get("/")
 def hello():
-    """Stub endpoint for root path"""
+    """Stub endpoint for root path."""
     return {"message": "Hello"}
 
 

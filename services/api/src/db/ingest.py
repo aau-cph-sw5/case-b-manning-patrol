@@ -1,3 +1,5 @@
+"""Load station reference data into the database."""
+
 import json
 from pathlib import Path
 from uuid import UUID
@@ -12,6 +14,11 @@ STATIONS_FILE = Path(__file__).parent.parent / "data" / "stations.v1.json"
 
 
 async def load_stations(session: AsyncSession, path: Path = STATIONS_FILE) -> None:
+    """Replace all stations, lines and patrol areas with the contents of ``path``.
+
+    Existing rows are deleted first, so the file is the single source of
+    truth. Commits when done.
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
 
     await session.exec(delete(StationLine))
@@ -25,7 +32,6 @@ async def load_stations(session: AsyncSession, path: Path = STATIONS_FILE) -> No
     for line in data["lines"]:
         session.add(Line(id=line["id"], name=line["name"]))
 
-    # create station-line relationships
     for station in data["stations"]:
         for line_id in station["line_ids"]:
             session.add(StationLine(station_id=station["id"], line_id=line_id))
