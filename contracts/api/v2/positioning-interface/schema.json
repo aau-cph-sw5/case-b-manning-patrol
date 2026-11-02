@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Interface API",
 		"description": "Backend API contract for station and train presence positioning data. Consumed by the Web UI dashboard and reporting services. Combines fetch-on-load REST resources with WebSocket push channels for live updates.",
-		"version": "2.1.0"
+		"version": "2.0.1"
 	},
 	"servers": [
 		{
@@ -15,10 +15,10 @@
 		"/api/v2/dashboard": {
 			"get": {
 				"summary": "Get dashboard overview",
-				"description": "Returns every station, each with its current manning state. Used to populate the dashboard on load. Trains are served by the trains stream instead.",
+				"description": "Returns every station and train, each with its current manning state. Used to populate the dashboard on load.",
 				"responses": {
 					"200": {
-						"description": "Successful response with all stations",
+						"description": "Successful response with all stations and trains",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -177,25 +177,6 @@
 					}
 				}
 			}
-		},
-		"/api/v2/trains/stream": {
-			"get": {
-				"summary": "Subscribe to the trains stream",
-				"description": "Server-sent events channel (text/event-stream). Backend pushes a TrainsResponse as a `trains` event once on connect and then whenever a connection event changes any train's manning state.",
-				"x-sse": true,
-				"responses": {
-					"200": {
-						"description": "Event pushed to subscribers over the open SSE connection",
-						"content": {
-							"text/event-stream": {
-								"schema": {
-									"$ref": "#/components/schemas/TrainsResponse"
-								}
-							}
-						}
-					}
-				}
-			}
 		}
 	},
 	"components": {
@@ -302,48 +283,15 @@
 						"items": {
 							"$ref": "#/components/schemas/Station"
 						}
-					}
-				},
-				"required": ["stations"]
-			},
-			"TrainsResponse": {
-				"type": "object",
-				"properties": {
+					},
 					"trains": {
 						"type": "array",
-						"description": "Every train with its current manning state.",
 						"items": {
 							"$ref": "#/components/schemas/Train"
 						}
-					},
-					"manning_percent": {
-						"type": "number",
-						"minimum": 0,
-						"maximum": 100,
-						"description": "Share of total running time across all trains that has been manned, in percent.",
-						"example": 66.7
-					},
-					"m1m2_manning_percent": {
-						"type": "number",
-						"minimum": 0,
-						"maximum": 100,
-						"description": "Manning percent across the trains on lines M1 and M2.",
-						"example": 70.0
-					},
-					"m3m4_manning_percent": {
-						"type": "number",
-						"minimum": 0,
-						"maximum": 100,
-						"description": "Manning percent across the trains on lines M3 and M4.",
-						"example": 62.5
 					}
 				},
-				"required": [
-					"trains",
-					"manning_percent",
-					"m1m2_manning_percent",
-					"m3m4_manning_percent"
-				]
+				"required": ["stations", "trains"]
 			},
 			"StationResponse": {
 				"$ref": "#/components/schemas/Station"

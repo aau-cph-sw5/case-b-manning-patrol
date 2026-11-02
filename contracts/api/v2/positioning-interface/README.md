@@ -11,18 +11,16 @@ graph TD
     WebUI -->|"GET api/v2/trains/{trainID}"| RestAPI
     WebUI -.->|"WS /stationUpdate"| RestAPI
     WebUI -.->|"WS /trainUpdate"| RestAPI
-    WebUI -.->|"SSE api/v2/trains/stream"| RestAPI
     RestAPI[RestAPI] --> Backend[Backend\npython]
 ```
 
 ## Endpoints
 
-- `GET api/v2/dashboard` - Returns every station ([DashboardResponse])
+- `GET api/v2/dashboard` - Returns every station and train ([DashboardResponse])
 - `GET api/v2/stations/{stationID}` - Returns a single station and its areas ([StationResponse])
 - `GET api/v2/trains/{trainID}` - Returns a single train ([TrainResponse])
 - `WS /stationUpdate` - Live push of a [StationResponse] whenever a station's manning state changes
 - `WS /trainUpdate` - Live push of a [TrainResponse] whenever a train's manning state changes
-- `SSE api/v2/trains/stream` - Server-sent `trains` events with a [TrainsResponse] on connect and whenever any train's manning state changes
 
 ## Implementation Notes
 
@@ -55,12 +53,7 @@ The exact relationship between `StationResponse`/`TrainResponse` and the underly
 
 ### DashboardResponse
 - `stations`: Station[]
-
-### TrainsResponse
 - `trains`: Train[]
-- `manning_percent`: number (0-100) - manned share of running time across all trains
-- `m1m2_manning_percent`: number (0-100) - manning percent for trains on lines M1 and M2
-- `m3m4_manning_percent`: number (0-100) - manning percent for trains on lines M3 and M4
 
 ### StationResponse
 - Same shape as `Station`

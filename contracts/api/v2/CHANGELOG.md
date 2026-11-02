@@ -1,9 +1,5 @@
 # Changelog
 
-## v2.1.0 - Dashboard split (unpublished)
-- `DashboardResponse` no longer includes `trains`; `GET /api/v2/dashboard` returns stations only.
-- Added SSE channel `GET /api/v2/trains/stream`, which pushes a `TrainsResponse` (`trains`, `manning_percent`, `m1m2_manning_percent`, `m3m4_manning_percent`) on connect and whenever any train's manning state changes.
-
 ## v2.0.1 - Initial draft (unpublished)
 - Draft of Adjustment Event API contract for group review. Not yet published.
 - `POST /api/v2/adjustment` appends a manual correction to the append-only
