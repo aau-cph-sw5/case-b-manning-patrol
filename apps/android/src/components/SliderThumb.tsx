@@ -1,15 +1,18 @@
-// the round handle of the session slider: a white ring around a coloured circle.
-// shows a chevron in the slide direction, or a spinner while a request is in flight.
+/** The round handle of the session slider. */
 import { SymbolView } from "expo-symbols";
 import bold from "expo-symbols/androidWeights/bold";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+/** Outer diameter of the thumb in points; the slider sizes its track from it. */
 export const THUMB_SIZE = 64;
 const RING_WIDTH = 6;
 
 type Direction = "left" | "right";
 
-// sf symbols on ios, material symbols on android and web. a platform without a name renders nothing.
+/**
+ * Chevron symbol names per platform: SF Symbols on iOS, Material Symbols on
+ * Android and web. A platform without a name renders nothing.
+ */
 const chevrons = {
   left: { ios: "chevron.left", android: "chevron_left", web: "chevron_left" },
   right: { ios: "chevron.right", android: "chevron_right", web: "chevron_right" },
@@ -17,11 +20,16 @@ const chevrons = {
 
 type SliderThumbProps = {
   color: string;
-  // the direction the steward should slide
+  /** The direction the steward should slide. */
   pointing: Direction;
+  /** Show a spinner instead of the chevron while a request is in flight. */
   loading: boolean;
 };
 
+/**
+ * Render the thumb: a white ring around a coloured circle, with a chevron in
+ * the slide direction or a spinner while a request is in flight.
+ */
 export function SliderThumb({ color, pointing, loading }: SliderThumbProps) {
   return (
     <View style={styles.ring}>

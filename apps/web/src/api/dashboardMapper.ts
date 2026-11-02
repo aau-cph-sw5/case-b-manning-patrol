@@ -1,14 +1,21 @@
-// Maps the dashboard SSE payload (position-interface/v2) to the view model
-// consumed by Dashboard, StationCard, and TimeColor.
+/**
+ * Maps the dashboard SSE payload (position-interface/v2) to the view model
+ * consumed by Dashboard, StationCard, and TimeColor.
+ */
 
 import type { AreaType, Dashboard } from "./dashboardApi"
 
+/** One patrol area as the dashboard shows it. */
 export interface StationLevel {
+  /** Danish display label, e.g. "Perron", or "Perron 2" when a station has several of a kind. */
   label: string
-  overdueAt: number | null // epoch ms deadline; null means no deadline (manned or unknown)
+  /** Deadline in epoch ms; null means no deadline (manned, or never patrolled). */
+  overdueAt: number | null
+  /** True while a steward is patrolling the area right now. */
   manned: boolean
 }
 
+/** A station as the dashboard shows it. */
 export interface Station {
   stationId: string
   name: string
@@ -20,6 +27,10 @@ const AREA_LABELS: Record<AreaType, string> = {
   concourse: "Forhal",
 }
 
+/**
+ * Return the Danish label for the area at `index`, numbered by position among
+ * its kind ("Perron 1", "Perron 2") only when the station has more than one.
+ */
 function areaLabel(areas: { area_type: AreaType }[], index: number): string {
   const kind = areas[index].area_type
   const ofSameKind = areas.filter((area) => area.area_type === kind).length
@@ -30,6 +41,12 @@ function areaLabel(areas: { area_type: AreaType }[], index: number): string {
   return `${AREA_LABELS[kind]} ${ordinal}`
 }
 
+/**
+ * Map a dashboard event to the stations the dashboard renders.
+ *
+ * Keeps the order of stations and areas, drops the trains, and parses
+ * `overdue_at` to epoch ms. An unparseable timestamp becomes NaN, not null.
+ */
 export function toViewStations(dashboard: Dashboard): Station[] {
   return dashboard.stations.map((station) => ({
     stationId: station.station_id,
