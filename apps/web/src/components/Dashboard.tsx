@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { BsEmojiFrown } from 'react-icons/bs'
 import StationCard from './StationCard.tsx'
+import TrainCard from './TrainCard.tsx'
+import LineGroupFilter from './LineGroupFilter.tsx'
+import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
 import {
   formatRemaining,
   remainingMinutes,
@@ -8,7 +12,6 @@ import {
   type TimeColor,
 } from '../utils/TimeColor.tsx'
 import { useNow } from '../hooks/useNow.ts'
-import { useFitCount } from '../hooks/useFitCount.ts'
 import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { toViewStations } from '../api/dashboardMapper.ts'
@@ -18,16 +21,19 @@ import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
 import './Dashboard.css'
 
+type View = 'all' | 'attention'
+
 function Dashboard() {
   const now = useNow()
-  const listRef = useRef<HTMLUListElement>(null)
-  const fit = useFitCount(listRef)
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
+  const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0])
+  const [view, setView] = useState<View>('all')
   const { dashboard, isLoading, error, lastUpdated } = useDashboardStream()
   const stations = useMemo(
     () => (dashboard ? toViewStations(dashboard) : []),
     [dashboard],
   )
+  const trains = useMemo(() => dashboard?.trains ?? [], [dashboard])
 
   useEffect(() => {
     if (dashboard) console.log("Dashboard SSE update:", dashboard);
@@ -54,36 +60,76 @@ function Dashboard() {
       .catch(console.error)
   }
 
-  const attention = stations.flatMap((station) =>
-    station.levels.map((level) => ({
-      code: `${station.stationId}_${level.label}`,
-      minutes: remainingMinutes(level, now),
-    })),
-  )
+  const attention = stations
+    .filter((station) => stationServesLineGroup(station, lineGroup))
+    .flatMap((station) =>
+      station.levels.map((level) => ({
+        code: `${station.stationId}_${level.label}`,
+        minutes: remainingMinutes(level, now),
+      })),
+    )
     .filter((item) => item.minutes <= riskTime)
     .sort((a, b) => a.minutes - b.minutes)
 
-  const visibleAttention =
-    attention.length > fit ? attention.slice(0, fit - 1) : attention
-  const hiddenCount = attention.length - visibleAttention.length
+  // the warn pill is about overdue stations only (not at-risk within the threshold)
+  const overdueCount = attention.filter((item) => item.minutes <= 0).length
 
-  const overdueCount = stations.flatMap((station) =>
-    station.levels.filter(
-      (level) => remainingMinutes(level, now) <= 0,
-    ),
-  ).length
+  const visibleStations = stations.filter((station) => {
+    if (!stationServesLineGroup(station, lineGroup)) return false
+    if (view === 'attention') {
+      return station.levels.some((level) => remainingMinutes(level, now) <= 0)
+    }
+    return true
+  })
 
   return (
-    <>
-      <section className="dashboard-header">
-        <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
-        <h1 className='dashboard-title'>Patrulje Overblik</h1>
-        <div className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</div>
-      </section>
-      <div className="dash">
-        <div className={`overdue-count${overdueCount > 0 ? ' has-overdue' : ''}`} style={{ gridColumn: 2, marginTop: "10px" }}>
-          Overskredet ({overdueCount})
+    <div className="dashboard-page">
+      <header className="topbar">
+        <div className="brand">
+          <span className="logo">METRO</span>
+          <span className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</span>
         </div>
+        <div className="topbar-right">
+          <LineGroupFilter selected={lineGroup} onSelect={setLineGroup} />
+        </div>
+      </header>
+
+      <div className="legend-row">
+        {overdueCount > 0 && (
+          <button
+            type="button"
+            className={`nav-pill warn${view === 'attention' ? ' active' : ''}`}
+            aria-pressed={view === 'attention'}
+            onClick={() => setView(view === 'attention' ? 'all' : 'attention')}
+          >
+            <BsEmojiFrown className="smiley-icon" /> Overskredet stationer ({overdueCount})
+          </button>
+        )}
+        <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
+      </div>
+
+      <main className="dash">
+        <div className="side-col">
+          <TrainCard trains={trains} />
+          <aside className="card attention">
+            <h2>Kræver handling ({attention.length})</h2>
+            <ul className="attention-list">
+              {attention.map((item) => {
+                const color = timeColorClass(item.minutes, riskTime) as TimeColor
+                const StatusIcon = STATUS_ICONS[color]
+                return (
+                  <li key={item.code} className={color}>
+                    <StatusIcon className="smiley-icon" />
+                    <span className="attention-text">
+                      {item.code}: {formatRemaining(item.minutes)}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </aside>
+        </div>
+
         <section className="station-grid">
           {stations.length === 0 && (
             <p className="dashboard-empty">
@@ -94,32 +140,12 @@ function Dashboard() {
                   : 'Ingen stationer'}
             </p>
           )}
-          {stations.map((station) => (
+          {visibleStations.map((station) => (
             <StationCard key={station.stationId} station={station} now={now} riskTime={riskTime} />
           ))}
         </section>
-        <aside className="card attention">
-          <h2>Kræver handling ({attention.length})</h2>
-          <ul className="attention-list" ref={listRef}>
-            {visibleAttention.map((item) => {
-              const color = timeColorClass(item.minutes, riskTime) as TimeColor
-              const StatusIcon = STATUS_ICONS[color]
-              return (
-                <li key={item.code} className={color}>
-                  <StatusIcon className="smiley-icon" />
-                  <span className="attention-text">
-                    {item.code}: {formatRemaining(item.minutes)}
-                  </span>
-                </li>
-              )
-            })}
-            {hiddenCount > 0 && (
-              <li className="attention-more">+{hiddenCount}</li>
-            )}
-          </ul>
-        </aside>
-      </div>
-    </>
+      </main>
+    </div>
   )
 }
 
