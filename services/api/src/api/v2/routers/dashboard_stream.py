@@ -1,5 +1,3 @@
-"""Server-sent events stream of station coverage for the dashboard."""
-
 from collections.abc import AsyncIterable
 from datetime import UTC, datetime
 
@@ -16,12 +14,6 @@ router = APIRouter(tags=["positioning-interface"])
 
 @router.get("/dashboard/stream", response_class=EventSourceResponse)
 async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
-    """Stream the dashboard as server-sent `dashboard` events.
-
-    The latest known coverage is sent as soon as the client connects. After
-    that a new event is sent every time coverage is recalculated: after each
-    ingested event and every 5 seconds on the clock tick.
-    """
     broadcaster: SseCoverageBroadcaster = request.app.state.sse_broadcaster
     updater: CoverageUpdater = request.app.state.coverage_updater
     presenter: DashboardPresenter = request.app.state.dashboard_presenter

@@ -1,5 +1,3 @@
-"""Validate and store incoming steward events and supervisor adjustments."""
-
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -14,8 +12,6 @@ from src.domain.event import EventType
 
 
 class EventProducer:
-    """Append events and adjustments, stamping server time and source."""
-
     def __init__(self, session: AsyncSession, source: str) -> None:
         self._session = session
         self._source = source
@@ -27,12 +23,6 @@ class EventProducer:
         device_timestamp: datetime,
         beacon_id: UUID | None = None,
     ) -> Event:
-        """Validate and store a new event and return it.
-
-        The server timestamp is set to the current time. Raises
-        AndroidIdNotFoundError or BeaconNotFoundError for an unknown device or
-        beacon, but both lookups are placeholders that accept every ID.
-        """
         await self._validate_event(android_id, beacon_id)
 
         event = Event(
@@ -53,11 +43,6 @@ class EventProducer:
         android_id: UUID,
         device_timestamp: datetime,
     ) -> list[Event]:
-        """Disconnect the steward from every beacon still connected.
-
-        Stores one DISCONNECT event at ``device_timestamp`` per open connection
-        and returns the stored events.
-        """
         open_connections = await get_open_connections(self._session, android_id)
         pending_closures = [
             (connection.android_id, connection.beacon_id)
@@ -83,12 +68,6 @@ class EventProducer:
         author: str,
         target_event_id: UUID | None = None,
     ) -> AdjustmentEventStored:
-        """Validate and store a supervisor's correction.
-
-        Raises EventValidationError if a connect or disconnect correction has no
-        beacon, and TargetEventNotFoundError if ``target_event_id`` is given but
-        the event cannot be loaded.
-        """
         if (
             corrected_fact.fact_type == EventType.CONNECT_EVENT
             or corrected_fact.fact_type == EventType.DISCONNECT_EVENT
@@ -127,19 +106,10 @@ class EventProducer:
             raise BeaconNotFoundError(f"Beacon '{beacon_id}' was not found")
 
     async def _find_android_id(self, android_id: UUID) -> str | None:
-        """Look up a device.
-
-        Placeholder that accepts every ID until a device registry exists.
-        """
-        return "Android_1"
+        return "Android_1"  # placeholder until a device registry exists
 
     async def _find_beacon(self, beacon_id: UUID) -> str | None:
-        """Look up a beacon.
-
-        Placeholder that accepts every ID until beacons are checked against
-        patrol areas.
-        """
-        return "Beacon_1"
+        return "Beacon_1"  # placeholder until beacons are checked against areas
 
 
 def _now_utc() -> datetime:
@@ -147,32 +117,24 @@ def _now_utc() -> datetime:
 
 
 class EventValidationError(Exception):
-    """An event or adjustment is invalid; the API answers 400."""
-
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
 
 
 class TargetEventNotFoundError(Exception):
-    """An adjustment targets an event that does not exist; the API answers 404."""
-
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
 
 
 class AndroidIdNotFoundError(Exception):
-    """The device that sent an event is not known."""
-
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
 
 
 class BeaconNotFoundError(Exception):
-    """An event refers to a beacon that is not known."""
-
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
