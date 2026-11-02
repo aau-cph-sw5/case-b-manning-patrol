@@ -28,6 +28,16 @@ from src.services.station_coverage.interval_builder import IntervalBuilder
 from src.services.station_coverage.overdue_tracker import OverdueTracker
 from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.train_manning.train_manning_clock_tick import TrainManningClockTick
+from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
+from src.services.train_manning.train_manning_publisher import (
+    SseTrainManningBroadcaster,
+)
+from src.services.train_manning.train_manning_service import TrainManningService
+from src.services.train_manning.train_manning_updater import (
+    TrainManningDeps,
+    TrainManningUpdater,
+)
 
 from .api.v2.routers import (
     adjustment,
@@ -46,6 +56,13 @@ API_PREFIX_V2 = "/api/v2"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Set up the database and coverage pipeline, and shut them down on exit.
+
+    Creates missing tables, reloads stations from the data file, computes
+    coverage once and starts the 5-second clock tick. The coverage updater,
+    SSE broadcaster and dashboard presenter are put on ``app.state`` for the
+    routers.
+    """
     await init_db()
     async with AsyncSession(engine) as session:
         await load_stations(session)
@@ -58,6 +75,7 @@ async def lifespan(app: FastAPI):
         time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
         min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
+    shift_schedule = ShiftSchedule.from_file()
     sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
     service = CoverageService(builder, rule)
@@ -67,20 +85,37 @@ async def lifespan(app: FastAPI):
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
-        shift_schedule=ShiftSchedule.from_file(),
+        shift_schedule=shift_schedule,
+    )
+    train_manning_broadcaster = SseTrainManningBroadcaster()
+    train_manning_updater = TrainManningUpdater(
+        service=TrainManningService(builder, TrainManningEvaluator()),
+        publisher=train_manning_broadcaster,
+        deps=TrainManningDeps(
+            session_factory=lambda: AsyncSession(engine),
+            clock=lambda: datetime.now(UTC),
+            shift_schedule=shift_schedule,
+        ),
     )
 
     await coverage_updater.refresh()
-    tick = asyncio.create_task(
+    await train_manning_updater.refresh()
+    coverage_tick = asyncio.create_task(
         CoverageClockTick(coverage_updater, timedelta(seconds=5)).run()
+    )
+    train_manning_tick = asyncio.create_task(
+        TrainManningClockTick(train_manning_updater, timedelta(seconds=5)).run()
     )
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
+    app.state.train_manning_updater = train_manning_updater
+    app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
 
     yield
-    tick.cancel()
+    coverage_tick.cancel()
+    train_manning_tick.cancel()
     await engine.dispose()
 
 
@@ -92,6 +127,7 @@ async def event_validation_exception_handler(
     _: Request,
     error: EventValidationError,
 ) -> JSONResponse:
+    """Answer 400 with the error message for an invalid event or adjustment."""
     return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
@@ -100,6 +136,7 @@ async def target_event_not_found_exception_handler(
     _: Request,
     error: TargetEventNotFoundError,
 ) -> JSONResponse:
+    """Answer 404 when an adjustment targets an unknown event."""
     return JSONResponse(
         status_code=404,
         content={"code": "404", "message": str(error)},
@@ -108,6 +145,7 @@ async def target_event_not_found_exception_handler(
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, error: RequestValidationError):
+    """Answer request validation errors with 400 instead of FastAPI's 422."""
     return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
 
@@ -128,12 +166,13 @@ app.include_router(connection.router, prefix=API_PREFIX_V2)
 
 @app.get("/ping")
 async def ping():
+    """Return a minimal response showing the server is up."""
     return {"message": "up"}
 
 
 @app.get("/")
 def hello():
-    """Stub endpoint for root path"""
+    """Stub endpoint for root path."""
     return {"message": "Hello"}
 
 

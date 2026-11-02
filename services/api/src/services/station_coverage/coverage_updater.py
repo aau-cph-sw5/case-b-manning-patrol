@@ -1,3 +1,5 @@
+"""Recompute, log and publish station coverage in one serialized step."""
+
 import asyncio
 import logging
 from collections.abc import Callable
@@ -15,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class CoverageUpdater:
+    """Keep the latest coverage reports current and push them to the publisher.
+
+    Called both by the clock tick and after new events are ingested.
+    """
+
     def __init__(
         self,
         service: CoverageService,
@@ -34,6 +41,15 @@ class CoverageUpdater:
         self._last_published: list[StationCoverageReport] = []
 
     async def refresh(self) -> None:
+        """Recompute coverage for the current shift, log overdue changes, publish.
+
+        Uses the latest shift from the schedule and computes coverage as of
+        the earlier of the clock time and the shift end, so a finished shift
+        stays frozen at its end. Overdue episodes are written to the overdue
+        log with the actual clock time as detection time, and the session is
+        committed before the reports are stored for ``snapshot`` and
+        published. Concurrent calls are serialized by a lock.
+        """
         async with self._lock:
             now = self._clock()
             shift = self._shift_schedule.latest_shift(now)
@@ -48,4 +64,5 @@ class CoverageUpdater:
             self._publisher.publish(reports)
 
     def snapshot(self) -> list[StationCoverageReport]:
+        """Return a copy of the last published reports, empty before any refresh."""
         return list(self._last_published)
