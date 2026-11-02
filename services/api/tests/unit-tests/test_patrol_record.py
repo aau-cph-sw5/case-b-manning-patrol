@@ -162,9 +162,7 @@ async def test_build_records_leaves_unmatched_connect_open(session):
 
     [record] = result.records
     assert record.ended_at is None
-    assert record.duration_secs == int(
-        (result.time - record.started_at).total_seconds()
-    )
+    assert record.duration_secs is None
     assert record.patrolled is True
     assert record.status == Status.OPEN
 
