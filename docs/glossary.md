@@ -46,7 +46,7 @@ Paths: backend from `services/api/src/`, Android from `apps/android/src/`, web f
 |---|---|---|
 | Steward | The person on night duty, carrying the phone. | `android_id` on every event, `domain/event.py` |
 | Night shift | The working night, 00:00–06:00 Copenhagen. The only shift that matters here. | `Shift` in `domain/shift.py`; times in `data/shifts.v1.json` |
-| Patrol session | One stretch of work between start and stop. Breaks split a shift into several. | backend `api/v2/routers/patrol_session.py`; Android `components/SessionSlider.tsx`; event type `START_EVENT` / `STOP_EVENT` in `domain/event.py`sent over the API as shift_start / shift_stop; the db stores START_EVENT / STOP_EVENT |
+| Patrol session | One stretch of work between start and stop. Breaks split a shift into several. | backend `api/v2/routers/patrol_session.py`; Android `components/SessionSlider.tsx`; event type `START_EVENT` / `STOP_EVENT` in `domain/event.py`  sent over the API as `shift_start` / `shift_stop`; the db stores `START_EVENT` / `STOP_EVENT` |
 | Record | One connect + its disconnect: the phone near one beacon. Built by the backend, never stored, never sent by the app. | `StewardPatrolInterval` in `domain/coverage.py`, built in `services/station_coverage/interval_builder.py` |
 | Connect / disconnect | The phone starts or stops hearing a beacon. There's a rule that only sends a connection even when it has been connected for 4 seconds | backend `api/v2/routers/connection.py`; Android `types/beacon.ts` (`CONNECTED` / `DISCONNECTED`) |
 | Pending / registered | A record still open / a record the server has closed. | contract only: `contracts/api/v2/patrol-record/` |
