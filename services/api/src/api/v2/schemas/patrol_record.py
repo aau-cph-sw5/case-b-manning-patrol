@@ -34,15 +34,14 @@ class RecordArea(BaseModel):
 class Record(BaseModel):
     """One visit by a steward to a patrol area.
 
-    `ended_at` is None while the record is open, and `duration_secs` is measured
-    up to the time the response was built.
+    `ended_at` and `duration_secs` are None while the record is open.
     """
 
     android_id: UUID
     beacon_id: UUID
     started_at: datetime
     ended_at: datetime | None
-    duration_secs: int
+    duration_secs: int | None
     min_patrol_duration_secs: int
     patrolled: bool
     status: Status
