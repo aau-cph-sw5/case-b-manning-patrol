@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.4.0 - Positioning Interface: at-risk episode count per shift
+- Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
+  `AtRiskCount` — how many areas have been at-risk during a shift. An area is
+  at-risk when the remaining time until its `overdue_at` falls within the
+  configured `at_risk_threshold_minutes`.
+- The count is per episode: an area that is patrolled and later becomes
+  at-risk again counts as a new episode. Overdue areas are not counted
+  separately, since they passed through at-risk first.
+- The optional `shift_start` query parameter (ISO 8601 with offset) selects
+  the shift to count for. Without it, the endpoint returns the count for the
+  latest shift from the server's shift schedule — for example, last night's
+  shift when asked for in the morning.
+- The backend counts episodes during the same 5-second coverage recompute
+  that feeds `/api/v2/dashboard/stream`; there is no separate counting job.
+  Each counted episode is written to the database, so the number survives a
+  server restart in the middle of a shift without counting anything twice.
+- The control room dashboard uses this for the night shift's at-risk
+  statistics.
+
 ## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
 - Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
   returns `RecordList`, one steward's patrol records for the current shift only.
