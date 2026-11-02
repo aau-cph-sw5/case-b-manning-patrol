@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.0 - Patrol Record: `status` is `open` | `closed`
+- Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
+  `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
+  runs, closed once the disconnect event is stored. No client consumes the field
+  yet, so the rename is made in v2 rather than a new major version.
+
 ## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
 - Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
   returns `RecordList`, one steward's patrol records for the current shift only.

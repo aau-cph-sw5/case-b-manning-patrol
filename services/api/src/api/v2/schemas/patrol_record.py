@@ -10,8 +10,8 @@ from pydantic import BaseModel
 class Status(Enum):
     """Whether a record is still open or has been closed by a disconnect."""
 
-    PENDING = "pending"
-    REGISTERED = "registered"
+    OPEN = "open"
+    CLOSED = "closed"
 
 
 class AreaType(Enum):
@@ -34,7 +34,7 @@ class RecordArea(BaseModel):
 class Record(BaseModel):
     """One visit by a steward to a patrol area.
 
-    `ended_at` and `duration_secs` are None while the record is pending.
+    `ended_at` and `duration_secs` are None while the record is open.
     """
 
     android_id: UUID  # Will be given by GET request

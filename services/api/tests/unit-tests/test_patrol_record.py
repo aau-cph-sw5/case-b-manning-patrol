@@ -118,7 +118,7 @@ async def test_build_records_is_empty_without_shift_start(session):
 
 @pytest.mark.asyncio
 async def test_build_records_pairs_connect_and_disconnect(session):
-    """A connect followed by a disconnect becomes one registered record."""
+    """A connect followed by a disconnect becomes one closed record."""
     await start_shift(session)
     await connect(session, 10)
     await disconnect(session, 55)
@@ -133,7 +133,7 @@ async def test_build_records_pairs_connect_and_disconnect(session):
     assert record.duration_secs == 45
     assert record.min_patrol_duration_secs == 10
     assert record.patrolled is True
-    assert record.status == Status.REGISTERED
+    assert record.status == Status.CLOSED
 
 
 @pytest.mark.asyncio
@@ -153,8 +153,8 @@ async def test_build_records_resolves_area(session):
 
 
 @pytest.mark.asyncio
-async def test_build_records_leaves_unmatched_connect_pending(session):
-    """A connect with no disconnect yet becomes a pending record."""
+async def test_build_records_leaves_unmatched_connect_open(session):
+    """A connect with no disconnect yet becomes an open record."""
     await start_shift(session)
     await connect(session, 10)
 
@@ -164,7 +164,7 @@ async def test_build_records_leaves_unmatched_connect_pending(session):
     assert record.ended_at is None
     assert record.duration_secs is None
     assert record.patrolled is True
-    assert record.status == Status.PENDING
+    assert record.status == Status.OPEN
 
 
 @pytest.mark.asyncio
@@ -245,7 +245,7 @@ async def test_build_records_returns_most_recent_first(session):
         SHIFT_START + timedelta(seconds=10),
     ]
     assert [record.status for record in result.records] == [
-        Status.PENDING,
-        Status.PENDING,
-        Status.REGISTERED,
+        Status.OPEN,
+        Status.OPEN,
+        Status.CLOSED,
     ]
