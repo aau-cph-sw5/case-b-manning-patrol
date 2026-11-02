@@ -9,6 +9,15 @@
   the duration as of the response time (`time - started_at`), like `patrolled`;
   clients still render their own running timer from `started_at`.
 ## v2.4.0 - Positioning Interface: `line` on Train, `current_steward_ids` array
+## v2.4.0 - Positioning Interface: separate trains stream with manning percentages; `line` and `current_steward_ids` on Train
+- Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
+  message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
+  (`trains: Train[]`, `manning_percent`, `m1m2_manning_percent`,
+  `m3m4_manning_percent`, `time`). The percentages are manned-time ratios
+  (0..1, null when the group has no running time) computed in the backend on
+  every event from the event-derived reports — never stored on the train,
+  since trains are not persisted state. `Dashboard` is stations-only again
+  (`stations`, `time`), so the steward Android app only ever receives stations.
 - Positioning Interface: `Train` gained a required `line: string[]` field — the
   metro lines the train serves (e.g. `["M1", "M2"]`, same convention as
   `Area.line` from v2.2.0) — so the dashboard can group manned trains per line
