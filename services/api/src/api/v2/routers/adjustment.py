@@ -1,3 +1,5 @@
+"""Endpoint for supervisor corrections to recorded events."""
+
 from fastapi import APIRouter, status
 
 from src.api.v2.dependencies import EventProducerDep
@@ -10,6 +12,12 @@ router = APIRouter(tags=["adjustment"])
 async def adjustment_event(
     adjustment_event: AdjustmentEventCreate, producer: EventProducerDep
 ) -> AdjustmentEventStored:
+    """Record a correction to a steward event.
+
+    The original event is not changed; the correction is stored alongside it.
+    Returns 400 if a connect or disconnect correction has no `beacon_id`, and
+    404 if `target_event_id` is given but no such event exists.
+    """
     adjustment = await producer.append_adjustment(
         android_id=adjustment_event.android_id,
         corrected_fact=adjustment_event.corrected_fact,
