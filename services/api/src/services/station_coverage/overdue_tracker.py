@@ -1,3 +1,5 @@
+"""Write overdue episodes from coverage reports to the append-only overdue log."""
+
 from datetime import datetime
 
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -17,12 +19,22 @@ SYSTEM_SOURCE = "system"
 
 
 class OverdueTracker:
+    """Record when areas became overdue and when they were cleared."""
+
     async def track(
         self,
         session: AsyncSession,
         stations: list[StationCoverageReport],
         now: datetime,
     ) -> None:
+        """Append log entries for overdue episodes that are not logged yet.
+
+        Every episode yields a DETECTED entry, and a closed episode also
+        yields a CLEARED entry. Entries are identified by area, overdue time
+        and type, so calling this repeatedly with the same reports logs each
+        entry only once. ``now`` is used as the detection time of new
+        DETECTED entries. New entries are committed immediately.
+        """
         entries = self._entries_for_stations(stations, now)
         if not entries:
             return

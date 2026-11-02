@@ -1,3 +1,5 @@
+"""Queries for the append-only overdue log."""
+
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -6,6 +8,7 @@ from src.domain.coverage import OverdueCleared, OverdueDetected
 
 
 async def get_entry_ids(session: AsyncSession) -> set[str]:
+    """Return the IDs of all logged entries."""
     result = await session.exec(select(OverdueLogEntry.entry_id))
     return set(result.all())
 
@@ -14,6 +17,7 @@ async def append_entries(
     session: AsyncSession,
     entries: list[OverdueDetected | OverdueCleared],
 ) -> None:
+    """Insert and commit the entries."""
     session.add_all([_to_row(entry) for entry in entries])
     await session.commit()
 

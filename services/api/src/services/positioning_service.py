@@ -1,3 +1,5 @@
+"""Load event fixtures and replay them as a simulated positioning stream."""
+
 import asyncio
 import json
 from datetime import datetime
@@ -7,7 +9,7 @@ SPEED = 100  # 100x faster than real time
 
 
 def get_event_delay(previous_event, current_event):
-    """Calculate the delay between two events based on their timestamps"""
+    """Calculate the delay between two events based on their timestamps."""
     previous_timestamp = previous_event["timestamp"]
     current_timestamp = current_event["timestamp"]
 
@@ -19,7 +21,7 @@ def get_event_delay(previous_event, current_event):
 
 
 async def simulate_event_stream(events, websocket):
-    """Simulate a stream of events over a WebSocket connection"""
+    """Simulate a stream of events over a WebSocket connection."""
     for i in range(len(events) - 1):
         await websocket.send_json(events[i])
         delay = get_event_delay(events[i], events[i + 1])

@@ -1,9 +1,12 @@
+"""Endpoints for the start and end of a steward's patrol session."""
+
 from fastapi import APIRouter, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
 from src.api.v2.schemas.ingestion import PatrolSessionEvent
 from src.domain.event import EventType
 from src.services.station_coverage.coverage_updater import CoverageUpdater
+from src.services.train_manning.train_manning_updater import TrainManningUpdater
 
 router = APIRouter(tags=["patrol-session"])
 
@@ -14,6 +17,12 @@ async def patrol_session_start_event(
     producer: EventProducerDep,
     request: Request,
 ):
+    """Record that a steward started a patrol session.
+
+    The event is stored for the record only: coverage is measured from the
+    scheduled shift start, not from this event. Coverage is recalculated and
+    pushed to the dashboard stream, and the stored event is returned.
+    """
     event = await producer.append_event(
         event_type=EventType.START_EVENT,
         android_id=patrol_session_event.android_id,
@@ -21,6 +30,8 @@ async def patrol_session_start_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
+    train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
+    await train_manning_updater.refresh()
     return event
 
 
@@ -30,6 +41,12 @@ async def patrol_session_stop_event(
     producer: EventProducerDep,
     request: Request,
 ):
+    """Record that a steward ended a patrol session.
+
+    Also stores a disconnect, at the stop time, for every beacon the steward
+    is still connected to. Coverage is recalculated and pushed to the
+    dashboard stream, and the stored stop event is returned.
+    """
     event = await producer.append_event(
         event_type=EventType.STOP_EVENT,
         android_id=patrol_session_event.android_id,
@@ -41,4 +58,6 @@ async def patrol_session_stop_event(
     )
     coverage_updater: CoverageUpdater = request.app.state.coverage_updater
     await coverage_updater.refresh()
+    train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
+    await train_manning_updater.refresh()
     return event
