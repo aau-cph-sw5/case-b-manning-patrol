@@ -231,6 +231,28 @@ async def test_build_records_skips_beacons_without_area(session):
 
 
 @pytest.mark.asyncio
+async def test_build_records_skips_areas_of_unknown_stations(session):
+    """An area whose station is not stored is skipped instead of failing."""
+    session.add(
+        PatrolArea(
+            beacon_id=UNKNOWN_BEACON_ID,
+            station_id="MISSING",
+            area_id="platform-x",
+            area_kind=AreaKind.PLATFORM,
+        )
+    )
+    await session.commit()
+    await start_shift(session)
+    await connect(session, 10, beacon_id=UNKNOWN_BEACON_ID)
+    await connect(session, 20)
+
+    result = await build_records(session, STEWARD_ANDROID_ID)
+
+    [record] = result.records
+    assert record.beacon_id == PLATFORM_BEACON_ID
+
+
+@pytest.mark.asyncio
 async def test_build_records_returns_most_recent_first(session):
     """Records are sorted by start time, most recent first."""
     await start_shift(session)

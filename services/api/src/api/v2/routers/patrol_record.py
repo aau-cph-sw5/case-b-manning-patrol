@@ -1,9 +1,11 @@
 """Endpoint for a steward's patrol records in the current shift."""
 
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.dependencies import AsyncDbSessionDep
@@ -25,15 +27,25 @@ from src.domain.event import EventType
 from src.domain.patrol_area import AreaKind
 from src.services.station_coverage.coverage_window import MIN_QUALIFYING_DURATIONS
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["patrol_record"])
+
+
+class RecordBuildError(Exception):
+    """The steward's records could not be built from the stored data."""
 
 
 @router.get("/record")
 async def get_records(android_id: UUID, session: AsyncDbSessionDep) -> RecordList:
-    """Return the steward's patrol records for the current shift, most recent first."""
-    # This endpoint needs some error handling such as
-    # Custom errors, HTTP exceptions etc
-    return await build_records(session, android_id)
+    """Return the steward's patrol records for the current shift, most recent first.
+
+    Raises RecordBuildError if the database cannot be read.
+    """
+    try:
+        return await build_records(session, android_id)
+    except SQLAlchemyError as error:
+        raise RecordBuildError("Could not read the steward's patrol records") from error
 
 
 async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
@@ -57,9 +69,6 @@ async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
         if event.event_type == EventType.CONNECT_EVENT:
             open_connects[event.beacon_id] = event
             continue
-        # I think this is gonna work but we may need to talk about it.
-        # Since a disconnection event should not be sent without an earlier
-        # connection event it should work
         connect = open_connects.pop(event.beacon_id, None)
         if connect is not None:
             record = build_record(
@@ -86,23 +95,36 @@ async def get_shift_connection_events(
 
 
 async def get_record_areas(session: AsyncSession) -> dict[UUID, RecordArea]:
-    """Map each beacon to the area it belongs to, named after its station."""
+    """Map each beacon to the area it belongs to, named after its station.
+
+    Areas without a beacon or station are skipped, as are areas whose station is
+    not stored, so one bad row does not break every steward's records.
+    """
     stations = {station.id: station for station in await get_stations(session)}
     lines: dict[str, list[str]] = {}
     for station_line in await get_station_lines(session):
         lines.setdefault(station_line.station_id, []).append(station_line.line_id)
 
-    return {
-        area.beacon_id: RecordArea(
+    areas: dict[UUID, RecordArea] = {}
+    for area in await get_patrol_areas(session):
+        if area.beacon_id is None or area.station_id is None:
+            continue
+        station = stations.get(area.station_id)
+        if station is None:
+            logger.warning(
+                "Skipping patrol area %s: unknown station %s",
+                area.area_id,
+                area.station_id,
+            )
+            continue
+        areas[area.beacon_id] = RecordArea(
             area_id=area.area_id,
-            name=f"{stations[area.station_id].name} {area.area_kind.value}",
+            name=f"{station.name} {area.area_kind.value}",
             line=sorted(lines.get(area.station_id, [])),
             station_id=area.station_id,
             area_type=AreaType(area.area_kind.value),
         )
-        for area in await get_patrol_areas(session)
-        if area.beacon_id is not None and area.station_id is not None
-    }
+    return areas
 
 
 def build_record(

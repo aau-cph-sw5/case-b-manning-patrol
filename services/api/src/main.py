@@ -144,6 +144,17 @@ async def target_event_not_found_exception_handler(
     )
 
 
+@app.exception_handler(patrol_record.RecordBuildError)
+async def record_build_exception_handler(
+    _: Request,
+    error: patrol_record.RecordBuildError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={"code": "500", "message": str(error)},
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, error: RequestValidationError):
     """Answer request validation errors with 400 instead of FastAPI's 422."""

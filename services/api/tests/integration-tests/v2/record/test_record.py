@@ -5,8 +5,10 @@ from datetime import UTC, datetime, timedelta
 
 import pytest_asyncio
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import OperationalError
 
 from src.api.v2.dependencies import get_async_db_session
+from src.api.v2.routers import patrol_record
 from src.db.ingest import load_stations
 from src.main import app
 
@@ -74,6 +76,21 @@ def test_get_records_rejects_malformed_android_id(client):
     error = response.json()
     assert isinstance(error["code"], str)
     assert isinstance(error["message"], str)
+
+
+def test_get_records_returns_error_body_when_database_fails(client, monkeypatch):
+    async def failing_read(*_):
+        raise OperationalError("SELECT", {}, Exception("database is locked"))
+
+    monkeypatch.setattr(patrol_record, "get_shift_connection_events", failing_read)
+
+    response = _get_records(client)
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "code": "500",
+        "message": "Could not read the steward's patrol records",
+    }
 
 
 def test_get_records_empty_when_no_shift_started(client):
