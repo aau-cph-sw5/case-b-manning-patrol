@@ -1,3 +1,5 @@
+"""Turn the raw steward event log into beacon visit intervals."""
+
 import logging
 from datetime import datetime
 from uuid import UUID
@@ -9,7 +11,29 @@ logger = logging.getLogger(__name__)
 
 
 class IntervalBuilder:
+    """Pair connect and disconnect events into steward patrol intervals."""
+
     def build(self, events: list[EventRecord]) -> list[StewardPatrolInterval]:
+        """Replay the events in time order and return one interval per visit.
+
+        Events are sorted by device timestamp, then server timestamp, then
+        event ID. A visit is keyed by (android_id, beacon_id):
+
+        - CONNECT opens a visit. A repeated CONNECT for an already open visit
+          is ignored, so the earliest connect time is kept.
+        - DISCONNECT closes the matching open visit. A DISCONNECT with no open
+          visit is ignored.
+        - STOP closes every open visit of that steward at the STOP time,
+          regardless of beacon.
+        - START is ignored; it carries no visit information.
+        - CONNECT and DISCONNECT events without a beacon_id are skipped with a
+          warning.
+
+        Visits still open after the last event are returned with
+        ``ended_at=None``, meaning the steward is still at the beacon.
+        Closed intervals are returned in the order they were closed, followed
+        by the open ones.
+        """
         events = self._in_time_order(events)
         open_visits: dict[tuple[UUID, UUID], datetime] = {}
         intervals: list[StewardPatrolInterval] = []

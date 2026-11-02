@@ -30,6 +30,8 @@ FIXTURE_EVENT_TYPES = {
 
 @dataclass
 class SeedResult:
+    """How many rows a seed run inserted."""
+
     events_inserted: int
     adjustments_inserted: int
 
@@ -113,6 +115,7 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
 
 
 async def seed(session: AsyncSession) -> SeedResult:
+    """Insert the fixture events and adjustment that are not stored yet."""
     events = load_events(FIXTURE)
     adjustments = build_adjustments(events)
 
