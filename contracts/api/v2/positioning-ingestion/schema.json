@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Ingestion API",
 		"description": "Backend API contract for Android client to ingest connection and patrol session events for positioning data.",
-		"version": "2.0.1"
+		"version": "2.3.0"
 	},
 	"servers": [
 		{
@@ -28,7 +28,14 @@
 				},
 				"responses": {
 					"201": {
-						"description": "Event recorded successfully"
+						"description": "Connection event recorded successfully. The body returns the stored event and resolves the beacon to its patrol area, so the client can show where it is without a separate lookup.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/connect-event-stored"
+								}
+							}
+						}
 					},
 					"400": {
 						"description": "Invalid request",
@@ -69,7 +76,14 @@
 				},
 				"responses": {
 					"201": {
-						"description": "Event recorded successfully"
+						"description": "Disconnection event recorded successfully. The acknowledgement is the record's registration: the closed record is now the server's source of truth.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/stored-event"
+								}
+							}
+						}
 					},
 					"400": {
 						"description": "Invalid request",
@@ -202,6 +216,107 @@
 					}
 				},
 				"required": ["android_id", "beacon_id", "timestamp"]
+			},
+			"stored-event": {
+				"type": "object",
+				"description": "An event as stored in the append-only event store. Returned in the 201 acknowledgement so the client knows what the server registered.",
+				"properties": {
+					"event_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Server-generated identifier of the appended event.",
+						"example": "990e8400-e29b-41d4-a716-446655440004"
+					},
+					"event_type": {
+						"type": "string",
+						"enum": ["connect", "disconnect", "shift_start", "shift_stop"],
+						"description": "The type of event, implied by the endpoint called."
+					},
+					"android_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Android device UUID.",
+						"example": "660e8400-e29b-41d4-a716-446655440001"
+					},
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Beacon UUID the device connected to or disconnected from.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"device_timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the event occurred on the device, as given in the request. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:00+00:00"
+					},
+					"server_timestamp": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the backend recorded the event. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:00:01+00:00"
+					},
+					"source": {
+						"type": "string",
+						"description": "Server-assigned origin of the write, e.g. the API route that appended the event. Never taken from the request body.",
+						"example": "API"
+					}
+				},
+				"required": ["event_id", "event_type", "android_id", "beacon_id", "device_timestamp", "server_timestamp", "source"]
+			},
+			"patrol-area": {
+				"type": "object",
+				"description": "The patrol area a beacon belongs to, resolved by the backend so the client can display a place name instead of a beacon id. Same shape as RecordArea in the patrol-record contract.",
+				"properties": {
+					"area_id": {
+						"type": "string",
+						"description": "Identifier of the patrol area, unique within its station.",
+						"example": "platform-a"
+					},
+					"name": {
+						"type": "string",
+						"description": "Display name of the area, e.g. 'Frederiksberg platform'.",
+						"example": "Frederiksberg platform"
+					},
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The metro line(s) the area serves (e.g. [\"M1\", \"M2\"] for an interchange).",
+						"example": ["M1", "M2"]
+					},
+					"station_id": {
+						"type": "string",
+						"description": "Identifier of the station the area belongs to.",
+						"example": "STN-001"
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["platform", "concourse"],
+						"description": "Kind of area. Decides how long a visit must last to count as a patrol.",
+						"example": "platform"
+					}
+				},
+				"required": ["area_id", "name", "line", "station_id", "area_type"]
+			},
+			"connect-event-stored": {
+				"description": "The stored connect event acknowledgement: the event as registered by the server plus the beacon's area, resolved so the client can display where it is immediately.",
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/stored-event"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"area": {
+								"$ref": "#/components/schemas/patrol-area",
+								"description": "The patrol area the beacon belongs to, resolved by the backend."
+							}
+						},
+						"required": ["area"]
+					}
+				]
 			},
 			"patrol-session-event": {
 				"type": "object",

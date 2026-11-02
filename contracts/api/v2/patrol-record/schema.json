@@ -1,0 +1,205 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Patrol Record API",
+		"description": "Backend API contract for patrol records. A record bundles one steward's connection to one beacon: the connect event paired with its matching disconnect event, closed at the shift stop event, or left open while the steward is still connected. Records are served for the current shift only, filtered per steward. The steward's Android app uses them for its patrol history view.",
+		"version": "2.3.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/api/v2/record": {
+			"get": {
+				"summary": "Get the patrol records of one steward for the current shift",
+				"description": "Returns the steward's patrol records for the current shift only, most recent first, both records still running (status \"pending\") and records closed by a stored disconnect event (status \"registered\"). The backend resolves each record's beacon to its patrol area so clients display a place name instead of a beacon id. Clients split the list into current and previous connections by status.",
+				"parameters": [
+					{
+						"name": "android_id",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						},
+						"description": "Identifier of the steward (android device) whose records are requested. The steward's app requests its own records.",
+						"example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The steward's patrol records for the current shift.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecordList"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request, e.g. a missing or malformed android_id",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"RecordList": {
+				"type": "object",
+				"properties": {
+					"records": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Record"
+						}
+					},
+					"time": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the server built the response. Clients use it to compute the age of pending records. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:15:00+00:00"
+					}
+				},
+				"required": ["records", "time"]
+			},
+			"Record": {
+				"type": "object",
+				"properties": {
+					"android_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "The steward this record belongs to.",
+						"example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+					},
+					"beacon_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "The beacon the steward was connected to for this record. Clients correlate records with their own live beacon connections by this id.",
+						"example": "550e8400-e29b-41d4-a716-446655440000"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "When the connection started (device timestamp of the connect event). UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:05:30+00:00"
+					},
+					"ended_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "When the connection ended (device timestamp of the disconnect or shift stop event). Null while the record is pending. UTC in ISO 8601 with offset.",
+						"example": "2026-09-21T10:06:15+00:00"
+					},
+					"duration_secs": {
+						"type": "integer",
+						"nullable": true,
+						"description": "ended_at minus started_at in whole seconds. Null while the record is pending; clients render their own running timer from started_at instead.",
+						"example": 45
+					},
+					"min_patrol_duration_secs": {
+						"type": "integer",
+						"description": "How long this visit must last to count as a patrol. Set by the backend, derived from the area's type: 10 for platform, 20 for concourse.",
+						"example": 10
+					},
+					"patrolled": {
+						"type": "boolean",
+						"description": "True when the visit has lasted at least min_patrol_duration_secs. Server-computed for registered records. For pending records the server states it as of the response time, and clients recompute it as (now - started_at) >= min_patrol_duration_secs.",
+						"example": true
+					},
+					"status": {
+						"type": "string",
+						"enum": ["pending", "registered"],
+						"description": "Pending while the connection is running (connect event stored, no matching disconnect stored yet). Registered once the backend has stored the disconnect event — the same moment the disconnect request is acknowledged — closing the record. While a disconnect request is in flight, clients keep the record pending locally until the acknowledgement or a later fetch confirms it.",
+						"example": "registered"
+					},
+					"area": {
+						"$ref": "#/components/schemas/RecordArea",
+						"description": "The patrol area the beacon belongs to, resolved by the backend."
+					}
+				},
+				"required": [
+					"android_id",
+					"beacon_id",
+					"started_at",
+					"ended_at",
+					"duration_secs",
+					"min_patrol_duration_secs",
+					"patrolled",
+					"status",
+					"area"
+				]
+			},
+			"RecordArea": {
+				"type": "object",
+				"properties": {
+					"area_id": {
+						"type": "string",
+						"description": "Identifier of the patrol area, unique within its station.",
+						"example": "platform-a"
+					},
+					"name": {
+						"type": "string",
+						"description": "Display name of the area, e.g. 'Frederiksberg platform'.",
+						"example": "Frederiksberg platform"
+					},
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The metro line(s) the area serves (e.g. [\"M1\", \"M2\"] for an interchange).",
+						"example": ["M1", "M2"]
+					},
+					"station_id": {
+						"type": "string",
+						"description": "Identifier of the station the area belongs to.",
+						"example": "STN-001"
+					},
+					"area_type": {
+						"type": "string",
+						"enum": ["platform", "concourse"],
+						"description": "Kind of area. Decides how long a visit must last to count as a patrol.",
+						"example": "platform"
+					}
+				},
+				"required": ["area_id", "name", "line", "station_id", "area_type"]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}
