@@ -13,8 +13,7 @@ The goal is predictability: a developer from another group should be able to
 guess where a piece of logic lives and what shape it has before opening the
 file.
 
-Terms such as *value object*, *service* and *entry point* are defined in the
-[glossary](glossary.md). Docstring and formatting rules are in
+Docstring and formatting rules are in
 [AGENTS.md](../../AGENTS.md) and are not repeated here.
 
 Rules are numbered (`OOP-1`, `OOP-2`, ...) so they can be referenced in
