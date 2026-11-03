@@ -24,7 +24,12 @@ class TrainsUpdatePresenter:
         train_reports: list[TrainManningReport],
         sent_at: datetime,
     ) -> TrainsUpdate:
+        """Build the ``TrainsUpdate`` for ``train_reports``, stamped with ``sent_at``.
 
+        The manning percentages are the manned-time share of the running
+        time (0-100) over all trains and over the M1/M2 and M3/M4 line
+        groups separately; a group with no running time gets 0.
+        """
         total_time = 0
         total_manning_time = 0
 
