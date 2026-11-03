@@ -27,25 +27,26 @@ class RecordArea(BaseModel):
     area_id: str
     name: str
     line: list[str]
-    station_id: str  # Why not just station name??
+    station_id: str
     area_type: AreaType
 
 
 class Record(BaseModel):
     """One visit by a steward to a patrol area.
 
-    `ended_at` and `duration_secs` are None while the record is open.
+    `ended_at` is None while the record is open, and `duration_secs` is measured
+    up to the time the response was built.
     """
 
-    android_id: UUID  # Will be given by GET request
-    beacon_id: UUID  # Will be fetched from Event tables
-    started_at: datetime  # If ConnectionEvent -> derived
-    ended_at: datetime | None  # If DisconnectionEvent -> derived
-    duration_secs: int | None  # Subtract DisconnetionEvent from ConnectionEvent
-    min_patrol_duration_secs: int  # Can only be derived from PatrolArea
-    patrolled: bool  # duration_secs >= min_patrol_duration_secs
-    status: Status  # Move to frontend perhaps
-    area: RecordArea  # Derived from PatrolArea joined Station
+    android_id: UUID
+    beacon_id: UUID
+    started_at: datetime
+    ended_at: datetime | None
+    duration_secs: int
+    min_patrol_duration_secs: int
+    patrolled: bool
+    status: Status
+    area: RecordArea
 
 
 class RecordList(BaseModel):

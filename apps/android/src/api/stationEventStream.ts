@@ -1,30 +1,55 @@
+/**
+ * Client for the dashboard SSE stream, `GET /api/v2/dashboard/stream`
+ * (contracts/api/v2/positioning-interface), served by the same API as the POST
+ * endpoints.
+ *
+ * Works in the browser (native `EventSource`) and in the React Native runtimes
+ * (react-native-sse), and validates every payload before handing it on.
+ */
 import EventSource from "react-native-sse";
 import { StationOverviewSchema, type StationOverview } from "@/types/station";
 
-// the dashboard stream of the positioning-interface contract, served by the
-// same API as the POST endpoints.
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
 const SSE_URL = `${API_BASE_URL}/api/v2/dashboard/stream`;
 
-// browsers ship SSE support natively; react-native-sse fills the gap in the
-// react-native runtimes. in react-native `window` exists but `window.EventSource`
-// does not, which tells the browser apart from the react-native runtimes (and
-// from the node test environment, where neither exists).
+/**
+ * True when the runtime ships a native `EventSource`, i.e. in a browser.
+ *
+ * Browsers support SSE natively; react-native-sse fills the gap in the React
+ * Native runtimes. In React Native `window` exists but `window.EventSource`
+ * does not, which tells the browser apart from the React Native runtimes (and
+ * from the Node test environment, where neither exists).
+ */
 const BROWSER_EVENT_SOURCE =
   typeof window !== "undefined" && typeof window.EventSource !== "undefined";
 
 type OnUpdate = (data: StationOverview) => void;
 type OnError = (error: unknown) => void;
 
-//Connection to SSE with actions acceptable are open, dashboard and error
+/**
+ * Subscribe to the dashboard stream and deliver each validated snapshot.
+ *
+ * `onUpdate` receives every `dashboard` event whose data parses as JSON and
+ * passes {@link StationOverviewSchema}; events without data are skipped.
+ * `onError` receives both connection errors (the raw error event) and payloads
+ * that fail parsing or validation (the thrown error). An error does not close
+ * the connection: reconnecting is left to the EventSource implementation, and
+ * this module adds no retry of its own.
+ *
+ * @returns A function that closes the connection; call it on unmount.
+ */
 export function connectToStationUpdates(onUpdate: OnUpdate, onError: OnError) {
   return BROWSER_EVENT_SOURCE
     ? connectInBrowser(onUpdate, onError)
     : connectInReactNative(onUpdate, onError);
 }
 
-// SSE delivers event.data as a raw JSON string, so parse before zod: valid
-// payloads reach onUpdate, failures route to onError.
+/**
+ * Parse one raw `dashboard` payload and route it.
+ *
+ * SSE delivers `event.data` as a raw JSON string, so it is parsed before zod:
+ * valid payloads reach `onUpdate`, failures route to `onError`.
+ */
 function deliver(data: string, onUpdate: OnUpdate, onError: OnError) {
   try {
     onUpdate(StationOverviewSchema.parse(JSON.parse(data)));
@@ -33,6 +58,7 @@ function deliver(data: string, onUpdate: OnUpdate, onError: OnError) {
   }
 }
 
+/** Open the stream with react-native-sse; see {@link connectToStationUpdates}. */
 function connectInReactNative(onUpdate: OnUpdate, onError: OnError) {
   // the type parameter names the custom event the backend sends, so the
   // dashboard listener receives it with a typed data field.
@@ -58,6 +84,7 @@ function connectInReactNative(onUpdate: OnUpdate, onError: OnError) {
   };
 }
 
+/** Open the stream with the browser's EventSource; see {@link connectToStationUpdates}. */
 function connectInBrowser(onUpdate: OnUpdate, onError: OnError) {
   const source = new window.EventSource(SSE_URL);
 

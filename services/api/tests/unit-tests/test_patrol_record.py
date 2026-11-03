@@ -162,7 +162,9 @@ async def test_build_records_leaves_unmatched_connect_open(session):
 
     [record] = result.records
     assert record.ended_at is None
-    assert record.duration_secs is None
+    assert record.duration_secs == int(
+        (result.time - record.started_at).total_seconds()
+    )
     assert record.patrolled is True
     assert record.status == Status.OPEN
 
@@ -226,6 +228,28 @@ async def test_build_records_skips_beacons_without_area(session):
     result = await build_records(session, STEWARD_ANDROID_ID)
 
     assert result.records == []
+
+
+@pytest.mark.asyncio
+async def test_build_records_skips_areas_of_unknown_stations(session):
+    """An area whose station is not stored is skipped instead of failing."""
+    session.add(
+        PatrolArea(
+            beacon_id=UNKNOWN_BEACON_ID,
+            station_id="MISSING",
+            area_id="platform-x",
+            area_kind=AreaKind.PLATFORM,
+        )
+    )
+    await session.commit()
+    await start_shift(session)
+    await connect(session, 10, beacon_id=UNKNOWN_BEACON_ID)
+    await connect(session, 20)
+
+    result = await build_records(session, STEWARD_ANDROID_ID)
+
+    [record] = result.records
+    assert record.beacon_id == PLATFORM_BEACON_ID
 
 
 @pytest.mark.asyncio

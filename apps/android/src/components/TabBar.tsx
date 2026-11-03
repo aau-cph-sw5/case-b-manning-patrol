@@ -1,14 +1,22 @@
+/** Custom bottom tab bar for the tab layout. */
 import { Feather } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "expo-router/tabs";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+/** Feather icon per route name; routes not listed get "square". */
 const TAB_ICONS: Record<string, React.ComponentProps<typeof Feather>["name"]> = {
   dataTransparency: "settings",
   index: "home",
   patrolHistory: "folder",
 };
 
+/**
+ * Render an icon-only tab bar with the active tab highlighted.
+ *
+ * Tab titles are not shown; they serve as accessibility labels, falling back
+ * to the route name.
+ */
 export default function TabBar({ state, descriptors, navigateToTab }: BottomTabBarProps) {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.bar}>

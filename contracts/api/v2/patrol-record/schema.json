@@ -114,8 +114,7 @@
 					},
 					"duration_secs": {
 						"type": "integer",
-						"nullable": true,
-						"description": "ended_at minus started_at in whole seconds. Null while the record is open; clients render their own running timer from started_at instead.",
+						"description": "How long the visit has lasted in whole seconds: ended_at minus started_at for closed records. For open records the server states it as of the response time (time minus started_at); the value does not advance, so clients render their own running timer from started_at instead.",
 						"example": 45
 					},
 					"min_patrol_duration_secs": {

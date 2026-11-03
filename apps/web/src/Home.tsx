@@ -1,9 +1,11 @@
+/** The Vite + React starter page, still served at every path except `/dashboard`. */
 import { useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
 
+/** Render the unchanged Vite starter page with its click counter. */
 function Home() {
   const [count, setCount] = useState(0)
 

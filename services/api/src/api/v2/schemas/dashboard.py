@@ -35,13 +35,14 @@ class DashboardStation(BaseModel):
 
 
 class DashboardTrain(BaseModel):
-    """Manned time of one train. Not populated by the backend yet."""
+    """Manned time of one train."""
 
     train_id: UUID
     slug: str
     total_time_secs: int
     manned_time_secs: int
-    current_steward_id: UUID | None
+    current_steward_ids: list[UUID]
+    line: list[str]
 
 
 class Dashboard(BaseModel):

@@ -1,6 +1,10 @@
+/** Hook for a wall clock that ticks once per second. */
 import { useEffect, useState } from 'react'
 
-// current time in ms, re-rendering the caller once per second
+/**
+ * Return the current time in epoch ms, re-rendering the caller once per
+ * second. The interval is cleared on unmount.
+ */
 export function useNow(): number {
   const [now, setNow] = useState(() => Date.now())
 

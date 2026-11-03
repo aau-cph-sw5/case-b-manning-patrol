@@ -47,7 +47,7 @@ Clients re-fetch `GET /api/v2/record` to reconcile their local state with what t
 - `beacon_id`: UUID — the beacon the steward was connected to
 - `started_at`: Date — when the connection started (connect event timestamp)
 - `ended_at`: Date | null — when the connection ended; null while open
-- `duration_secs`: integer | null — `ended_at - started_at` in whole seconds; null while open
+- `duration_secs`: integer — how long the visit has lasted in whole seconds: `ended_at - started_at` when closed; `time - started_at` while open (a snapshot, clients run their own timer)
 - `min_patrol_duration_secs`: integer — how long the visit must last to count as a patrol (10 for platform, 20 for concourse)
 - `patrolled`: boolean — whether the visit has lasted at least `min_patrol_duration_secs`
 - `status`: enum `"open"` | `"closed"` — open while the connection is running; closed once the disconnect event is stored

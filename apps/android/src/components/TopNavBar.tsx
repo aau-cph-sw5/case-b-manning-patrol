@@ -1,3 +1,4 @@
+/** Header bar of the patrol screen. */
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -9,6 +10,7 @@ type TopNavBarProps = {
   onSelect: (lineGroup: LineGroup) => void;
 };
 
+/** Render the app title and the line group filter below the status bar. */
 export default function TopNavBar({ selected, onSelect }: TopNavBarProps) {
   return (
     <SafeAreaView edges={["top"]} style={styles.bar}>
