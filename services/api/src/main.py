@@ -16,6 +16,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.event_producer import EventValidationError, TargetEventNotFoundError
+from src.services.shared.interval_builder import IntervalBuilder
+from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
@@ -25,9 +27,7 @@ from src.services.station_coverage.coverage_window import (
     CoverageWindow,
 )
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
-from src.services.station_coverage.interval_builder import IntervalBuilder
 from src.services.station_coverage.overdue_tracker import OverdueTracker
-from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 from src.services.train_manning.train_manning_clock_tick import TrainManningClockTick
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator

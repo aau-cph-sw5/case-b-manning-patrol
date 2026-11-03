@@ -11,7 +11,7 @@ from src.db.repository.train import get_train_lines, get_trains
 from src.domain.coverage import StewardPatrolInterval
 from src.domain.event import EventRecord
 from src.domain.train_manning import TrainManningReport, TrainReference
-from src.services.station_coverage.interval_builder import IntervalBuilder
+from src.services.shared.interval_builder import IntervalBuilder
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
 
 

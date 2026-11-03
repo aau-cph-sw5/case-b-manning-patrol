@@ -8,10 +8,10 @@ from datetime import datetime
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.domain.coverage import StationCoverageReport
+from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.coverage_publisher import CoveragePublisher
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.overdue_tracker import OverdueTracker
-from src.services.station_coverage.shift_schedule import ShiftSchedule
 
 logger = logging.getLogger(__name__)
 

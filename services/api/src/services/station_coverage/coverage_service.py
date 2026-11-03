@@ -17,8 +17,8 @@ from src.domain.coverage import (
     StewardPatrolInterval,
 )
 from src.domain.event import EventRecord
+from src.services.shared.interval_builder import IntervalBuilder
 from src.services.station_coverage.coverage_window import CoverageWindow
-from src.services.station_coverage.interval_builder import IntervalBuilder
 
 
 class CoverageService:

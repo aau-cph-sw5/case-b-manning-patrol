@@ -13,6 +13,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 from src.api.v2.dependencies import get_async_db_session
 from src.db.repository.station import get_station_lines, get_stations
 from src.main import app
+from src.services.shared.interval_builder import IntervalBuilder
+from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.station_coverage.coverage_window import (
@@ -21,9 +23,7 @@ from src.services.station_coverage.coverage_window import (
     CoverageWindow,
 )
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
-from src.services.station_coverage.interval_builder import IntervalBuilder
 from src.services.station_coverage.overdue_tracker import OverdueTracker
-from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
 from src.services.train_manning.train_manning_publisher import (
