@@ -1,11 +1,16 @@
-// the app-wide toast, mounted once in the root layout. it renders whatever
-// message useToast provides and never intercepts touches (pointerEvents "none"),
-// so it can float over the slider. works on android and web alike: there is no
-// cross-platform toast in react-native core.
+/** The app-wide toast, mounted once in the root layout. */
 import { StyleSheet, Text, View } from "react-native";
 
 import { useToast } from "@/hooks/useToast";
 
+/**
+ * Render whatever message {@link useToast} provides, or nothing when there is
+ * none.
+ *
+ * Never intercepts touches (`pointerEvents="none"`), so it can float over the
+ * slider. Works on Android and web alike: there is no cross-platform toast in
+ * React Native core.
+ */
 export function Toast() {
   const message = useToast();
 
