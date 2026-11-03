@@ -1,3 +1,4 @@
+/** The control room dashboard page. */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import StationCard from './StationCard.tsx'
 import {
@@ -18,6 +19,20 @@ import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
 import './Dashboard.css'
 
+/**
+ * Render the control room dashboard: a card per station, the number of
+ * overdue levels, and a list of levels at risk or overdue, most urgent first.
+ *
+ * Stations come from {@link useDashboardStream}, and every update and error
+ * from it is logged to the console. Countdowns re-render every second through
+ * {@link useNow}. The at-risk threshold is fetched from the backend once on
+ * mount. Editing it in the legend applies the new value at once and then posts
+ * it, adopting the value the backend returns; if either request fails, the
+ * error is only logged and the local value stays.
+ *
+ * The attention list shows as many rows as fit (see {@link useFitCount}); when
+ * rows are cut, the last visible row becomes a "+N" counter instead.
+ */
 function Dashboard() {
   const now = useNow()
   const listRef = useRef<HTMLUListElement>(null)
@@ -48,7 +63,6 @@ function Dashboard() {
   const handleRiskTimeChange = (value: number) => {
     setRiskTime(value)
     setRiskTimeState(value)
-    // Update the backend with the new risk time
     setAtRiskThreshold(value)
       .then((updated) => setRiskTimeState(updated.at_risk_threshold_minutes))
       .catch(console.error)
