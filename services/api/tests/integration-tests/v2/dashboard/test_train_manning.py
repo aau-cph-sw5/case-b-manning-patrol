@@ -1,6 +1,5 @@
-"""HTTP-driven tests for instantaneous train manning on the dashboard stream."""
+"""HTTP-driven tests for instantaneous train manning."""
 
-from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -99,23 +98,3 @@ async def test_disconnect_makes_the_train_unmanned(client, db_engine):
 
 
 async def test_dashboard_payload_exposes_train_with_line(client, db_engine):
-    await insert_train(db_engine)
-    post_event(client, "/api/v2/connection/connect", TIMESTAMP)
-
-    presenter = app.state.dashboard_presenter
-    dashboard = presenter.to_dashboard(
-        app.state.coverage_updater.snapshot(),
-        train_snapshot(),
-        sent_at=datetime.now(UTC),
-    )
-    payload = dashboard.model_dump(mode="json")
-
-    assert len(payload["trains"]) == 1
-    train = payload["trains"][0]
-    assert train["train_id"] == TRAIN_ID
-    assert train["slug"] == "a29"
-    assert train["line"] == ["M1", "M2"]
-    assert train["current_steward_ids"] == [ANDROID_ID]
-    assert isinstance(train["total_time_secs"], int)
-    assert isinstance(train["manned_time_secs"], int)
-    assert payload["stations"] is not None

@@ -1,6 +1,7 @@
 """Convert coverage reports into the dashboard payload sent to the web app."""
 
 from datetime import datetime
+from uuid import UUID
 
 from src.api.v2.schemas.trains import TrainsUpdate, TrainsUpdateTrain
 from src.db.models.train import Train
@@ -10,8 +11,8 @@ from src.domain.train_manning import TrainManningReport
 
 class TrainsUpdatePresenter:
     def __init__(self, trains: list[Train], train_lines: list[TrainLine]):
-        self._names = {train.id: train.name for train in trains}
-        lines: dict[str, list[str]] = {}
+        self._names = {train.train_id: train.slug for train in trains}
+        lines: dict[UUID, list[str]] = {}
         for train_line in sorted(train_lines, key=lambda sl: sl.line_id):
             lines.setdefault(train_line.train_id, []).append(train_line.line_id)
         self._lines = lines
