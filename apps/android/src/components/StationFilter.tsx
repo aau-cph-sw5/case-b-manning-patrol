@@ -1,3 +1,4 @@
+/** Segmented control for choosing which line group's stations are listed. */
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -18,6 +19,14 @@ type StationFilterProps = {
 const SEGMENT_WIDTH = 78;
 const SEGMENT_HEIGHT = 40;
 
+/**
+ * Render one segment per line group, showing its line badges, and slide the
+ * highlight to the selected one over 250 ms.
+ *
+ * Controlled: pressing a segment only calls `onSelect`; the highlight moves
+ * when the parent passes the new `selected`. The highlight position assumes
+ * exactly two line groups.
+ */
 export default function StationFilter({ selected, onSelect }: StationFilterProps) {
   const thumbX = useSharedValue(0);
 
