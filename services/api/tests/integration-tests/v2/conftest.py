@@ -154,7 +154,7 @@ async def override_db_session(db_engine: AsyncEngine) -> AsyncGenerator[None]:
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
-    app.state.trains_presenter = trains_presenter
+    app.state.trains_update_presenter = trains_presenter
 
     yield
 

@@ -29,7 +29,7 @@ async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
         request.app.state.train_manning_broadcaster
     )
     updater: TrainManningUpdater = request.app.state.train_manning_updater
-    presenter: TrainsUpdatePresenter = request.app.state.trains_presenter
+    presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
     queue = broadcaster.subscribe()
     try:
         yield _trains_event(presenter, updater.snapshot())
