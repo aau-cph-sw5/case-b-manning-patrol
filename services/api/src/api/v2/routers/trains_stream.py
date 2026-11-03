@@ -12,7 +12,7 @@ from src.services.train_manning.train_manning_publisher import (
     SseTrainManningBroadcaster,
 )
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
-from src.services.train_manning.trains_presenter import TrainsUpdatePresenter
+from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 
 router = APIRouter(tags=["positioning-interface"])
 

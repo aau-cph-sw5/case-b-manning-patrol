@@ -3,16 +3,17 @@
 from datetime import datetime
 
 from src.api.v2.schemas.trains import TrainsUpdate, TrainsUpdateTrain
-from src.db.models import Station, StationLine
+from src.db.models.train import Train
+from src.db.models.train_line import TrainLine
 from src.domain.train_manning import TrainManningReport
 
 
 class TrainsUpdatePresenter:
-    def __init__(self, stations: list[Station], station_lines: list[StationLine]):
-        self._names = {station.id: station.name for station in stations}
+    def __init__(self, trains: list[Train], train_lines: list[TrainLine]):
+        self._names = {train.id: train.name for train in trains}
         lines: dict[str, list[str]] = {}
-        for station_line in sorted(station_lines, key=lambda sl: sl.line_id):
-            lines.setdefault(station_line.station_id, []).append(station_line.line_id)
+        for train_line in sorted(train_lines, key=lambda sl: sl.line_id):
+            lines.setdefault(train_line.train_id, []).append(train_line.line_id)
         self._lines = lines
 
     def to_trains_update(
