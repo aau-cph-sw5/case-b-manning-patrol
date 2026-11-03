@@ -47,7 +47,7 @@ from .api.v2.routers import (
     health,
     patrol_session,
 )
-from .db.ingest import load_stations
+from .db.ingest import load_stations, load_trains
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
 
@@ -58,14 +58,15 @@ API_PREFIX_V2 = "/api/v2"
 async def lifespan(app: FastAPI):
     """Set up the database and coverage pipeline, and shut them down on exit.
 
-    Creates missing tables, reloads stations from the data file, computes
-    coverage once and starts the 5-second clock tick. The coverage updater,
-    SSE broadcaster and dashboard presenter are put on ``app.state`` for the
-    routers.
+    Creates missing tables, reloads stations and trains from the data files,
+    computes coverage once and starts the 5-second clock tick. The coverage
+    updater, SSE broadcaster and dashboard presenter are put on ``app.state``
+    for the routers.
     """
     await init_db()
     async with AsyncSession(engine) as session:
         await load_stations(session)
+        await load_trains(session)
         dashboard_presenter = DashboardPresenter(
             await get_stations(session), await get_station_lines(session)
         )
