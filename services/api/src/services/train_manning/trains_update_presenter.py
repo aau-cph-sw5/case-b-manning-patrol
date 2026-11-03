@@ -35,10 +35,10 @@ class TrainsUpdatePresenter:
 
         for report in train_reports:
             if report.train.line_ids.intersection({"M1", "M2"}):
-                m1m2_total_time += report.manned_time.total_seconds()
+                m1m2_total_time += report.running_time.total_seconds()
                 m1m2_total_manning_time += report.manned_time.total_seconds()
             if report.train.line_ids.intersection({"M3", "M4"}):
-                m3m4_total_time += report.manned_time.total_seconds()
+                m3m4_total_time += report.running_time.total_seconds()
                 m3m4_total_manning_time += report.manned_time.total_seconds()
             total_time += report.running_time.total_seconds()
             total_manning_time += report.manned_time.total_seconds()
