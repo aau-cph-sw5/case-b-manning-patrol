@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BsEmojiFrown } from 'react-icons/bs'
 import StationCard from './StationCard.tsx'
-import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
 import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
 import {
@@ -33,8 +32,6 @@ function Dashboard() {
     () => (dashboard ? toViewStations(dashboard) : []),
     [dashboard],
   )
-  const trains = useMemo(() => dashboard?.trains ?? [], [dashboard])
-
   useEffect(() => {
     if (dashboard) console.log("Dashboard SSE update:", dashboard);
     if (error) console.error("SSE error:", error);
@@ -110,7 +107,6 @@ function Dashboard() {
 
       <main className="dash">
         <div className="side-col">
-          <TrainCard trains={trains} />
           <aside className="card attention">
             <h2>Kræver handling ({attention.length})</h2>
             <ul className="attention-list">
