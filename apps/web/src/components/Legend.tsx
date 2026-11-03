@@ -43,7 +43,7 @@ export default function Legend({ riskTime, onRiskTimeChange }: LegendProps) {
   }
 
   const ITEMS: LegendItem[] = [
-    { color: 'text-green', emoji: BsEmojiSmile, label: 'OK: over 60 min.' },
+    { color: 'text-green', emoji: BsEmojiSmile, label: 'OK: fra 60 min.' },
     {
       color: 'text-yellow',
       emoji: BsEmojiNeutral,
