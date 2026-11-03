@@ -5,7 +5,6 @@ Defined by the positioning-interface contract
 """
 
 from datetime import datetime
-from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -34,20 +33,8 @@ class DashboardStation(BaseModel):
     areas: list[DashboardArea]
 
 
-class DashboardTrain(BaseModel):
-    """Manned time of one train."""
-
-    train_id: UUID
-    slug: str
-    total_time_secs: int
-    manned_time_secs: int
-    current_steward_ids: list[UUID]
-    line: list[str]
-
-
 class Dashboard(BaseModel):
     """The full dashboard sent on every stream event; `time` is when it was sent."""
 
     stations: list[DashboardStation]
-    trains: list[DashboardTrain]
     time: datetime

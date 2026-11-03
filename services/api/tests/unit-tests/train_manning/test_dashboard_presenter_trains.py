@@ -104,5 +104,5 @@ def test_present_keeps_stations_and_trains_together():
     dashboard = presenter.to_dashboard([], [make_report()], sent_at=SENT_AT)
 
     assert dashboard.stations == []
-    assert len(dashboard.trains) == 1
+
     assert dashboard.time == SENT_AT
