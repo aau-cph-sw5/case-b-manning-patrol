@@ -57,12 +57,12 @@ async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
     Returns the records sorted by start time, most recent first, or an empty list
     if the steward has not started a shift.
     """
-    now = datetime.now(UTC)
     events: list[Event] = await get_shift_connection_events(session, android_id)
     areas: dict[UUID, RecordArea] = await get_record_areas(session)
 
     records: list[Record] = []
     open_connects: dict[UUID, Event] = {}
+    now = datetime.now(UTC)
     for event in events:
         if event.beacon_id is None or event.beacon_id not in areas:
             continue
