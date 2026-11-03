@@ -1,6 +1,5 @@
 """Compute per-station patrol coverage from the event log."""
 
-from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
@@ -17,6 +16,7 @@ from src.domain.coverage import (
 )
 from src.services.shared.event_record_mapper import EventRecordMapper
 from src.services.shared.interval_builder import IntervalBuilder
+from src.services.shared.interval_processor import IntervalProcessor
 from src.services.station_coverage.coverage_window import CoverageWindow
 
 
@@ -56,8 +56,8 @@ class CoverageService:
         records = [EventRecordMapper.to_record(event) for event in events]
         intervals = self._interval_builder.build(records)
         if shift_start_time is not None:
-            intervals = self._within_shift(intervals, shift_start_time, now)
-        intervals_by_beacon = self._group_by_beacon(intervals)
+            intervals = IntervalProcessor.within_shift(intervals, shift_start_time, now)
+        intervals_by_beacon = IntervalProcessor.group_by_beacon(intervals)
         area_reports = [
             self._evaluate_area(area, intervals_by_beacon, shift_start_time, now)
             for area in areas
@@ -79,39 +79,6 @@ class CoverageService:
         return self._rule.evaluate(
             CoverageService._to_area_reference(area), intervals, shift_start_time, now
         )
-
-    @staticmethod
-    def _within_shift(
-        intervals: list[StewardPatrolInterval],
-        shift_start_time: datetime,
-        now: datetime,
-    ) -> list[StewardPatrolInterval]:
-        within: list[StewardPatrolInterval] = []
-        for interval in intervals:
-            if interval.started_at > now:
-                continue
-            if interval.ended_at is not None and interval.ended_at <= shift_start_time:
-                continue
-            ended_at = interval.ended_at
-            if ended_at is not None and ended_at > now:
-                ended_at = None
-            within.append(
-                replace(
-                    interval,
-                    started_at=max(interval.started_at, shift_start_time),
-                    ended_at=ended_at,
-                ),
-            )
-        return within
-
-    @staticmethod
-    def _group_by_beacon(
-        intervals: list[StewardPatrolInterval],
-    ) -> dict[UUID, list[StewardPatrolInterval]]:
-        intervals_by_beacon: dict[UUID, list[StewardPatrolInterval]] = {}
-        for interval in intervals:
-            intervals_by_beacon.setdefault(interval.beacon_id, []).append(interval)
-        return intervals_by_beacon
 
     @staticmethod
     def _group_by_station(
