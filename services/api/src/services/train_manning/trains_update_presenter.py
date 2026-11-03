@@ -22,7 +22,42 @@ class TrainsUpdatePresenter:
         train_reports: list[TrainManningReport],
         sent_at: datetime,
     ) -> TrainsUpdate:
+
+        total_time = 0
+        total_manning_time = 0
+
+        m1m2_total_time = 0
+        m1m2_total_manning_time = 0
+        m3m4_total_time = 0
+        m3m4_total_manning_time = 0
+
+        for report in train_reports:
+            if report.train.line_ids.intersection({"M1", "M2"}):
+                m1m2_total_time += report.manned_time.total_seconds()
+                m1m2_total_manning_time += report.manned_time.total_seconds()
+            if report.train.line_ids.intersection({"M3", "M4"}):
+                m3m4_total_time += report.manned_time.total_seconds()
+                m3m4_total_manning_time += report.manned_time.total_seconds()
+            total_time += report.running_time.total_seconds()
+            total_manning_time += report.manned_time.total_seconds()
+
+        total_manning_percent = (
+            total_manning_time / total_time * 100 if total_time > 0 else 0
+        )
+        m1m2_manning_percent = (
+            m1m2_total_manning_time / m1m2_total_time * 100
+            if m1m2_total_time > 0
+            else 0
+        )
+        m3m4_manning_percent = (
+            m3m4_total_manning_time / m3m4_total_time * 100
+            if m3m4_total_time > 0
+            else 0
+        )
         return TrainsUpdate(
+            manning_percent=total_manning_percent,
+            m1m2_manning_percent=m1m2_manning_percent,
+            m3m4_manning_percent=m3m4_manning_percent,
             trains=[TrainsUpdatePresenter._train(report) for report in train_reports],
             time=sent_at,
         )
