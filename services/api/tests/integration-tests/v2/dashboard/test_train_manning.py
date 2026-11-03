@@ -95,6 +95,3 @@ async def test_disconnect_makes_the_train_unmanned(client, db_engine):
     reports = train_snapshot()
     assert reports[0].manned_now is False
     assert reports[0].current_steward_ids == frozenset()
-
-
-async def test_dashboard_payload_exposes_train_with_line(client, db_engine):
