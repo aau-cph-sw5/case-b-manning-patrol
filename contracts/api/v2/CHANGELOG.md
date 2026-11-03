@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.4.0 - Patrol Record: `status` is `open` | `closed`
+- Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
+  `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
+  runs, closed once the disconnect event is stored. No client consumes the field
+  yet, so the rename is made in v2 rather than a new major version.
+- Patrol Record: `Record.duration_secs` is no longer nullable. Open records state
+  the duration as of the response time (`time - started_at`), like `patrolled`;
+  clients still render their own running timer from `started_at`.
+## v2.4.0 - Positioning Interface: `line` on Train, `current_steward_ids` array
 ## v2.4.0 - Positioning Interface: separate trains stream with manning percentages; `line` and `current_steward_ids` on Train
 - Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
   message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
