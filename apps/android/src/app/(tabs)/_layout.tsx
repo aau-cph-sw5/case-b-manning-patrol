@@ -1,7 +1,15 @@
+/** Expo Router layout for the tab group: the steward's three screens. */
 import { Tabs } from "expo-router";
 
 import TabBar from "@/components/TabBar";
 
+/**
+ * Render the three tabs without headers, using {@link TabBar} instead of the
+ * default bar.
+ *
+ * The titles set here are not shown; the tab bar uses them as accessibility
+ * labels.
+ */
 export default function TabLayout() {
   return (
     <Tabs
