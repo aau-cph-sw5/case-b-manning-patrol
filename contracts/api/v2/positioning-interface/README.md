@@ -70,8 +70,6 @@ data: {"trains": [...], "manning_percent": 0.7, "m1m2_manning_percent": 0.5, "m3
 ### Train
 - `train_id`: UUID
 - `slug`: string
-- `total_time_secs`: integer
-- `manned_time_secs`: integer
 - `current_steward_ids`: UUID[] — the stewards currently manning the train; empty when unmanned
 - `line`: string[] — the metro lines the train serves (e.g. `["M1", "M2"]`)
 
