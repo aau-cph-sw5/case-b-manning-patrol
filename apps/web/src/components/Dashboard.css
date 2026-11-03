@@ -108,11 +108,14 @@
 .station-grid {
   min-height: 0;
   align-self: stretch;
-  overflow: hidden;
+  /* scrolls only when zoomed/small screens make the cards exceed the fixed page */
+  overflow-y: auto;
+  overflow-x: hidden;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   grid-auto-rows: min-content;
   gap: 14px;
+  padding-right: 4px;
 }
 
 .dashboard-empty {
@@ -166,27 +169,32 @@
   text-overflow: ellipsis;
 }
 
-/* slim scrollbar for the attention list (Firefox + webkit) */
-.attention-list {
+/* slim scrollbar for the scrollable areas: attention list + station grid (Firefox + webkit) */
+.attention-list,
+.station-grid {
   scrollbar-width: thin;
   scrollbar-color: #c8c8c8 #f2f4f7;
 }
 
-.attention-list::-webkit-scrollbar {
+.attention-list::-webkit-scrollbar,
+.station-grid::-webkit-scrollbar {
   width: 8px;
 }
 
-.attention-list::-webkit-scrollbar-track {
+.attention-list::-webkit-scrollbar-track,
+.station-grid::-webkit-scrollbar-track {
   background: #f2f4f7;
   border-radius: 4px;
 }
 
-.attention-list::-webkit-scrollbar-thumb {
+.attention-list::-webkit-scrollbar-thumb,
+.station-grid::-webkit-scrollbar-thumb {
   background: #c8c8c8;
   border-radius: 4px;
 }
 
-.attention-list::-webkit-scrollbar-thumb:hover {
+.attention-list::-webkit-scrollbar-thumb:hover,
+.station-grid::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
