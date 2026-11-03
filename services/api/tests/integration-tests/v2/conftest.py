@@ -69,7 +69,7 @@ def live_base_url(override_db_session) -> Generator[str]:
         "dashboard_presenter",
         "train_manning_updater",
         "train_manning_broadcaster",
-        "trains_presenter",
+        "trains_update_presenter",
     ):
         setattr(stream_app.state, key, getattr(app.state, key))
     stream_app.dependency_overrides = app.dependency_overrides
