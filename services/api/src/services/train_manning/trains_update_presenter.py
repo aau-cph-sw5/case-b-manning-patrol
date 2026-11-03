@@ -1,4 +1,4 @@
-"""Convert coverage reports into the dashboard payload sent to the web app."""
+"""Build the trains stream payload sent to the web app."""
 
 from datetime import datetime
 from uuid import UUID
@@ -10,6 +10,8 @@ from src.domain.train_manning import TrainManningReport
 
 
 class TrainsUpdatePresenter:
+    """Build the ``TrainsUpdate`` stream payload from train manning reports."""
+
     def __init__(self, trains: list[Train], train_lines: list[TrainLine]):
         self._names = {train.train_id: train.slug for train in trains}
         lines: dict[UUID, list[str]] = {}

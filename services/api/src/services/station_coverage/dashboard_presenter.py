@@ -12,6 +12,12 @@ from src.domain.coverage import AreaCoverageReport, StationCoverageReport
 
 
 class DashboardPresenter:
+    """Add station names and lines to coverage reports for the dashboard.
+
+    Station names and lines are read once at construction, so the presenter
+    must be rebuilt if stations change.
+    """
+
     def __init__(self, stations: list[Station], station_lines: list[StationLine]):
         self._names = {station.id: station.name for station in stations}
         lines: dict[str, list[str]] = {}
@@ -24,6 +30,7 @@ class DashboardPresenter:
         station_reports: list[StationCoverageReport],
         sent_at: datetime,
     ) -> Dashboard:
+        """Maps station coverage reports to a dashboard payload for the web app."""
         return Dashboard(
             stations=[self._station(report) for report in station_reports],
             time=sent_at,
