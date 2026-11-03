@@ -4,13 +4,12 @@ from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models.event import Event
 from src.db.models.train_line import TrainLine
 from src.db.repository.event import get_events
 from src.db.repository.train import get_train_lines, get_trains
 from src.domain.coverage import StewardPatrolInterval
-from src.domain.event import EventRecord
 from src.domain.train_manning import TrainManningReport, TrainReference
+from src.services.shared.event_record_mapper import EventRecordMapper
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
 
@@ -30,7 +29,7 @@ class TrainManningService:
         trains = await get_trains(session)
         train_lines = await get_train_lines(session)
 
-        records = [TrainManningService._to_record(event) for event in events]
+        records = [EventRecordMapper.to_record(event) for event in events]
         intervals = self._interval_builder.build(records)
         if shift_start_time is not None:
             intervals = TrainManningService._within_shift(
@@ -99,14 +98,3 @@ class TrainManningService:
                 train_line.line_id
             )
         return lines_by_train
-
-    @staticmethod
-    def _to_record(event: Event) -> EventRecord:
-        return EventRecord(
-            event_id=event.event_id,
-            event_type=event.event_type,
-            android_id=event.android_id,
-            beacon_id=event.beacon_id,
-            device_timestamp=event.device_timestamp,
-            server_timestamp=event.server_timestamp,
-        )

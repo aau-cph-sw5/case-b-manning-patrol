@@ -6,7 +6,6 @@ from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models.event import Event
 from src.db.models.patrol_area import PatrolArea
 from src.db.repository.event import get_events
 from src.db.repository.patrol_area import get_patrol_areas
@@ -16,7 +15,7 @@ from src.domain.coverage import (
     StationCoverageReport,
     StewardPatrolInterval,
 )
-from src.domain.event import EventRecord
+from src.services.shared.event_record_mapper import EventRecordMapper
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.station_coverage.coverage_window import CoverageWindow
 
@@ -54,7 +53,7 @@ class CoverageService:
         events = await get_events(session)
         areas = await get_patrol_areas(session)
 
-        records = [_to_record(event) for event in events]
+        records = [EventRecordMapper.to_record(event) for event in events]
         intervals = self._interval_builder.build(records)
         if shift_start_time is not None:
             intervals = self._within_shift(intervals, shift_start_time, now)
@@ -78,7 +77,7 @@ class CoverageService:
             else []
         )
         return self._rule.evaluate(
-            _to_area_reference(area), intervals, shift_start_time, now
+            CoverageService._to_area_reference(area), intervals, shift_start_time, now
         )
 
     @staticmethod
@@ -133,17 +132,6 @@ class CoverageService:
             for station_id, reports in sorted(reports_by_station.items())
         ]
 
-
-def _to_record(event: Event) -> EventRecord:
-    return EventRecord(
-        event_id=event.event_id,
-        event_type=event.event_type,
-        android_id=event.android_id,
-        beacon_id=event.beacon_id,
-        device_timestamp=event.device_timestamp,
-        server_timestamp=event.server_timestamp,
-    )
-
-
-def _to_area_reference(area: PatrolArea) -> AreaReference:
-    return AreaReference(area.station_id, area.area_id, area.area_kind)
+    @staticmethod
+    def _to_area_reference(area: PatrolArea) -> AreaReference:
+        return AreaReference(area.station_id, area.area_id, area.area_kind)
