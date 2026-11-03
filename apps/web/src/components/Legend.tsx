@@ -1,3 +1,4 @@
+/** Colour legend for the dashboard, with an inline editor for the at-risk threshold. */
 import './Legend.css'
 
 import { useState } from 'react'
@@ -6,7 +7,9 @@ import type { IconType } from 'react-icons'
 import { BsEmojiFrown, BsEmojiNeutral, BsEmojiSmile, BsPencil } from 'react-icons/bs';
 
 interface LegendProps {
+  /** Current at-risk threshold in minutes. */
   riskTime: number
+  /** Called when an edit is saved, only with a whole number of at least 1. */
   onRiskTimeChange: (value: number) => void
 }
 
@@ -17,6 +20,14 @@ interface LegendItem {
   isEditable?: boolean
 }
 
+/**
+ * Render the three colour states: ok, at risk and overdue.
+ *
+ * The pencil on the at-risk row opens a number input; Enter or leaving the
+ * field saves, Escape cancels. Input that does not parse to a number of at
+ * least 1 is dropped without a message, and decimals are cut off. The "ok"
+ * label always says 60 minutes, whatever the threshold.
+ */
 export default function Legend({ riskTime, onRiskTimeChange }: LegendProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState<string>(riskTime.toString())

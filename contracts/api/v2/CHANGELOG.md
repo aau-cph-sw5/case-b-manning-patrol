@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.4.0 - Patrol Record: `status` is `open` | `closed`
+- Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
+  `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
+  runs, closed once the disconnect event is stored. No client consumes the field
+  yet, so the rename is made in v2 rather than a new major version.
+- Patrol Record: `Record.duration_secs` is no longer nullable. Open records state
+  the duration as of the response time (`time - started_at`), like `patrolled`;
+  clients still render their own running timer from `started_at`.
+## v2.4.0 - Positioning Interface: `line` on Train, `current_steward_ids` array
+## v2.4.0 - Positioning Interface: separate trains stream with manning percentages; `line` and `current_steward_ids` on Train
+- Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
+  message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
+  (`trains: Train[]`, `manning_percent`, `m1m2_manning_percent`,
+  `m3m4_manning_percent`, `time`). The percentages are manned-time ratios
+  (0..1, null when the group has no running time) computed in the backend on
+  every event from the event-derived reports — never stored on the train,
+  since trains are not persisted state. `Dashboard` is stations-only again
+  (`stations`, `time`), so the steward Android app only ever receives stations.
+- Positioning Interface: `Train` gained a required `line: string[]` field — the
+  metro lines the train serves (e.g. `["M1", "M2"]`, same convention as
+  `Area.line` from v2.2.0) — so the dashboard can group manned trains per line
+  (M1M2 / M3M4).
+- Positioning Interface: `Train.current_steward_id` (UUID | null) changed to
+  `Train.current_steward_ids` (UUID[]) so multiple stewards on one train are
+  all visible; empty array means unmanned.
+- `Dashboard.trains` was previously always emitted empty, so no published
+  interface breaks.
+
 ## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
 - Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
   returns `RecordList`, one steward's patrol records for the current shift only.

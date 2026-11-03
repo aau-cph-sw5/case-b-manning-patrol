@@ -51,7 +51,6 @@ function Dashboard() {
   const handleRiskTimeChange = (value: number) => {
     setRiskTime(value)
     setRiskTimeState(value)
-    // Update the backend with the new risk time
     setAtRiskThreshold(value)
       .then((updated) => setRiskTimeState(updated.at_risk_threshold_minutes))
       .catch(console.error)

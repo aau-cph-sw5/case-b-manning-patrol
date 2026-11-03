@@ -1,6 +1,8 @@
+/** Fallback screen Expo Router shows for unknown routes. */
 import {Link, Stack} from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+/** Render a link back to the home tab. */
 export default function NotFoundScreen () {
     return (
         <>

@@ -1,3 +1,4 @@
+/** One row of the steward's station list, and the header above the list. */
 import { StyleSheet, Text, View } from "react-native";
 
 import {
@@ -11,9 +12,11 @@ import type { Area, Station as StationData } from "@/types/station";
 
 type StationProps = {
   station: StationData;
+  /** Current time in epoch ms; the countdowns are computed from it. */
   now: number;
 };
 
+/** Render the column header: station, then the platform and concourse timers. */
 export function StationListHeader() {
   return (
     <View style={styles.header} accessibilityRole="header">
@@ -28,6 +31,14 @@ export function StationListHeader() {
   );
 }
 
+/**
+ * Render one station: its line badges, its name, and one timer cell each for
+ * platform ("Perron") and concourse ("Forhal").
+ *
+ * Each cell shows the most urgent area of that type (see
+ * {@link mostUrgentArea}), so a station with several platforms still shows a
+ * single platform timer.
+ */
 export default function Station({ station, now }: StationProps) {
   const lines = [...new Set(station.areas.flatMap((area) => area.line))];
 
@@ -61,9 +72,13 @@ export default function Station({ station, now }: StationProps) {
   );
 }
 
-// one deadline cell. the colour carries the risk (AC 1) and the caption says why
-// a level needs no round right now: someone else is patrolling it (AC 2). an
-// area with no deadline yet renders the same placeholder as a missing one.
+/**
+ * One deadline cell. The colour carries the risk, and the caption says why a
+ * level needs no round right now: someone else is patrolling it.
+ *
+ * An area with no deadline yet renders the same "--" placeholder as a missing
+ * one, whether or not it is being patrolled right now.
+ */
 function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
   if (!area || area.overdueAt === null) {
     return (
@@ -99,6 +114,7 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
   );
 }
 
+/** Badge background per metro line; callers fall back to grey for other lines. */
 export const routeColors: Record<string, object> = {
   M1: { backgroundColor: "#007D55" },
   M2: { backgroundColor: "#FFC82D" },
@@ -106,6 +122,7 @@ export const routeColors: Record<string, object> = {
   M4: { backgroundColor: "#00A0BE" },
 };
 
+/** Dark text for the yellow M2 badge, where white would be hard to read. */
 const M2_ROUTE_TEXT = { color: "#000000" };
 
 const statusColors: Record<AreaStatus, object> = {

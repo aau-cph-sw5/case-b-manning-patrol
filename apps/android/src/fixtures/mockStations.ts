@@ -1,11 +1,17 @@
-// sample station data for the hook tests: realistic stations with deadlines
-// generated relative to `now` so every run shows live counters and every risk
-// state is represented: one overdue level, one due soon, a station being
-// patrolled by another steward, and a station comfortably fresh.
+/** Sample station data for the hook tests. */
 import type { Area, AreaType, Station } from "@/types/station";
 
 const MINUTE = 60_000;
 
+/**
+ * Build four realistic stations with deadlines relative to `now`.
+ *
+ * Every run shows live counters and every risk state is represented: one
+ * overdue level, one due soon, a station being patrolled by another steward,
+ * and a station comfortably fresh.
+ *
+ * @param now - Epoch ms the deadlines are offset from.
+ */
 export function createMockStations(now: number): Station[] {
   const at = (minutesFromNow: number) => new Date(now + minutesFromNow * MINUTE);
 

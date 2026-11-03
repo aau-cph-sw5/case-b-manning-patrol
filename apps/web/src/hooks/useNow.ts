@@ -1,3 +1,4 @@
+/** Hook for a wall clock that ticks once per second. */
 import { useEffect, useState } from 'react'
 
 // Dev-only fake clock: append ?fakeNow=<ISO-8601 or epoch ms> to the URL to
@@ -13,7 +14,10 @@ export function resolveFakeNow(search: string, isDev: boolean): number | null {
   return Number.isFinite(asEpoch) ? asEpoch : null
 }
 
-// current time in ms, re-rendering the caller once per second
+/**
+ * Return the current time in epoch ms, re-rendering the caller once per
+ * second. The interval is cleared on unmount.
+ */
 export function useNow(): number {
   const fakeBase = resolveFakeNow(window.location.search, import.meta.env.DEV)
   const [now, setNow] = useState(() => fakeBase ?? Date.now())
