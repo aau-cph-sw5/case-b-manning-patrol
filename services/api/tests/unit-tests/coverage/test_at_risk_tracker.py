@@ -113,7 +113,7 @@ async def test_reset_for_new_shift_starts_from_zero(station_report, now):
     )
 
 
-async def test_two_stations_count_independently(station_report, now):
+async def test_two_stations_count_independently(station_report, now, log):
     tracker = AtRiskTracker()
     reports = [
         station_report(
@@ -132,4 +132,9 @@ async def test_two_stations_count_independently(station_report, now):
         await tracker.track(SESSION, reports, now + timedelta(minutes=46), THRESHOLD)
         == 0
     )
+
+    assert {entry.area.station_id for entry in log.entries} == {
+        "marmorkirken",
+        "kongens-nytorv",
+    }
     assert tracker.total == 2
