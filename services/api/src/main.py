@@ -83,7 +83,6 @@ async def lifespan(app: FastAPI):
     overdue_tracker = OverdueTracker()
     at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
-    shift_schedule = ShiftSchedule.from_file()
     coverage_updater = CoverageUpdater(
         service=service,
         overdue_tracker=overdue_tracker,
