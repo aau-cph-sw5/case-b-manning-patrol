@@ -66,8 +66,11 @@ group encodes the area:
 # Train dataset
 
 `trains.v1.json` lists the fleet. `load_trains` (`src/db/ingest.py`) loads it
-into the `train` and `trainline` tables on every start, after `load_stations`,
-because every `line_ids` value must exist in `stations.v1.json`.
+into the `train` and `trainline` tables on every start. The app calls
+`load_reference_data`, which runs `load_stations` first, because every
+`line_ids` value must exist in `stations.v1.json` and reloading the stations
+clears the train-line links. Do not call `load_stations` on its own, or every
+train loses its lines.
 
 | Field | Meaning |
 |---|---|

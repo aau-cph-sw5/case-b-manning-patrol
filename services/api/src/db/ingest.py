@@ -86,3 +86,15 @@ async def load_trains(session: AsyncSession, path: Path = TRAINS_FILE) -> None:
             session.add(TrainLine(train_id=UUID(train["id"]), line_id=line_id))
 
     await session.commit()
+
+
+async def load_reference_data(session: AsyncSession) -> None:
+    """Replace stations and trains with the contents of the default data files.
+
+    Stations are loaded first: ``load_stations`` replaces the lines that trains
+    point to and clears the train-line links, which ``load_trains`` restores.
+    Use this instead of calling either loader on its own. Commits after each
+    file.
+    """
+    await load_stations(session)
+    await load_trains(session)

@@ -47,7 +47,7 @@ from .api.v2.routers import (
     health,
     patrol_session,
 )
-from .db.ingest import load_stations, load_trains
+from .db.ingest import load_reference_data
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
 
@@ -65,8 +65,7 @@ async def lifespan(app: FastAPI):
     """
     await init_db()
     async with AsyncSession(engine) as session:
-        await load_stations(session)
-        await load_trains(session)
+        await load_reference_data(session)
         dashboard_presenter = DashboardPresenter(
             await get_stations(session), await get_station_lines(session)
         )

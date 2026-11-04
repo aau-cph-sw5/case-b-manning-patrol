@@ -10,7 +10,12 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.ingest import STATIONS_FILE, TRAINS_FILE, load_stations, load_trains
+from src.db.ingest import (
+    STATIONS_FILE,
+    TRAINS_FILE,
+    load_reference_data,
+    load_trains,
+)
 from src.db.models import Line
 from src.db.repository.train import get_train_lines, get_trains
 
@@ -121,21 +126,19 @@ async def test_reload_is_idempotent_and_picks_up_added_train(session, tmp_path):
 
 @pytest.mark.asyncio
 async def test_restart_with_foreign_keys_enforced(fk_session):
-    """Loading stations then trains twice succeeds when foreign keys are enforced.
+    """Loading the reference data twice succeeds when foreign keys are enforced.
 
     The second ``load_stations`` deletes every line, which only works because
-    it clears the train-line links first.
+    it clears the train-line links first; ``load_trains`` then restores them.
     """
-    await load_stations(fk_session)
-    await load_trains(fk_session)
-    train_count = len(await get_trains(fk_session))
-    train_line_count = len(await get_train_lines(fk_session))
+    trains = load_json(TRAINS_FILE)["trains"]
+    expected_train_lines = sum(len(train["line_ids"]) for train in trains)
 
-    await load_stations(fk_session)
-    await load_trains(fk_session)
+    await load_reference_data(fk_session)
+    await load_reference_data(fk_session)
 
-    assert len(await get_trains(fk_session)) == train_count == 73
-    assert len(await get_train_lines(fk_session)) == train_line_count == 146
+    assert len(await get_trains(fk_session)) == len(trains)
+    assert len(await get_train_lines(fk_session)) == expected_train_lines
 
 
 def load_json(path: Path) -> dict:
