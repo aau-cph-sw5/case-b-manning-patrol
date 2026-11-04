@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.0 - Positioning Interface: per-train time fields removed from `Train`
+- Positioning Interface: `Train.manned_time_secs` and `Train.total_time_secs`
+  removed from `TrainsUpdate` payloads — the per-train second counts are no
+  longer exposed; only the aggregate `manning_percent` /
+  `m1m2_manning_percent` / `m3m4_manning_percent` ratios (0..1) remain.
+
 ## v2.4.0 - Patrol Record: `status` is `open` | `closed`
 - Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
   `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
