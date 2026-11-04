@@ -7,6 +7,8 @@ from .overdue_log import OverdueLogEntry
 from .patrol_area import PatrolArea
 from .station import Station
 from .station_line import StationLine
+from .train import Train
+from .train_line import TrainLine
 
 __all__ = [
     "Adjustment",
@@ -19,4 +21,6 @@ __all__ = [
     "PatrolArea",
     "Station",
     "StationLine",
+    "Train",
+    "TrainLine",
 ]

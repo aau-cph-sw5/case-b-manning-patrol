@@ -29,6 +29,16 @@ from src.services.station_coverage.interval_builder import IntervalBuilder
 from src.services.station_coverage.overdue_tracker import OverdueTracker
 from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.train_manning.train_manning_clock_tick import TrainManningClockTick
+from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
+from src.services.train_manning.train_manning_publisher import (
+    SseTrainManningBroadcaster,
+)
+from src.services.train_manning.train_manning_service import TrainManningService
+from src.services.train_manning.train_manning_updater import (
+    TrainManningDeps,
+    TrainManningUpdater,
+)
 
 from .api.v2.routers import (
     adjustment,
@@ -37,6 +47,7 @@ from .api.v2.routers import (
     connection,
     dashboard_stream,
     health,
+    patrol_record,
     patrol_session,
 )
 from .db.ingest import load_stations
@@ -67,11 +78,11 @@ async def lifespan(app: FastAPI):
         time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
         min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
     )
+    shift_schedule = ShiftSchedule.from_file()
     sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
     at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
-    shift_schedule = ShiftSchedule.from_file()
     coverage_updater = CoverageUpdater(
         service=service,
         overdue_tracker=overdue_tracker,
@@ -81,19 +92,36 @@ async def lifespan(app: FastAPI):
         clock=lambda: datetime.now(UTC),
         shift_schedule=shift_schedule,
     )
+    train_manning_broadcaster = SseTrainManningBroadcaster()
+    train_manning_updater = TrainManningUpdater(
+        service=TrainManningService(builder, TrainManningEvaluator()),
+        publisher=train_manning_broadcaster,
+        deps=TrainManningDeps(
+            session_factory=lambda: AsyncSession(engine),
+            clock=lambda: datetime.now(UTC),
+            shift_schedule=shift_schedule,
+        ),
+    )
 
     await coverage_updater.refresh()
-    tick = asyncio.create_task(
+    await train_manning_updater.refresh()
+    coverage_tick = asyncio.create_task(
         CoverageClockTick(coverage_updater, timedelta(seconds=5)).run()
+    )
+    train_manning_tick = asyncio.create_task(
+        TrainManningClockTick(train_manning_updater, timedelta(seconds=5)).run()
     )
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
+    app.state.train_manning_updater = train_manning_updater
+    app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
     app.state.shift_schedule = shift_schedule
 
     yield
-    tick.cancel()
+    coverage_tick.cancel()
+    train_manning_tick.cancel()
     await engine.dispose()
 
 
@@ -121,6 +149,17 @@ async def target_event_not_found_exception_handler(
     )
 
 
+@app.exception_handler(patrol_record.RecordBuildError)
+async def record_build_exception_handler(
+    _: Request,
+    error: patrol_record.RecordBuildError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={"code": "500", "message": str(error)},
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, error: RequestValidationError):
     """Answer request validation errors with 400 instead of FastAPI's 422."""
@@ -139,6 +178,7 @@ app.include_router(at_risk_tracker.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
+app.include_router(patrol_record.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 app.include_router(connection.router, prefix=API_PREFIX_V2)
 

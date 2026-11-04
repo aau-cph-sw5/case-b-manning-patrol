@@ -1,5 +1,11 @@
-// formats a duration in milliseconds as HH:MM:SS. hours keep counting past 99 instead of wrapping,
-// and a negative duration (e.g. the clock was changed) shows as zero.
+/** Clock-style formatting of durations. */
+
+/**
+ * Format a duration in milliseconds as HH:MM:SS.
+ *
+ * Hours keep counting past 99 instead of wrapping, and a negative duration
+ * (e.g. the clock was changed) shows as zero.
+ */
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);

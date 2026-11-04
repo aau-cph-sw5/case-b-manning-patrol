@@ -1,10 +1,17 @@
-// decides the next scan state. pure: no scanning, timers or other side effects.
-// events are already ordered by the scanner, so the reducer only folds them in.
+/** Reducer for the beacon scan state. */
 import type { ScanAction, ScanState } from "@/types/beacon";
 
-// the event log on screen only needs a tail; the backend owns the full append-only record.
+/** The event log on screen only needs a tail; the backend owns the full append-only record. */
 const RECENT_EVENT_LIMIT = 20;
 
+/**
+ * Return the next scan state for an action.
+ *
+ * Pure: no scanning, timers or other side effects. Events are already ordered
+ * by the scanner, so the reducer only folds them in: CONNECTED adds the beacon
+ * to `connectedBeaconIds`, DISCONNECTED removes it, and every event is
+ * prepended to `recentEvents`, which keeps the latest 20.
+ */
 export function scanReducer(state: ScanState, action: ScanAction): ScanState {
   switch (action.type) {
     case "SCAN_STARTED":
