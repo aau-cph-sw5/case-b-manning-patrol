@@ -1,12 +1,12 @@
 # Changelog
 
-## v2.4.0 - Positioning Interface: per-train time fields removed from `Train`
+## v2.6.0 - Positioning Interface: per-train time fields removed from `Train`
 - Positioning Interface: `Train.manned_time_secs` and `Train.total_time_secs`
   removed from `TrainsUpdate` payloads — the per-train second counts are no
   longer exposed; only the aggregate `manning_percent` /
   `m1m2_manning_percent` / `m3m4_manning_percent` ratios (0..1) remain.
 
-## v2.4.0 - Patrol Record: `status` is `open` | `closed`
+## v2.5.0 - Patrol Record: `status` is `open` | `closed`
 - Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
   `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
   runs, closed once the disconnect event is stored. No client consumes the field
@@ -14,7 +14,6 @@
 - Patrol Record: `Record.duration_secs` is no longer nullable. Open records state
   the duration as of the response time (`time - started_at`), like `patrolled`;
   clients still render their own running timer from `started_at`.
-## v2.4.0 - Positioning Interface: `line` on Train, `current_steward_ids` array
 ## v2.4.0 - Positioning Interface: separate trains stream with manning percentages; `line` and `current_steward_ids` on Train
 - Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
   message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
@@ -61,7 +60,7 @@
   `"M1 & M2"`) to an array of line ids (e.g. `["M1", "M2"]`). The field was
   introduced in the unpublished v2.0.1 draft, so no published interface breaks.
 
-## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
+## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes & Health API contract
 - Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
   the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the
   updated `AtRiskThreshold`.
@@ -69,8 +68,6 @@
   `at_risk_threshold_minutes`; the threshold is now expressed in minutes
   instead of seconds. The field was introduced in the unpublished v2.0.1
   draft, so no published interface breaks.
-
-## v2.1.0 - Health API contract
 - Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
 - The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
 
