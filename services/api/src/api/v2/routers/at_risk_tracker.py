@@ -11,7 +11,7 @@ from src.services.station_coverage.shift_schedule import ShiftSchedule
 
 router = APIRouter(tags=["at-risk"])
 
-ShiftStartDep = Annotated[
+ShiftStartQuery = Annotated[
     datetime | None,
     Query(description="ISO 8601 with offset. Defaults to the latest shift."),
 ]
@@ -26,7 +26,7 @@ class AtRiskCount(BaseModel):
 async def get_at_risk_count(
     request: Request,
     session: AsyncDbSessionDep,
-    shift_start: ShiftStartDep = None,
+    shift_start: ShiftStartQuery = None,
 ) -> AtRiskCount:
     """Count at-risk episodes for the latest shift, or the given shift start."""
     schedule: ShiftSchedule = request.app.state.shift_schedule

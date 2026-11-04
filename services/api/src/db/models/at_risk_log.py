@@ -10,6 +10,8 @@ class AtRiskLogEntry(SQLModel, table=True):
 
     ``entry_id`` is derived from the episode, so the same episode is never
     counted twice, even across restarts.
+
+    ``station_id`` is None for unassigned areas, same as ``overdue_log``.
     """
 
     __tablename__ = "at_risk_log"
