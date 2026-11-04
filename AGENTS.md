@@ -10,7 +10,7 @@ Metro "manning/patrol" compliance system: documents that trains are manned >= 70
 ```
 contracts/                        versioned interfaces other teams build against
 docs/adr/                         architecture decision records
-docs/backend/                     backend coding guidelines and glossary
+docs/backend/                     backend coding guidelines
 services/api                       Python 3.13 / FastAPI, uv
 apps/android                       Expo SDK 58 / React Native steward app
 apps/web                           Vite + React 19 + TypeScript dashboard
@@ -55,8 +55,9 @@ uv run positioning-simulator
 - Tests in `tests/`, synthetic fixtures in `fixtures/`.
 - Lint rules: E, W, F, I, N, UP, B. Modern syntax (py313): `X | None`,
   `dict[...]`, `datetime.UTC`, sorted imports.
-- Classes, layers and exceptions follow
-  [docs/backend/python-oop-guideline.md](docs/backend/python-oop-guideline.md).
+- Classes, layers and shared backend conventions follow
+  [docs/backend/python-oop-guideline.md](docs/backend/python-oop-guideline.md)
+  (Draft: its Open decisions section may still change).
 
 ### Docstrings and comments (PEP 8 / PEP 257)
 
