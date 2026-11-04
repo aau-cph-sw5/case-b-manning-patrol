@@ -4,9 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import type { Record } from "@/types/patrol_records/record";
 import {
+  formatDayLabel,
+  formatDurationSecs,
   formatTimeOfDay,
   isPatrolled,
   openRecordElapsedMs,
+  recordDurationSecs,
   remainingToPatrolMs,
   splitRecords,
 } from "@/utils/patrolRecord";
@@ -108,5 +111,55 @@ describe("formatTimeOfDay", () => {
   it("pads hours and minutes to two digits", () => {
     expect(formatTimeOfDay(new Date(2026, 8, 21, 9, 5))).toBe("09:05");
     expect(formatTimeOfDay(new Date(2026, 8, 21, 23, 59))).toBe("23:59");
+  });
+});
+
+describe("formatDayLabel", () => {
+  it("formats the day with the Danish month name", () => {
+    expect(formatDayLabel(new Date(2026, 9, 26))).toBe("26. oktober 2026");
+    expect(formatDayLabel(new Date(2026, 0, 5))).toBe("5. januar 2026");
+  });
+});
+
+describe("recordDurationSecs", () => {
+  it("prefers the server's duration_secs on a closed record", () => {
+    const closed = record({
+      status: "closed",
+      endedAt: new Date(NOW - 5 * SECOND),
+      durationSecs: 720,
+      patrolled: true,
+    });
+    expect(recordDurationSecs(closed)).toBe(720);
+  });
+
+  it("falls back to ended_at minus started_at when duration is null", () => {
+    const closed = record({
+      status: "closed",
+      endedAt: new Date(NOW - 10 * SECOND),
+      durationSecs: null,
+    });
+    expect(recordDurationSecs(closed)).toBe(20);
+  });
+
+  it("returns zero for an open record without a duration", () => {
+    expect(recordDurationSecs(record({}))).toBe(0);
+  });
+});
+
+describe("formatDurationSecs", () => {
+  it("shows seconds under a minute", () => {
+    expect(formatDurationSecs(0)).toBe("0 sek");
+    expect(formatDurationSecs(45)).toBe("45 sek");
+    expect(formatDurationSecs(59.6)).toBe("1 min");
+  });
+
+  it("shows minutes from a minute up", () => {
+    expect(formatDurationSecs(60)).toBe("1 min");
+    expect(formatDurationSecs(90)).toBe("2 min");
+    expect(formatDurationSecs(720)).toBe("12 min");
+  });
+
+  it("clamps a negative duration to zero", () => {
+    expect(formatDurationSecs(-5)).toBe("0 sek");
   });
 });

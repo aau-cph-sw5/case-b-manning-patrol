@@ -17,7 +17,7 @@ const TAB_ICONS: Record<string, React.ComponentProps<typeof Feather>["name"]> = 
  * Tab titles are not shown; they serve as accessibility labels, falling back
  * to the route name.
  */
-export default function TabBar({ state, descriptors, navigateToTab }: BottomTabBarProps) {
+export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.bar}>
       <View style={styles.row}>
@@ -29,7 +29,7 @@ export default function TabBar({ state, descriptors, navigateToTab }: BottomTabB
           return (
             <Pressable
               key={route.key}
-              onPress={() => navigateToTab(route.key)}
+              onPress={() => navigation.navigate(route.name)}
               style={styles.item}
               accessibilityRole="tab"
               accessibilityLabel={label}
