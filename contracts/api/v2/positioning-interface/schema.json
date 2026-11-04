@@ -201,16 +201,6 @@
 						"description": "Human-readable identifier for the train.",
 						"example": "a29"
 					},
-					"total_time_secs": {
-						"type": "integer",
-						"description": "Total elapsed time, in seconds, since the train started being tracked.",
-						"example": 14400
-					},
-					"manned_time_secs": {
-						"type": "integer",
-						"description": "Total time, in seconds, the train has been manned by a steward.",
-						"example": 9600
-					},
 					"current_steward_ids": {
 						"type": "array",
 						"items": {
@@ -232,8 +222,6 @@
 				"required": [
 					"train_id",
 					"slug",
-					"total_time_secs",
-					"manned_time_secs",
 					"current_steward_ids",
 					"line"
 				]
@@ -340,7 +328,7 @@
 					"manning_percent": {
 						"type": "number",
 						"nullable": true,
-						"description": "Manned-time ratio (0..1) over all trains: summed manned_time_secs / summed total_time_secs. Computed in the backend on every event; null when there is no running time.",
+						"description": "Manned-time ratio (0..1) over all trains: manned running time / total running time. Computed in the backend on every event; null when there is no running time.",
 						"example": 0.7
 					},
 					"m1m2_manning_percent": {
