@@ -6,6 +6,11 @@
  * connections with their duration. Records come from {@link usePatrolRecords}
  * and are re-fetched every time the tab regains focus; the screen re-renders
  * each second via {@link useNow} so the open records' timers stay honest.
+ *
+ * Layout: the screen itself never scrolls. The open-connections box (green
+ * panel) is fixed at the top, and the closed-connections box (grey panel)
+ * fills the remaining space below it. Each box scrolls its own cards
+ * internally, so thumb-scrolling inside a box never moves the main screen.
  */
 
 import { Stack, useFocusEffect } from "expo-router";
@@ -26,12 +31,17 @@ import { useNow } from "@/hooks/useNow";
 import { usePatrolRecords } from "@/hooks/usePatrolRecords";
 import { formatDayLabel, splitRecords } from "@/utils/patrolRecord";
 
+/** Cap on the open-connections box so the closed box always stays on screen. */
+const OPEN_LIST_MAX_HEIGHT = 280;
+
 /**
  * Render the patrol history screen.
  *
  * While the first fetch is in flight a loading indicator is shown; a failed
  * fetch renders the hook's Danish error with a retry button, and previously
- * fetched records stay on screen while a refetch fails.
+ * fetched records stay on screen while a refetch fails. Once records are
+ * shown, the open box stays fixed at the top and the closed box scrolls its
+ * cards internally.
  */
 export default function PatrolHistoryScreen() {
   const { records, loading, error, refetch } = usePatrolRecords();
@@ -44,30 +54,35 @@ export default function PatrolHistoryScreen() {
   const { open, closed } = splitRecords(records);
   const connectionCount =
     records.length === 1 ? "1 forbindelse" : `${records.length} forbindelser`;
+  const statusOnly = records.length === 0 && (loading || error !== null);
 
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ title: "Patruljehistorik" }} />
       <PatrolHistoryHeader />
-      <ScrollView contentContainerStyle={styles.content}>
-        {loading && records.length === 0 ? (
-          <View style={styles.center}>
-            <ActivityIndicator color="#940024" />
-            <Text style={styles.muted}>Henter historik...</Text>
-          </View>
-        ) : error !== null && records.length === 0 ? (
-          <View style={styles.center}>
-            <Text style={styles.errorText}>{error}</Text>
-            <Pressable
-              style={styles.retry}
-              onPress={() => void refetch()}
-              accessibilityRole="button"
-            >
-              <Text style={styles.retryText}>Prøv igen</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <>
+      {statusOnly ? (
+        <View style={styles.statusContent}>
+          {loading ? (
+            <View style={styles.center}>
+              <ActivityIndicator color="#940024" />
+              <Text style={styles.muted}>Henter historik...</Text>
+            </View>
+          ) : (
+            <View style={styles.center}>
+              <Text style={styles.errorText}>{error}</Text>
+              <Pressable
+                style={styles.retry}
+                onPress={() => void refetch()}
+                accessibilityRole="button"
+              >
+                <Text style={styles.retryText}>Prøv igen</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      ) : (
+        <View style={styles.content}>
+          <View style={styles.statusArea}>
             {error !== null ? (
               <View style={styles.errorBanner}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -84,52 +99,58 @@ export default function PatrolHistoryScreen() {
               <Text style={styles.dateLabel}>I dag · {formatDayLabel(new Date(now))}</Text>
               <Text style={styles.dateCount}>{connectionCount}</Text>
             </View>
-            <View style={styles.section}>
-              <View style={styles.sectionHeading}>
-                <Text style={styles.sectionTitle}>Åbne forbindelser</Text>
-                <Text style={styles.openCount}>
-                  {open.length === 1 ? "1 åben" : `${open.length} åbne`}
-                </Text>
-              </View>
-              <View style={styles.openList}>
-                {open.length === 0 ? (
-                  <Text style={styles.empty}>Ingen åbne forbindelser.</Text>
-                ) : (
-                  open.map((record) => (
-                    <OpenRecordCard
-                      key={`${record.beaconId}-${record.startedAt.getTime()}`}
-                      record={record}
-                      now={now}
-                    />
-                  ))
-                )}
-              </View>
-            </View>
-            <View style={styles.section}>
-              <View style={styles.sectionHeading}>
-                <Text style={styles.sectionTitle}>Lukkede forbindelser</Text>
-                <Text style={styles.closedCount}>
-                  {closed.length === 1 ? "1 afsluttet" : `${closed.length} afsluttede`}
-                </Text>
-              </View>
-              <View style={styles.closedList}>
-                {closed.length === 0 ? (
-                  <Text style={styles.empty}>Ingen lukkede forbindelser.</Text>
-                ) : (
-                  closed.map((record) => (
-                    <ClosedRecordCard
-                      key={`${record.beaconId}-${record.startedAt.getTime()}`}
-                      record={record}
-                      now={now}
-                    />
-                  ))
-                )}
-              </View>
-              <Text style={styles.listNote}>Seneste forbindelser vises først.</Text>
-            </View>
-          </>
-        )}
-      </ScrollView>
+          </View>
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionTitle}>Åbne forbindelser</Text>
+            <Text style={styles.openCount}>
+              {open.length === 1 ? "1 åben" : `${open.length} åbne`}
+            </Text>
+          </View>
+          <View style={styles.openList}>
+            <ScrollView
+              style={styles.openScroll}
+              contentContainerStyle={styles.listContent}
+            >
+              {open.length === 0 ? (
+                <Text style={styles.empty}>Ingen åbne forbindelser.</Text>
+              ) : (
+                open.map((record) => (
+                  <OpenRecordCard
+                    key={`${record.beaconId}-${record.startedAt.getTime()}`}
+                    record={record}
+                    now={now}
+                  />
+                ))
+              )}
+            </ScrollView>
+          </View>
+          <View style={[styles.sectionHeading, styles.closedHeading]}>
+            <Text style={styles.sectionTitle}>Lukkede forbindelser</Text>
+            <Text style={styles.closedCount}>
+              {closed.length === 1 ? "1 afsluttet" : `${closed.length} afsluttede`}
+            </Text>
+          </View>
+          <View style={styles.closedList}>
+            <ScrollView
+              style={styles.closedScroll}
+              contentContainerStyle={styles.listContent}
+            >
+              {closed.length === 0 ? (
+                <Text style={styles.empty}>Ingen lukkede forbindelser.</Text>
+              ) : (
+                closed.map((record) => (
+                  <ClosedRecordCard
+                    key={`${record.beaconId}-${record.startedAt.getTime()}`}
+                    record={record}
+                    now={now}
+                  />
+                ))
+              )}
+            </ScrollView>
+          </View>
+          <Text style={styles.listNote}>Seneste forbindelser vises først.</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -139,8 +160,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
+  statusContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
   content: {
-    gap: 24,
+    flex: 1,
+    minHeight: 0,
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 22,
@@ -148,7 +176,6 @@ const styles = StyleSheet.create({
   center: {
     alignItems: "center",
     gap: 12,
-    paddingVertical: 40,
   },
   muted: {
     color: "#656865",
@@ -179,6 +206,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
+  statusArea: {
+    gap: 12,
+    marginBottom: 24,
+  },
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -193,14 +224,14 @@ const styles = StyleSheet.create({
     color: "#656865",
     fontSize: 12,
   },
-  section: {
-    minWidth: 0,
-  },
   sectionHeading: {
     marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  closedHeading: {
+    marginTop: 24,
   },
   sectionTitle: {
     color: "#202220",
@@ -221,16 +252,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   openList: {
-    gap: 8,
     padding: 8,
     borderRadius: 20,
     backgroundColor: "#d9f0e3",
   },
+  openScroll: {
+    flexGrow: 0,
+    maxHeight: OPEN_LIST_MAX_HEIGHT,
+  },
   closedList: {
-    gap: 8,
+    flex: 1,
+    minHeight: 0,
     padding: 8,
     borderRadius: 20,
+    overflow: "hidden",
     backgroundColor: "#d8d8d8",
+  },
+  closedScroll: {
+    flex: 1,
+  },
+  listContent: {
+    gap: 8,
   },
   empty: {
     padding: 6,
