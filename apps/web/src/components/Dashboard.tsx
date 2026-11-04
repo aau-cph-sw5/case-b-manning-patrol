@@ -20,13 +20,10 @@ import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
 import './Dashboard.css'
 
-type View = 'all' | 'attention'
-
 function Dashboard() {
   const now = useNow()
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
   const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0])
-  const [view, setView] = useState<View>('all')
   const { dashboard, isLoading, error, lastUpdated } = useDashboardStream()
   const stations = useMemo(
     () => (dashboard ? toViewStations(dashboard) : []),
@@ -70,13 +67,9 @@ function Dashboard() {
   // the warn pill is about overdue stations only (not at-risk within the threshold)
   const overdueCount = attention.filter((item) => item.minutes <= 0).length
 
-  const visibleStations = stations.filter((station) => {
-    if (!stationServesLineGroup(station, lineGroup)) return false
-    if (view === 'attention') {
-      return station.levels.some((level) => remainingMinutes(level, now) <= 0)
-    }
-    return true
-  })
+  const visibleStations = stations.filter((station) =>
+    stationServesLineGroup(station, lineGroup),
+  )
 
   return (
     <div className="dashboard-page">
@@ -92,14 +85,9 @@ function Dashboard() {
 
       <div className="legend-row">
         {overdueCount > 0 && (
-          <button
-            type="button"
-            className={`nav-pill warn${view === 'attention' ? ' active' : ''}`}
-            aria-pressed={view === 'attention'}
-            onClick={() => setView(view === 'attention' ? 'all' : 'attention')}
-          >
+          <div className="nav-pill warn" role="status">
             <BsEmojiFrown className="smiley-icon" /> Overskredet stationer ({overdueCount})
-          </button>
+          </div>
         )}
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
       </div>
