@@ -62,15 +62,6 @@ class AtRiskTracker:
         self.total += len(new_entries)
         return new_entries
 
-    def observe(
-        self,
-        reports: list[StationCoverageReport],
-        now: datetime,
-        threshold: timedelta,
-    ) -> int:
-        """Return the number of new at-risk episodes found in this calculation."""
-        return len(self._new_entries(reports, now, threshold))
-
     def reset_for_new_shift(self, shift_start: datetime) -> None:
         """Called when the shift changes, so the shift starts from zero."""
         self._counted.clear()
