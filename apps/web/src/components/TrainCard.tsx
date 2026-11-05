@@ -115,9 +115,9 @@ function TrainCard({ update, lineGroup }: { update: TrainsUpdate | null; lineGro
             <span className="train-summary-label">Toge bemandede</span>
             <span className="train-summary-count-row">
               <span className="train-summary-count">
-                {mannedCount}/{data.trains.length}
+                {groupMannedCount}/{groupTrains.length}
               </span>
-              {mannedCount > 0 && (
+              {groupMannedCount > 0 && (
                 <span className="train-live">
                   <span className="train-live-dot" />
                   LIVE
