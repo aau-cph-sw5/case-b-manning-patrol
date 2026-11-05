@@ -18,6 +18,7 @@ graph TD
 - `GET api/v2/trains/stream` - Server-Sent Events stream of [TrainsUpdate] updates (trains + manning percentages)
 - `GET api/v2/config/at-risk-threshold` - At-risk threshold configuration ([AtRiskThreshold])
 - `POST api/v2/config/at-risk-threshold` - Update the at-risk threshold; accepts an [AtRiskThreshold] body and returns the updated configuration
+- `GET api/v2/coverage/at-risk-count` - Number of at-risk episodes in a shift ([AtRiskCount])
 
 ## Implementation Notes
 
@@ -75,3 +76,14 @@ data: {"trains": [...], "manning_percent": 70, "m1m2_manning_percent": 50, "m3m4
 
 ### AtRiskThreshold
 - `at_risk_threshold_minutes`: integer (minimum 1) — minutes before an area becomes overdue when it is considered at-risk
+
+### AtRiskCount
+- `shift_start`: Date — the start of the shift the episodes were counted for
+- `episodes`: integer (minimum 0) — how many areas have been at-risk in the shift; an area that is patrolled and later becomes at-risk again counts as a new episode
+
+The count is per episode, not per unique area. It is derived from the same
+coverage recomputes that feed `/api/v2/dashboard/stream`: each time the server
+recomputes coverage, an area whose remaining time until `overdue_at` is within
+`at_risk_threshold_minutes` is counted once. Without the `shift_start` query
+parameter (ISO 8601 with offset), the latest shift from the server's shift
+schedule is used.
