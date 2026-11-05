@@ -32,7 +32,7 @@ data: {"stations": [...], "time": "2026-09-21T10:15:00+00:00"}
 
 ```
 event: trains
-data: {"trains": [...], "manning_percent": 0.7, "m1m2_manning_percent": 0.5, "m3m4_manning_percent": 1.0, "time": "2026-09-21T10:15:00+00:00"}
+data: {"trains": [...], "manning_percent": 70, "m1m2_manning_percent": 50, "m3m4_manning_percent": 100, "time": "2026-09-21T10:15:00+00:00"}
 ```
 
 - Every event on either stream contains the full payload for that stream, changed or not, so clients need no separate initial fetch and replace their whole state on each event.
@@ -49,9 +49,9 @@ data: {"trains": [...], "manning_percent": 0.7, "m1m2_manning_percent": 0.5, "m3
 
 ### TrainsUpdate
 - `trains`: Train[]
-- `manning_percent`: number | null — manned-time ratio (0..1) over all trains; null when no running time
-- `m1m2_manning_percent`: number | null — same ratio over trains whose `line` contains M1 or M2
-- `m3m4_manning_percent`: number | null — same ratio over trains whose `line` contains M3 or M4
+- `manning_percent`: number | null — manning percentage (0..100) over all trains; null when no running time
+- `m1m2_manning_percent`: number | null — same percentage over trains whose `line` contains M1 or M2
+- `m3m4_manning_percent`: number | null — same percentage over trains whose `line` contains M3 or M4
 - `time`: Date — when the server sent this event
 
 ### Station
