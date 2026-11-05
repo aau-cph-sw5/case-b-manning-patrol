@@ -18,6 +18,7 @@ from src.db.repository.train import get_train_lines, get_trains
 from src.services.event_producer import EventValidationError, TargetEventNotFoundError
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
+from src.services.station_coverage.at_risk_tracker import AtRiskTracker
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
@@ -43,6 +44,7 @@ from src.services.train_manning.trains_update_presenter import TrainsUpdatePrese
 
 from .api.v2.routers import (
     adjustment,
+    at_risk_tracker,
     config,
     connection,
     dashboard_stream,
@@ -81,10 +83,12 @@ async def lifespan(app: FastAPI):
     shift_schedule = ShiftSchedule.from_file()
     sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
+    at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
     coverage_updater = CoverageUpdater(
         service=service,
-        tracker=overdue_tracker,
+        overdue_tracker=overdue_tracker,
+        at_risk_tracker=at_risk_tracker,
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
@@ -118,6 +122,7 @@ async def lifespan(app: FastAPI):
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
     app.state.trains_update_presenter = trains_update_presenter
+    app.state.shift_schedule = shift_schedule
 
     yield
     coverage_tick.cancel()
@@ -174,6 +179,7 @@ app.add_middleware(
 )
 
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(at_risk_tracker.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
