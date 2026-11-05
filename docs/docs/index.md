@@ -41,6 +41,7 @@ With a verifiable real-time and historical record.
 ## Quick Links
 
 - [Architecture](architecture.md) — System design and data flow
+- [Glossary](glossary.md) — Domain terms and rules
 - [Development Setup](development/setup.md) — Get the system running locally
 - [Backend API](development/backend.md) — FastAPI service guide
 - [Web Dashboard](development/web.md) — React dashboard guide
