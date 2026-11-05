@@ -50,8 +50,8 @@ group encodes the area:
 |---|---|
 | `0001`–`002a` | Platform of station 1–42 |
 | `0081`–`00aa` | Concourse of station 1–42 (station number + `0x80`) |
-| `0101`–`0122` | M1 / M2 trains 1–34 (`trains.v1.json`, see below) |
-| `0201`–`0227` | M3 / M4 trains 1–39 (`trains.v1.json`, see below) |
+| `0101`–`0122` | Trains `train-1` … `train-34` (M1 / M2, `trains.v1.json`, see below) |
+| `0201`–`0227` | Trains `train-35` … `train-73` (M3 / M4, `trains.v1.json`, see below) |
 
 ## How the file satisfies the acceptance criteria
 
@@ -81,8 +81,8 @@ train loses its lines.
 
 | Group | Trains | Slugs | ID / beacon suffix |
 |---|---|---|---|
-| M1 / M2 | 34 | `a01` … `a34` | `0101` … `0122` |
-| M3 / M4 | 39 | `b01` … `b39` | `0201` … `0227` |
+| M1 / M2 | 34 | `train-1` … `train-34` | `0101` … `0122` |
+| M3 / M4 | 39 | `train-35` … `train-73` | `0201` … `0227` |
 
 Beacons use the station base `660e8400-e29b-41d4-a716-44665544` and IDs the
 base `770e8400-e29b-41d4-a716-44665544`, with the same suffix. The fleet size

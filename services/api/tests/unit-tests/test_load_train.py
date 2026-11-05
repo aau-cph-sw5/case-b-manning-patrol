@@ -22,7 +22,7 @@ from src.db.repository.train import get_train_lines, get_trains
 # Mock data shaped exactly like services/api/src/data/trains.v1.json.
 TRAIN = {
     "id": "770e8400-e29b-41d4-a716-446655440101",
-    "slug": "a01",
+    "slug": "train-1",
     "beacon_id": "660e8400-e29b-41d4-a716-446655440101",
     "line_ids": ["M1", "M2"],
 }
@@ -30,7 +30,7 @@ TRAIN = {
 # A second train used to simulate "someone edited the data file"
 EXTRA_TRAIN = {
     "id": "770e8400-e29b-41d4-a716-446655440201",
-    "slug": "b01",
+    "slug": "train-35",
     "beacon_id": "660e8400-e29b-41d4-a716-446655440201",
     "line_ids": ["M3", "M4"],
 }
@@ -95,7 +95,7 @@ async def test_load_trains_loads_trains_and_their_lines(session, tmp_path):
 
     trains = await get_trains(session)
     assert [str(train.train_id) for train in trains] == [TRAIN["id"]]
-    assert trains[0].slug == "a01"
+    assert trains[0].slug == "train-1"
     assert str(trains[0].beacon_id) == TRAIN["beacon_id"]
 
     train_lines = await get_train_lines(session)
@@ -120,7 +120,7 @@ async def test_reload_is_idempotent_and_picks_up_added_train(session, tmp_path):
     await load_trains(session, path)
 
     trains = await get_trains(session)
-    assert {train.slug for train in trains} == {"a01", "b01"}
+    assert {train.slug for train in trains} == {"train-1", "train-35"}
     assert len(await get_train_lines(session)) == 4
 
 
