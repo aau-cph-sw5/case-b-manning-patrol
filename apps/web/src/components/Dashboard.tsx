@@ -16,6 +16,7 @@ import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { toViewStations } from '../api/dashboardMapper.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
+import { useTrainStream } from '../hooks/useTrainStream'
 import Legend from './Legend.tsx'
 import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
@@ -33,7 +34,7 @@ function Dashboard() {
     () => (dashboard ? toViewStations(dashboard) : []),
     [dashboard],
   )
-  const trains = useMemo(() => dashboard?.trains ?? [], [dashboard])
+  const { trainsUpdate } = useTrainStream()
 
   useEffect(() => {
     if (dashboard) console.log("Dashboard SSE update:", dashboard);
@@ -110,7 +111,7 @@ function Dashboard() {
 
       <main className="dash">
         <div className="side-col">
-          <TrainCard trains={trains} />
+          <TrainCard update={trainsUpdate} lineGroup={lineGroup} />
           <aside className="card attention">
             <h2>Kræver handling ({attention.length})</h2>
             <ul className="attention-list">

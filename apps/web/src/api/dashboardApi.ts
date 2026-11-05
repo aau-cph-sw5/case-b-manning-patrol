@@ -1,5 +1,5 @@
-// Server-Sent Events stream for Dashboard updates
-// position-interface/v2 contract: GET /api/v2/dashboard/stream
+// Server-Sent Events streams for Dashboard and train manning updates
+// position-interface/v2 contract: GET /api/v2/dashboard/stream and GET /api/v2/trains/stream
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -30,22 +30,34 @@ export interface Station {
 }
 
 /**
- * Train information for the dashboard
+ * Train information pushed via the trains stream
  */
 export interface Train {
   train_id: string; // UUID
   slug: string;
   total_time_secs: number;
   manned_time_secs: number;
-  current_steward_id: string | null; // UUID or null
+  current_steward_ids: string[]; // UUIDs of stewards currently manning the train; empty when unmanned
+  line: string[]; // metro lines the train serves, e.g. ["M1", "M2"]
 }
 
 /**
- * Complete dashboard state pushed via SSE
+ * Dashboard state pushed via the dashboard SSE stream (stations only;
+ * trains arrive on the separate trains stream)
  */
 export interface Dashboard {
   stations: Station[];
+  time: string; // ISO 8601 date-time with offset when server sent the event
+}
+
+/**
+ * Train manning state pushed via the trains SSE stream
+ */
+export interface TrainsUpdate {
   trains: Train[];
+  manning_percent: number | null; // manned-time ratio 0..1 over all trains; null when no running time
+  m1m2_manning_percent: number | null; // same ratio over trains whose line contains M1 or M2
+  m3m4_manning_percent: number | null; // same ratio over trains whose line contains M3 or M4
   time: string; // ISO 8601 date-time with offset when server sent the event
 }
 
@@ -82,6 +94,41 @@ export function subscribeToDashboard(
       callback(dashboard);
     } catch (error) {
       console.error("Failed to parse dashboard event:", error);
+    }
+  });
+
+  if (onError) {
+    eventSource.onerror = onError;
+  }
+
+  return eventSource;
+}
+
+/**
+ * Connect to the trains SSE stream
+ * Returns the EventSource instance for manual management
+ */
+export function connectTrainsStream(): EventSource {
+  return new EventSource(`${API_BASE_URL}/api/v2/trains/stream`);
+}
+
+/**
+ * Subscribe to train manning updates with automatic parsing
+ * @param callback - Called with each new TrainsUpdate state
+ * @returns EventSource instance - call .close() to disconnect
+ */
+export function subscribeToTrains(
+  callback: (update: TrainsUpdate) => void,
+  onError?: (error: Event) => void
+): EventSource {
+  const eventSource = new EventSource(`${API_BASE_URL}/api/v2/trains/stream`);
+
+  eventSource.addEventListener("trains", (event) => {
+    try {
+      const update: TrainsUpdate = JSON.parse(event.data);
+      callback(update);
+    } catch (error) {
+      console.error("Failed to parse trains event:", error);
     }
   });
 
