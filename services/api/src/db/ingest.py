@@ -72,7 +72,7 @@ async def load_trains(session: AsyncSession, path: Path = TRAINS_FILE) -> None:
     for train in data["trains"]:
         session.add(
             Train(
-                train_id=UUID(train["id"]),
+                train_id=UUID(train["train_id"]),
                 slug=train["slug"],
                 beacon_id=UUID(train["beacon_id"]),
             )
@@ -83,7 +83,7 @@ async def load_trains(session: AsyncSession, path: Path = TRAINS_FILE) -> None:
 
     for train in data["trains"]:
         for line_id in train["line_ids"]:
-            session.add(TrainLine(train_id=UUID(train["id"]), line_id=line_id))
+            session.add(TrainLine(train_id=UUID(train["train_id"]), line_id=line_id))
 
     await session.commit()
 

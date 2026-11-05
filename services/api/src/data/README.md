@@ -74,7 +74,7 @@ train loses its lines.
 
 | Field | Meaning |
 |---|---|
-| `id` | Stable train identifier (`train_id`). Survives a beacon swap. |
+| `train_id` | Stable train identifier. Survives a beacon swap. |
 | `slug` | Human-readable name shown on the dashboard. |
 | `beacon_id` | The beacon that names the train. An attribute, not the identity. |
 | `line_ids` | The lines the train can run on. Trains are shared within M1/M2 and within M3/M4, so every train lists both lines of its group. |

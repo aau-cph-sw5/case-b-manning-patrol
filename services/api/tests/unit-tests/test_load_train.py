@@ -21,7 +21,7 @@ from src.db.repository.train import get_train_lines, get_trains
 
 # Mock data shaped exactly like services/api/src/data/trains.v1.json.
 TRAIN = {
-    "id": "770e8400-e29b-41d4-a716-446655440101",
+    "train_id": "770e8400-e29b-41d4-a716-446655440101",
     "slug": "train-1",
     "beacon_id": "660e8400-e29b-41d4-a716-446655440101",
     "line_ids": ["M1", "M2"],
@@ -29,7 +29,7 @@ TRAIN = {
 
 # A second train used to simulate "someone edited the data file"
 EXTRA_TRAIN = {
-    "id": "770e8400-e29b-41d4-a716-446655440201",
+    "train_id": "770e8400-e29b-41d4-a716-446655440201",
     "slug": "train-35",
     "beacon_id": "660e8400-e29b-41d4-a716-446655440201",
     "line_ids": ["M3", "M4"],
@@ -94,13 +94,15 @@ async def test_load_trains_loads_trains_and_their_lines(session, tmp_path):
     await load_trains(session, path)
 
     trains = await get_trains(session)
-    assert [str(train.train_id) for train in trains] == [TRAIN["id"]]
+    assert [str(train.train_id) for train in trains] == [TRAIN["train_id"]]
     assert trains[0].slug == "train-1"
     assert str(trains[0].beacon_id) == TRAIN["beacon_id"]
 
     train_lines = await get_train_lines(session)
     assert {train_line.line_id for train_line in train_lines} == {"M1", "M2"}
-    assert {str(train_line.train_id) for train_line in train_lines} == {TRAIN["id"]}
+    assert {str(train_line.train_id) for train_line in train_lines} == {
+        TRAIN["train_id"]
+    }
 
 
 @pytest.mark.asyncio
@@ -154,7 +156,7 @@ def test_real_trains_file_matches_fleet_specification():
     fleet = Counter(tuple(train["line_ids"]) for train in trains)
     assert fleet == {("M1", "M2"): 34, ("M3", "M4"): 39}
 
-    for key in ("id", "slug", "beacon_id"):
+    for key in ("train_id", "slug", "beacon_id"):
         values = [train[key] for train in trains]
         assert len(set(values)) == len(values)
 
