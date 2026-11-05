@@ -48,16 +48,24 @@ function RouteBadges({ routes }: { routes: string[] }) {
 
 type Trend = 'up' | 'down' | 'flat'
 
+/** Percentage points within which the current manned share counts as flat. */
+const TREND_TOLERANCE_PCT = 1
+
 /**
- * Arrow trend from the share of trains with a steward right now: above the 70%
- * target is up (green), below is down (red), exactly at the target is flat
- * (yellow). Null when there are no trains.
+ * Direction the manning percentage is heading right now.
+ *
+ * The percentage is manned time over running time, so it rises while the share
+ * of trains manned right now is above it and falls while it is below. Within
+ * {@link TREND_TOLERANCE_PCT} of it the trend is flat.
+ *
+ * @param percent - The displayed manning percentage (0..100).
+ * @returns Null when there are no trains or no percentage yet.
  */
-function trendOf(manned: number, total: number): Trend | null {
-  if (total <= 0) return null
-  const ratio = manned / total
-  if (ratio > MANNING_TARGET_PCT / 100) return 'up'
-  if (ratio < MANNING_TARGET_PCT / 100) return 'down'
+function trendOf(manned: number, total: number, percent: number | null): Trend | null {
+  if (total <= 0 || percent === null) return null
+  const currentPct = (manned / total) * 100
+  if (currentPct > percent + TREND_TOLERANCE_PCT) return 'up'
+  if (currentPct < percent - TREND_TOLERANCE_PCT) return 'down'
   return 'flat'
 }
 
@@ -65,7 +73,7 @@ function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
   if (trend === null) return null
   const Icon = trend === 'up' ? BsArrowUp : trend === 'down' ? BsArrowDown : BsArrowRight
   const cls = trend === 'up' ? 'ok-arrow' : trend === 'down' ? 'low-arrow' : 'flat-arrow'
-  const text = trend === 'up' ? 'over målet' : trend === 'down' ? 'under målet' : 'på målet'
+  const text = trend === 'up' ? 'stigende' : trend === 'down' ? 'faldende' : 'stabil'
   return <Icon className={cls} aria-label={`${label} ${text}`} />
 }
 
@@ -91,8 +99,8 @@ function TrainCard({ update, lineGroup }: { update: TrainsUpdate | null; lineGro
   const groupMannedCount = groupTrains.filter(
     (train) => train.current_steward_ids.length > 0,
   ).length
-  const overallTrend = trendOf(mannedCount, data.trains.length)
-  const groupTrend = trendOf(groupMannedCount, groupTrains.length)
+  const overallTrend = trendOf(mannedCount, data.trains.length, overallPct)
+  const groupTrend = trendOf(groupMannedCount, groupTrains.length, groupPct)
   const allRoutes = [...new Set(data.trains.flatMap((train) => train.line))]
   if (allRoutes.length === 0) {
     allRoutes.push(...LINE_GROUPS.flatMap((group) => LINE_GROUP_ROUTES[group]))

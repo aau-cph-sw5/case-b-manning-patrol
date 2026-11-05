@@ -9,6 +9,9 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+/** API version prefix for all stream endpoints (position-interface/v2 contract). */
+const API_VERSION = "/api/v2";
+
 /** Kind of patrol area, as defined in the position-interface/v2 contract. */
 export type AreaType = "platform" | "concourse";
 
@@ -41,7 +44,7 @@ export interface Station {
  * One train and the stewards on it right now.
  *
  * Per-train manned time is not exposed (position-interface v2.4.0); use the
- * ratios on {@link TrainsUpdate}.
+ * percentages on {@link TrainsUpdate}.
  */
 export interface Train {
   /** UUID of the train. */
@@ -99,7 +102,7 @@ export interface ApiError {
  * opening and the parsing.
  */
 export function connectDashboardStream(): EventSource {
-  return new EventSource(`${API_BASE_URL}/api/v2/dashboard/stream`);
+  return new EventSource(`${API_BASE_URL}${API_VERSION}/dashboard/stream`);
 }
 
 /**
@@ -119,7 +122,7 @@ export function subscribeToDashboard(
   callback: (dashboard: Dashboard) => void,
   onError?: (error: Event) => void
 ): EventSource {
-  const eventSource = new EventSource(`${API_BASE_URL}/api/v2/dashboard/stream`);
+  const eventSource = new EventSource(`${API_BASE_URL}${API_VERSION}/dashboard/stream`);
 
   eventSource.addEventListener("dashboard", (event) => {
     try {
@@ -145,7 +148,7 @@ export function subscribeToDashboard(
  * and the parsing.
  */
 export function connectTrainsStream(): EventSource {
-  return new EventSource(`${API_BASE_URL}/api/v2/trains/stream`);
+  return new EventSource(`${API_BASE_URL}${API_VERSION}/trains/stream`);
 }
 
 /**
@@ -163,7 +166,7 @@ export function subscribeToTrains(
   callback: (update: TrainsUpdate) => void,
   onError?: (error: Event) => void
 ): EventSource {
-  const eventSource = new EventSource(`${API_BASE_URL}/api/v2/trains/stream`);
+  const eventSource = new EventSource(`${API_BASE_URL}${API_VERSION}/trains/stream`);
 
   eventSource.addEventListener("trains", (event) => {
     try {

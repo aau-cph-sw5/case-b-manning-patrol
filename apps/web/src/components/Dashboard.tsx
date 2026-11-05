@@ -34,8 +34,9 @@ function Dashboard() {
   const { trainsUpdate } = useTrainStream()
 
   useEffect(() => {
-    if (dashboard) console.log("Dashboard SSE update:", dashboard);
-    if (error) console.error("SSE error:", error);
+    if (!import.meta.env.DEV) return
+    if (dashboard) console.log('Dashboard SSE update:', dashboard)
+    if (error) console.error('SSE error:', error)
   }, [dashboard, error])
 
   useEffect(() => {
