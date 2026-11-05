@@ -28,7 +28,7 @@ class TrainsUpdatePresenter:
 
         The manning percentages are the manned-time share of the running
         time (0-100) over all trains and over the M1/M2 and M3/M4 line
-        groups separately; a group with no running time gets 0.
+        groups separately; a group with no running time gets None.
         """
         total_time = 0
         total_manning_time = 0
@@ -49,17 +49,17 @@ class TrainsUpdatePresenter:
             total_manning_time += report.manned_time.total_seconds()
 
         total_manning_percent = (
-            total_manning_time / total_time * 100 if total_time > 0 else 0
+            total_manning_time / total_time * 100 if total_time > 0 else None
         )
         m1m2_manning_percent = (
             m1m2_total_manning_time / m1m2_total_time * 100
             if m1m2_total_time > 0
-            else 0
+            else None
         )
         m3m4_manning_percent = (
             m3m4_total_manning_time / m3m4_total_time * 100
             if m3m4_total_time > 0
-            else 0
+            else None
         )
         return TrainsUpdate(
             manning_percent=total_manning_percent,

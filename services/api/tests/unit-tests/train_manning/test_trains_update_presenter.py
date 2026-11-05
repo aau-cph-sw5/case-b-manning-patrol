@@ -44,7 +44,7 @@ def test_overall_percent_is_manned_time_over_running_time():
 
     assert update.manning_percent == 25.0
     assert update.m1m2_manning_percent == 25.0
-    assert update.m3m4_manning_percent == 0
+    assert update.m3m4_manning_percent is None
 
 
 def test_line_groups_are_computed_separately():
@@ -76,9 +76,17 @@ def test_trains_in_the_same_group_are_aggregated():
     assert update.manning_percent == 50.0
 
 
-def test_percents_are_zero_when_there_is_no_running_time():
+def test_percents_are_none_when_there_is_no_running_time():
     update = present()
+
+    assert update.manning_percent is None
+    assert update.m1m2_manning_percent is None
+    assert update.m3m4_manning_percent is None
+
+
+def test_percents_are_zero_when_running_but_never_manned():
+    update = present(make_report(frozenset({"M1"}), hours(4), hours(0)))
 
     assert update.manning_percent == 0
     assert update.m1m2_manning_percent == 0
-    assert update.m3m4_manning_percent == 0
+    assert update.m3m4_manning_percent is None

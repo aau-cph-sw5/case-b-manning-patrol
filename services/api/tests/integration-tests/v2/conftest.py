@@ -157,9 +157,8 @@ async def override_db_session(db_engine: AsyncEngine) -> AsyncGenerator[None]:
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
-    app.state.shift_schedule = shift_schedule
     app.state.trains_update_presenter = trains_presenter
-
+    app.state.shift_schedule = shift_schedule
     yield
 
     app.dependency_overrides.pop(get_async_db_session, None)

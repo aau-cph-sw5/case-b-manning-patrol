@@ -121,8 +121,8 @@ async def lifespan(app: FastAPI):
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
-    app.state.shift_schedule = shift_schedule
     app.state.trains_update_presenter = trains_update_presenter
+    app.state.shift_schedule = shift_schedule
 
     yield
     coverage_tick.cancel()
