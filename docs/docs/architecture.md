@@ -73,6 +73,7 @@ The control-room dashboard that:
 | Database | [ADR-0007](adr/0007-database-decision.md) | PostgreSQL for relational + JSONB flexibility |
 | Event Store | [ADR-0008](adr/0008-append-only-event-store-decision.md) | Append-only event store, no update/delete paths |
 | Real-time Updates | [ADR-0011](adr/00011-server-sent-events.md) | Server-Sent Events for one-way server→client push |
+| Train Manning Stream | [ADR-0012](adr/0012-train-manning-stream.md) | Trains on their own SSE stream for the web dashboard; stations stream shared with Android |
 | Hosting | [ADR-0005](adr/0005-hosting-platform.md) | Ucloud (AAU) as staging environment |
 
 ## Compliance Rules
