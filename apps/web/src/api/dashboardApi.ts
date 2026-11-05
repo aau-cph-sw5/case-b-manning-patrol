@@ -38,19 +38,16 @@ export interface Station {
 }
 
 /**
- * Manning totals and current stewards of one train.
+ * One train and the stewards on it right now.
  *
- * The share of time a train was manned is `manned_time_secs / total_time_secs`.
+ * Per-train manned time is not exposed (position-interface v2.4.0); use the
+ * ratios on {@link TrainsUpdate}.
  */
 export interface Train {
   /** UUID of the train. */
   train_id: string;
   /** Human-readable identifier for the train. */
   slug: string;
-  /** Seconds since the train started being tracked. */
-  total_time_secs: number;
-  /** Seconds of that time the train was manned by a steward. */
-  manned_time_secs: number;
   /** UUIDs of stewards currently manning the train; empty when unmanned. */
   current_steward_ids: string[];
   /** Metro lines the train serves, e.g. ["M1", "M2"] (position-interface v2.4.0). */
@@ -73,11 +70,14 @@ export interface Dashboard {
  */
 export interface TrainsUpdate {
   trains: Train[];
-  /** Manned-time ratio 0..1 over all trains; null when there is no running time. */
+  /**
+   * Manning percentage 0..100 over all trains (position-interface v2.5.0);
+   * null when there is no running time.
+   */
   manning_percent: number | null;
-  /** Same ratio over trains whose line contains M1 or M2. */
+  /** Same percentage over trains whose line contains M1 or M2. */
   m1m2_manning_percent: number | null;
-  /** Same ratio over trains whose line contains M3 or M4. */
+  /** Same percentage over trains whose line contains M3 or M4. */
   m3m4_manning_percent: number | null;
   /** When the server sent the event, ISO 8601 date-time with offset. */
   time: string;

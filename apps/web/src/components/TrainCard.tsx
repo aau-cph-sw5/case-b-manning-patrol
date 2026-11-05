@@ -1,31 +1,30 @@
+/**
+ * Dashboard card showing train manning from the trains SSE stream: the share
+ * of running time trains were manned, overall and for the selected line group,
+ * against the 70% compliance target.
+ */
+
 import type { TrainsUpdate } from '../api/dashboardApi'
 
 import { BsArrowDown, BsArrowRight, BsArrowUp } from 'react-icons/bs'
 
 import { LINE_GROUPS, LINE_GROUP_ROUTES, ROUTE_COLORS, type LineGroup } from '../utils/lineGroup.ts'
 
-// compliance rule: a train must be manned at least 70% of running time
+/** Compliance rule: a train must be manned at least 70% of its running time. */
 const MANNING_TARGET_PCT = 70
 
-// TEMP-FAKE-DATA: hard-coded preview update (67% manned, 6/10 trains with a steward) — delete before committing
-const FAKE_UPDATE: TrainsUpdate = {
-  trains: Array.from({ length: 10 }, (_, i) => ({
-    train_id: `fake-${i + 1}`,
-    slug: `Tog ${i + 1}`,
-    total_time_secs: 3600,
-    manned_time_secs: i < 6 ? 3600 : 630,
-    current_steward_ids: i < 6 ? ['660e8400-e29b-41d4-a716-446655440001'] : [],
-    line: i < 5 ? ['M1'] : i < 6 ? ['M2'] : i < 8 ? ['M3'] : ['M4'],
-  })),
-  manning_percent: 0.67,
-  m1m2_manning_percent: 0.67,
-  m3m4_manning_percent: 0.7,
-  time: '2026-11-02T10:00:00+01:00',
+/** Shown until the first trains event arrives, so the card renders its placeholder. */
+const EMPTY_UPDATE: TrainsUpdate = {
+  trains: [],
+  manning_percent: null,
+  m1m2_manning_percent: null,
+  m3m4_manning_percent: null,
+  time: '',
 }
 
-// backend ratios are 0..1; null means the group has no running time
-function pct(ratio: number | null): number | null {
-  return ratio === null ? null : Math.round(ratio * 100)
+/** Round a backend percentage (0..100) to a whole percent; null means no running time. */
+function pct(percent: number | null): number | null {
+  return percent === null ? null : Math.round(percent)
 }
 
 function RouteBadges({ routes }: { routes: string[] }) {
@@ -49,8 +48,11 @@ function RouteBadges({ routes }: { routes: string[] }) {
 
 type Trend = 'up' | 'down' | 'flat'
 
-// arrow trend from the share of trains with a steward: above the 70% target is
-// up (green), below is down (red), exactly at the target is flat (yellow)
+/**
+ * Arrow trend from the share of trains with a steward right now: above the 70%
+ * target is up (green), below is down (red), exactly at the target is flat
+ * (yellow). Null when there are no trains.
+ */
 function trendOf(manned: number, total: number): Trend | null {
   if (total <= 0) return null
   const ratio = manned / total
@@ -67,9 +69,14 @@ function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
   return <Icon className={cls} aria-label={`${label} ${text}`} />
 }
 
+/**
+ * Render manning for all trains and for the trains serving `lineGroup`.
+ *
+ * @param update - Latest trains stream event; null before the first one,
+ *   which renders the same placeholder as a stream with no trains.
+ */
 function TrainCard({ update, lineGroup }: { update: TrainsUpdate | null; lineGroup: LineGroup }) {
-  // TEMP-FAKE-DATA: fall back to a fake update when the stream has none — delete before committing
-  const data = update ?? FAKE_UPDATE
+  const data = update ?? EMPTY_UPDATE
   const groupRoutes = LINE_GROUP_ROUTES[lineGroup]
   const groupPct = pct(
     lineGroup === 'M1/M2' ? data.m1m2_manning_percent : data.m3m4_manning_percent,
@@ -115,9 +122,9 @@ function TrainCard({ update, lineGroup }: { update: TrainsUpdate | null; lineGro
             <span className="train-summary-label">Toge bemandede</span>
             <span className="train-summary-count-row">
               <span className="train-summary-count">
-                {mannedCount}/{data.trains.length}
+                {groupMannedCount}/{groupTrains.length}
               </span>
-              {mannedCount > 0 && (
+              {groupMannedCount > 0 && (
                 <span className="train-live">
                   <span className="train-live-dot" />
                   LIVE
