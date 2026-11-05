@@ -10,8 +10,8 @@ Backend service for the Manning Patrol positioning system.
 ## Running as a developer (step by step)
 
 - Run `uv sync` — installs dependencies.
-- Run `docker compose up -d` — starts the PostgreSQL container (port 5432 must be free).
-- Create `services/api/.env` with `DATABASE_URL=postgresql+asyncpg://metro:admin@localhost:5432/metro` (see `.env-example`).
+- Run `docker compose up -d` — starts the PostgreSQL container (host port 5433 must be free; 5432 is often taken by a local PostgreSQL install).
+- Create `services/api/.env` with `DATABASE_URL=postgresql+asyncpg://metro:admin@localhost:5433/metro` (see `.env-example`).
 - Run `uv run alembic upgrade head` — applies migrations (before the first server start).
 - Run `uv run dev` — starts the server with auto-reload on `http://localhost:8000`.
 
@@ -82,7 +82,7 @@ services/api/
 The backend uses PostgreSQL through SQLModel and the async `asyncpg` driver.
 See [Running as a developer](#running-as-a-developer-step-by-step) for the
 full setup: `docker-compose.yml` defines the local PostgreSQL container
-(fixed credentials `metro` / `admin`, port 5432), and `.env-example` shows the
+(fixed credentials `metro` / `admin`, published on host port 5433), and `.env-example` shows the
 `DATABASE_URL` format.
 
 - `src/db/config.py` reads `DATABASE_URL` from the environment or the `.env`

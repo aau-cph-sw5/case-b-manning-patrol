@@ -2,8 +2,8 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Positioning Interface API",
-		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. Two Server-Sent Events (SSE) streams are served: /api/v2/dashboard/stream pushes the Dashboard (stations) to every client, and /api/v2/trains/stream pushes TrainsUpdate (trains + manning percentages) to dashboard clients that need it.",
-		"version": "2.2.0"
+		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. A single Server-Sent Events (SSE) stream pushes the Dashboard to every client.",
+		"version": "2.6.0"
 	},
 	"servers": [
 		{
@@ -86,6 +86,48 @@
 			}
 		}
 	},
+		"/api/v2/coverage/at-risk-count": {
+			"get": {
+				"summary": "Count at-risk episodes in a shift",
+				"description": "Returns how many areas have been at-risk during a shift. An area is at-risk when the time remaining until its overdue_at falls below the configured at-risk threshold. Each episode is counted once: an area that is patrolled and later becomes at-risk again counts as a new episode. Areas that become overdue are not counted separately, since they passed through at-risk first. Without the shift_start parameter, the latest shift from the server's shift schedule is used.",
+				"parameters": [
+					{
+						"name": "shift_start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time",
+							"nullable": true
+						},
+						"description": "The start of the shift to count for. UTC in ISO 8601 with offset. Defaults to the latest shift in the server's shift schedule.",
+						"example": "2026-10-29T18:00:00+00:00"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The number of at-risk episodes counted for the shift.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AtRiskCount"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v2/dashboard/stream": {
 			"get": {
 				"summary": "Subscribe to dashboard updates",
@@ -159,16 +201,6 @@
 						"description": "Human-readable identifier for the train.",
 						"example": "a29"
 					},
-					"total_time_secs": {
-						"type": "integer",
-						"description": "Total elapsed time, in seconds, since the train started being tracked.",
-						"example": 14400
-					},
-					"manned_time_secs": {
-						"type": "integer",
-						"description": "Total time, in seconds, the train has been manned by a steward.",
-						"example": 9600
-					},
 					"current_steward_ids": {
 						"type": "array",
 						"items": {
@@ -190,8 +222,6 @@
 				"required": [
 					"train_id",
 					"slug",
-					"total_time_secs",
-					"manned_time_secs",
 					"current_steward_ids",
 					"line"
 				]
@@ -298,7 +328,7 @@
 					"manning_percent": {
 						"type": "number",
 						"nullable": true,
-						"description": "Manned-time ratio (0..1) over all trains: summed manned_time_secs / summed total_time_secs. Computed in the backend on every event; null when there is no running time.",
+						"description": "Manned-time ratio (0..1) over all trains: manned running time / total running time. Computed in the backend on every event; null when there is no running time.",
 						"example": 0.7
 					},
 					"m1m2_manning_percent": {
@@ -334,6 +364,24 @@
 				},
 				"required": ["at_risk_threshold_minutes"]
 			},
+		"AtRiskCount": {
+			"type": "object",
+			"properties": {
+				"shift_start": {
+					"type": "string",
+					"format": "date-time",
+					"description": "The start of the shift the episodes were counted for. UTC in ISO 8601 with offset.",
+					"example": "2026-10-29T18:00:00+00:00"
+				},
+				"episodes": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "How many at-risk episodes were counted in the shift. An area that is patrolled and later becomes at-risk again counts as a new episode.",
+					"example": 7
+				}
+			},
+			"required": ["shift_start", "episodes"]
+		},
 		"Error": {
 				"type": "object",
 				"properties": {
