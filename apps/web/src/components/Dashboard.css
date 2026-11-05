@@ -1,73 +1,306 @@
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+/* Top bar */
+.topbar {
+  flex: none;
+  display: flex;
   align-items: center;
-  margin: 0 0 8px;
+  gap: 24px;
+  min-height: clamp(72px, 11vh, 120px);
+  padding: 12px 32px;
+  background: #e40037;
+  color: #fff;
+  box-sizing: border-box;
 }
 
-.dashboard-title {
-  margin-top: 40px;
-  grid-column: 2;
-  font-size: 84px;
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.overdue-count {
-  grid-column: 3;
-  justify-self: end;
-  padding: 8px 16px;
-  border: 3px solid #060001;
-  border-radius: 8px;
-  font-weight: bold;
-  margin-right: 20px;
-  margin-top: -50px;
-  margin-bottom: 50px;
-  color: var(--text-h); /* Same color as the station name */
+.logo {
+  font-size: clamp(26px, 2.1vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
 }
 
-.overdue-count.has-overdue {
-  border-color: #d0455e;
+.last-updated {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
 }
 
+.nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: clamp(38px, 4.6vh, 50px);
+  padding: 0 24px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #c40030;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.nav-pill.warn {
+  background: #e40037;
+}
+
+.nav-pill .smiley-icon {
+  font-size: 20px;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* legend row under the top bar */
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 32px;
+  flex: none;
+}
+
+.legend-row .legend-box {
+  flex: 1;
+  margin: 0;
+}
+
+/* same width as the train-card in the sidebar column (minmax(280px, 347px) -> 347px) */
+.legend-row .nav-pill {
+  flex: none;
+  width: min(347px, 100%);
+}
+
+/* main layout: sidebar column + station grid; the page is fixed and nothing scrolls
+   except the attention list — cards are sized so 24 stations fit the viewport */
+.dash {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 347px) 1fr;
+  gap: 14px;
+  align-items: stretch;
+  padding: 0 32px 12px;
+}
+
+.side-col {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.station-grid {
+  min-height: 0;
+  align-self: stretch;
+  /* scrolls only when zoomed/small screens make the cards exceed the fixed page */
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-auto-rows: min-content;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.dashboard-empty {
+  grid-column: 1 / -1;
+  color: #666666;
+  padding: 24px;
+}
+
+/* attention sidebar */
 .attention {
-  contain: size;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
-.attention .attention-list {
+.attention h2 {
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e8e8e8;
+  color: #1e1e1e;
+}
+
+/* the attention list is the scrollable part of the fixed page */
+.attention-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 4px 0 0;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
   align-content: start;
+}
+
+.attention-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .attention-text {
   min-width: 0;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.attention-more {
-  justify-content: center;
-  font-weight: bold;
-  opacity: 0.7;
+/* slim scrollbar for the scrollable areas: attention list + station grid (Firefox + webkit) */
+.attention-list,
+.station-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #c8c8c8 #f2f4f7;
+}
+
+.attention-list::-webkit-scrollbar,
+.station-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.attention-list::-webkit-scrollbar-track,
+.station-grid::-webkit-scrollbar-track {
+  background: #f2f4f7;
+  border-radius: 4px;
+}
+
+.attention-list::-webkit-scrollbar-thumb,
+.station-grid::-webkit-scrollbar-thumb {
+  background: #c8c8c8;
+  border-radius: 4px;
+}
+
+.attention-list::-webkit-scrollbar-thumb:hover,
+.station-grid::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* train manning card (top of the sidebar column) */
+.train-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.train-card-head h2 {
+  margin: 0;
+  color: #1e1e1e;
+}
+
+.ok-check {
+  color: #007d55;
+  font-size: 22px;
+}
+
+.train-empty {
+  color: #666666;
+  margin: 12px 0 0;
+}
+
+.train-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 14px 0 0;
+  border-top: 2px solid #e8e8e8;
+  display: grid;
+  gap: 14px;
+}
+
+.train-row {
+  background: #f2f4f7;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.train-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.progress {
+  height: 6px;
+  border-radius: 3px;
+  background: #e8e8e8;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #007d55;
+}
+
+.progress-fill.low {
+  background: #e40037;
+}
+
+@media (max-width: 1248px) {
+  .dash {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .topbar-right {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  /* stacked layout: the sidebar (and its train card) is full width, so the pill is too */
+  .legend-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .legend-row .nav-pill {
+    width: 100%;
+  }
 }
 
 @media (max-width: 700px) {
-  .dashboard-header {
-    grid-template-columns: 1fr;
-    justify-items: center;
+  .topbar {
+    padding: 12px 16px;
     gap: 12px;
   }
 
-  .dashboard-title,
-  .overdue-count {
-    grid-column: 1;
-    justify-self: center;
+  .topbar-right {
+    margin-left: 0;
   }
 
-  .dashboard-title {
-    font-size: 36px;
-    text-align: center;
+  .legend-row {
+    margin: 12px 16px;
+  }
+
+  .dash {
+    padding: 0 16px 16px;
   }
 }
