@@ -1,6 +1,18 @@
+/** Hook measuring how many list rows fit in the visible height. */
 import { type RefObject, useEffect, useLayoutEffect, useState } from 'react'
 
-// Takes the height of the first row and measures how many can fit before cutoff
+/**
+ * Return how many rows of a list fit in its visible height.
+ *
+ * Divides the list's `clientHeight` by the height of its first row, so every
+ * row is assumed to be as tall as the first. Returns Infinity until a row has
+ * been measured and at least 1 after that. Measures again after every render,
+ * since rows can appear after the first one, and whenever the list resizes.
+ * The ResizeObserver is replaced after every render and disconnected on
+ * unmount.
+ *
+ * @param ref - The list element; its children are the rows.
+ */
 export function useFitCount(ref: RefObject<HTMLElement | null>): number {
   const [fit, setFit] = useState(Infinity)
 
@@ -11,7 +23,6 @@ export function useFitCount(ref: RefObject<HTMLElement | null>): number {
     setFit(Math.max(1, Math.floor(list.clientHeight / row.offsetHeight)))
   }
 
-  // rows can appear after the first render, so check after every render
   useLayoutEffect(measure)
 
   useEffect(() => {

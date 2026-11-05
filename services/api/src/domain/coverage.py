@@ -244,3 +244,20 @@ class OverdueCleared:
     def overdue_for(self) -> timedelta:
         """Return how long the area was overdue."""
         return self.cleared_at - self.overdue_at
+
+
+@dataclass(frozen=True)
+class AtRiskDetected:
+    """An area that reached the at-risk threshold, counted once per episode."""
+
+    area: AreaReference
+    at_risk_at: datetime
+    overdue_at: datetime
+    detected_at: datetime
+    shift_start: datetime
+    source: str
+
+    @property
+    def stable_entry_id(self) -> str:
+        datestring = self.overdue_at.isoformat()
+        return f"{self.area.station_id}:{self.area.area_id}:{datestring}:AT_RISK"

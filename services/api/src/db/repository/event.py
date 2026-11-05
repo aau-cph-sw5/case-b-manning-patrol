@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlmodel import select
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.event import Event
@@ -20,6 +20,41 @@ async def get_event(session: AsyncSession, event_id: UUID) -> Event:
 async def get_events(session: AsyncSession) -> list[Event]:
     """Return every event, in no particular order."""
     result = await session.exec(select(Event))
+
+    return list(result.all())
+
+
+async def get_latest_start_event(
+    session: AsyncSession, android_id: UUID
+) -> Event | None:
+    """Return the steward's most recent shift start event, or None if never started."""
+    result = await session.exec(
+        select(Event)
+        .where(
+            Event.android_id == android_id,
+            Event.event_type == EventType.START_EVENT,
+        )
+        .order_by(col(Event.device_timestamp).desc())
+    )
+
+    return result.first()
+
+
+async def get_connection_events_by_android_id(
+    session: AsyncSession, android_id: UUID, since: datetime
+) -> list[Event]:
+    """Return the steward's connect/disconnect events from `since` on, oldest first."""
+    result = await session.exec(
+        select(Event)
+        .where(
+            Event.android_id == android_id,
+            col(Event.event_type).in_(
+                [EventType.CONNECT_EVENT, EventType.DISCONNECT_EVENT],
+            ),
+            col(Event.device_timestamp) >= since,
+        )
+        .order_by(col(Event.device_timestamp))
+    )
 
     return list(result.all())
 
