@@ -105,106 +105,56 @@ code {
   background: var(--code-bg);
 }
 
-.dashboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  padding: 0 32px 32px;
+/* ---- Dashboard (Metro control-room design) ---- */
+
+.dashboard-page {
+  text-align: left;
+  background: #f2f4f7;
+  color: #1e1e1e;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .card {
   text-align: left;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px 20px;
-  background: var(--social-bg);
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  box-sizing: border-box;
 }
 
-.dash {
-  /* width taken from the station grid and given to the attention card */
-  --attention-extra: 30px;
-  display: grid;
-  grid-template-columns:
-    calc(4 * (100% - 112px) / 5 + 48px - var(--attention-extra))
-    calc((100% - 112px) / 5 + var(--attention-extra));
-  row-gap: 16px;
-  column-gap: 64px;
-  padding: 0 16px 16px;
-
-  @media (max-width: 1248px) {
-    grid-template-columns:
-      calc(2 * (100% - 80px) / 3 + 16px - var(--attention-extra))
-      calc((100% - 80px) / 3 + var(--attention-extra));
-  }
-
-  @media (max-width: 700px) {
-    grid-template-columns:
-      calc((100% - 64px) / 2) calc((100% - 64px) / 2);
-  }
+.smiley-icon {
+  flex: none;
+  font-size: 18px;
 }
 
-.station-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 16px;
-  align-self: start;
-
-  @media (max-width: 1248px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 700px) {
-    grid-template-columns: 1fr;
-  }
+.text-green {
+  color: #007d55;
 }
 
-.card h2 {
-  border-bottom: 3px solid var(--text-h);
-  padding-bottom: 8px;
+.text-yellow {
+  color: #8b6500;
 }
 
-.levels,
-.attention-list {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0;
-  display: grid;
+.text-red {
+  color: #e40037;
 }
 
-.levels li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border-bottom: 1px solid var(--border);
-  padding: 6px 8px;
-}
-
-.attention-list li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border-bottom: 1px solid var(--border);
-  padding: 6px 8px;
-}
-
+/* status colors double as filled rows/buttons (station levels, attention list) */
 .row-green {
-  background-color: #22a06b;
-  color: #08060d;
+  background-color: #007d55;
+  color: #fff;
 }
 
 .row-yellow {
-  background-color: #faee07;
-  color: #08060d;
+  background-color: #ffc82d;
+  color: #1e1e1e;
 }
 
 .row-red {
-  background-color: #d0455e;
-  color: #08060d;
-}
-
-.person-icon {
-  color: inherit;
-  vertical-align: -3px;
-  margin-right: 3px;
+  background-color: #e40037;
+  color: #fff;
 }
