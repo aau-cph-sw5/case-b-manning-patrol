@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.services.event_producer import EventValidationError, TargetEventNotFoundError
+from src.services.station_coverage.at_risk_tracker import AtRiskTracker
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
@@ -41,10 +42,12 @@ from src.services.train_manning.train_manning_updater import (
 
 from .api.v2.routers import (
     adjustment,
+    at_risk_tracker,
     config,
     connection,
     dashboard_stream,
     health,
+    patrol_record,
     patrol_session,
 )
 from .db.ingest import load_reference_data
@@ -78,10 +81,12 @@ async def lifespan(app: FastAPI):
     shift_schedule = ShiftSchedule.from_file()
     sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
+    at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
     coverage_updater = CoverageUpdater(
         service=service,
-        tracker=overdue_tracker,
+        overdue_tracker=overdue_tracker,
+        at_risk_tracker=at_risk_tracker,
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
@@ -112,6 +117,7 @@ async def lifespan(app: FastAPI):
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
+    app.state.shift_schedule = shift_schedule
 
     yield
     coverage_tick.cancel()
@@ -143,6 +149,17 @@ async def target_event_not_found_exception_handler(
     )
 
 
+@app.exception_handler(patrol_record.RecordBuildError)
+async def record_build_exception_handler(
+    _: Request,
+    error: patrol_record.RecordBuildError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={"code": "500", "message": str(error)},
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, error: RequestValidationError):
     """Answer request validation errors with 400 instead of FastAPI's 422."""
@@ -157,9 +174,11 @@ app.add_middleware(
 )
 
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(at_risk_tracker.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
+app.include_router(patrol_record.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 app.include_router(connection.router, prefix=API_PREFIX_V2)
 

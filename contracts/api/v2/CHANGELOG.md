@@ -1,5 +1,39 @@
 # Changelog
 
+## v2.6.0 - Positioning Interface: at-risk episode count per shift
+- Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
+  `AtRiskCount` — how many areas have been at-risk during a shift. An area is
+  at-risk when the remaining time until its `overdue_at` falls within the
+  configured `at_risk_threshold_minutes`.
+- The count is per episode: an area that is patrolled and later becomes
+  at-risk again counts as a new episode. Overdue areas are not counted
+  separately, since they passed through at-risk first.
+- The optional `shift_start` query parameter (ISO 8601 with offset) selects
+  the shift to count for. Without it, the endpoint returns the count for the
+  latest shift from the server's shift schedule — for example, last night's
+  shift when asked for in the morning.
+- The backend counts episodes during the same 5-second coverage recompute
+  that feeds `/api/v2/dashboard/stream`; there is no separate counting job.
+  Each counted episode is written to the database, so the number survives a
+  server restart in the middle of a shift without counting anything twice.
+- The control room dashboard uses this for the night shift's at-risk
+  statistics.
+  
+## v2.4.0 - Positioning Interface: per-train time fields removed from `Train`
+- Positioning Interface: `Train.manned_time_secs` and `Train.total_time_secs`
+  removed from `TrainsUpdate` payloads — the per-train second counts are no
+  longer exposed; only the aggregate `manning_percent` /
+  `m1m2_manning_percent` / `m3m4_manning_percent` ratios (0..1) remain.
+
+## v2.5.0 - Patrol Record: `status` is `open` | `closed`
+- Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
+  `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
+  runs, closed once the disconnect event is stored. No client consumes the field
+  yet, so the rename is made in v2 rather than a new major version.
+- Patrol Record: `Record.duration_secs` is no longer nullable. Open records state
+  the duration as of the response time (`time - started_at`), like `patrolled`;
+  clients still render their own running timer from `started_at`.
+  
 ## v2.4.0 - Positioning Interface: separate trains stream with manning percentages; `line` and `current_steward_ids` on Train
 - Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
   message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
