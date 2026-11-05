@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from src.api.v2.dependencies import AsyncDbSessionDep
 from src.db.repository.at_risk_log import count_episodes
-from src.services.station_coverage.shift_schedule import ShiftSchedule
+from src.services.shared.shift_schedule import ShiftSchedule
 
 router = APIRouter(tags=["at-risk"])
 
