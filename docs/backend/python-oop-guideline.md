@@ -2,7 +2,7 @@
 
 **Status:** Draft, proposed for team agreement
 **Applies to:** `services/api`
-**Last updated:** 2026-11-03
+**Last updated:** 2026-11-05
 
 This guideline describes how we structure backend code: when to write a
 class, which layer a piece of code belongs in, and the conventions every
@@ -34,6 +34,27 @@ not repeated here.
 already changes. Do not convert unrelated code while you are there
 (AGENTS.md rule 3). Existing code is converted by dedicated refactoring
 items.
+
+## What this fixes in today's code
+
+Two problems in the current code show what the guideline is for:
+
+- **Half-saved writes.** `POST /patrol-session/stop` stores a STOP event and
+  then one DISCONNECT for each beacon the steward is still connected to.
+  Every repository insert commits on its own, so if a later insert fails,
+  the log keeps the STOP and some DISCONNECTs but not the rest, and the
+  client gets a 500 for a request that was partly saved. Under BE-2 the
+  router commits once: everything is saved or nothing is.
+- **Copied helpers.** `_within_shift`, `_group_by_beacon` and `_to_record`
+  exist in both `coverage_service.py` and `train_manning_service.py`, and
+  `_union` in both `coverage_window.py` and `train_manning_evaluator.py`. A
+  fix in one copy is easy to miss in the other. OOP-3 gives each helper one
+  home, for example `_union` as a pure function next to `TimeSpan`, and
+  OOP-4 moves `_to_record` into the repository.
+
+The guideline also has a cost: an object built in `lifespan` and handed out
+by a provider touches more files than reading `app.state` directly. That is
+the price of being able to replace it in tests (BE-1).
 
 ## Contents
 
@@ -82,19 +103,20 @@ proposals (section 7).
 | Engine | `src/db/engine.py` | Creates the database engine and the session factory | `db.models` |
 | Repositories | `src/db/repository/` | A module of `async` functions taking `session` first | `domain`, `db.models` |
 | Startup loaders | `src/db/loaders/` | `async` functions that load reference data files into tables at startup | `domain`, `db.models` |
-| Services | `src/services/` | Classes that receive collaborators and configuration and carry out use cases | `domain`, `db.repository` |
+| Services | `src/services/` | Classes that receive collaborators and configuration and carry out use cases; a module of functions when the code has neither (section 1) | `domain`, `db.repository` |
 | Publishers | `src/publishers/` | Classes that implement a publishing protocol and fan out domain reports, for example to SSE clients | `domain` |
-| Background components | `src/background/` | Classes that run a use case outside a request: clock ticks and updaters | `domain`, `services` |
+| Background components | `src/background/` | Updaters, which recompute a result in their own session and publish it, and the clock ticks that run them on a timer. Routers also trigger updaters after their commit (BE-2) | `domain`, `services` |
 | API schemas | `src/api/<version>/schemas/` | Pydantic `BaseModel`s with conversion methods | `domain` |
 | Presenters | `src/api/<version>/presenters/` | Classes that build response schemas and need extra state | `domain`, `api` schemas |
-| Dependency providers | `src/api/<version>/dependencies.py` | Functions that hand routers their session, services, publishers, background components and clock | `domain`, `db.engine`, `services`, `publishers`, `background` |
+| Dependency providers | `src/api/<version>/dependencies.py` | Functions that hand routers their session, services, publishers, background components, presenters and clock | `domain`, `db.engine`, `services`, `publishers`, `background`, `api` presenters |
 | Routers | `src/api/<version>/routers/` | Thin `async` functions | Everything above except `db.models` |
-| Composition root | `src/main.py` (`lifespan`) | Builds every long-lived object once | Everything |
+| Startup | `src/main.py` (`lifespan`) | Builds every long-lived object once, before the first request | Everything |
 
 What each layer must not do:
 
 - **Domain** does no I/O and never reads the clock. Domain logic is never
-  `async`; a protocol in `src/domain/ports.py` may declare `async` methods.
+  `async`; a protocol in `src/domain/protocols.py` may declare `async`
+  methods.
 - **Table models and schemas** contain no business rules.
 - **Repositories and startup loaders** hold no state between calls.
 - **Services, repositories and startup loaders** never commit (BE-2).
@@ -103,9 +125,10 @@ What each layer must not do:
   `src/api/`.
 - **Routers** contain no business rules and do not build objects field by
   field. A router converts the request with `to_domain()`, calls a service
-  or repository, commits if it wrote anything, publishes, converts the
-  result with `from_domain()` and returns it (OOP-4, BE-2). Committing and
-  publishing are orchestration, not business rules.
+  or repository, commits if it wrote anything, then triggers updaters and
+  publishes, converts the result with `from_domain()` and returns it (OOP-4,
+  BE-2). Committing, triggering updaters and publishing are orchestration,
+  not business rules.
 
 A router may call a repository directly for a plain read or write that has
 no business rule. Do not write a service that only passes calls through to a
@@ -122,10 +145,11 @@ so a class would only add a constructor around the session.
 | Command | A frozen domain dataclass holding what a client asked for, before the server adds IDs and timestamps. |
 | Use case | One thing the system does for a caller, such as "start a patrol session". |
 | Collaborator | Another object a class calls to do its job, passed in through `__init__`. |
-| Protocol (port) | A `typing.Protocol` that describes what a dependency must be able to do. Shared ones live in `src/domain/ports.py`. |
+| Protocol | A `typing.Protocol` that describes what a dependency must be able to do. Shared ones live in `src/domain/protocols.py`. |
 | Strategy | A swappable piece of behaviour passed into a class. |
 | Presenter | A class that builds a response schema when the domain object alone is not enough. |
-| Composition root | The one place that builds every long-lived object: `lifespan` in `src/main.py`. |
+| Startup (`lifespan`) | The function in `src/main.py` that builds every long-lived object once, before the first request. |
+| Updater | A background component that recomputes a result, such as coverage, in its own session and publishes it. |
 
 ## 4. Rules
 
@@ -209,9 +233,8 @@ keywords (`TrainManningService(_evaluator=...)`).
   property must be cheap and free of side effects; anything that does I/O,
   is `async` or is expensive is a method.
 - **Privacy is a single underscore.** Prefix internal attributes, methods
-  and module functions with `_`. Do not use `__name`: name mangling only
-  helps against clashes in subclass hierarchies, which OOP-6 keeps shallow.
-  Prefer testing through public behaviour over reading `_attributes`.
+  and module functions with `_`, never with `__`. Prefer testing through
+  public behaviour over reading `_attributes`.
 - **Private helpers are module functions.** A helper that does not use
   `self` is a module-level `_function`, not a `@staticmethod`. If two
   modules need it, it is no longer private: make it a method of the domain
@@ -221,9 +244,10 @@ keywords (`TrainManningService(_evaluator=...)`).
   `from_file` or `from_domain`.
 - **Type hints.** Annotate every public function, method and attribute.
   Use modern syntax (`X | None`, `list[...]`, `collections.abc`) and spell
-  out element types instead of a bare `tuple` or `dict`. Return `Self` when
-  the method returns `self`, `cls(...)` or `dataclasses.replace(self, ...)`;
-  when it returns `ClassName(...)`, use the class name.
+  out element types instead of a bare `tuple` or `dict`. A method that
+  returns an object of its own class is annotated with the class name
+  (`-> TimeSpan`); `from __future__ import annotations` at the top of the
+  module lets you write it without quotes.
 
 ### OOP-4 Conversions happen at the layer boundary
 
@@ -254,12 +278,19 @@ async def start_patrol_session(
     body: PatrolSessionRequest,
     session: AsyncDbSessionDep,
     patrol_sessions: PatrolSessionServiceDep,
+    coverage_updater: CoverageUpdaterDep,
+    train_manning_updater: TrainManningUpdaterDep,
 ) -> StoredEventResponse:
     """Record that a steward started a patrol session."""
     event = await patrol_sessions.start(session, body.to_domain())
     await session.commit()
+    await coverage_updater.refresh()
+    await train_manning_updater.refresh()
     return StoredEventResponse.from_domain(event)
 ```
+
+The updaters run after the commit, each in its own session, so they see the
+new event (BE-2).
 
 A presenter is only needed when building the response needs more than the
 domain object, such as station names loaded once at startup. Otherwise use
@@ -273,7 +304,7 @@ objects.
 ### OOP-5 Interfaces are `Protocol`s
 
 When a class depends on something we want to swap or fake, type the
-dependency as a `typing.Protocol`. Put it in `src/domain/ports.py` when the
+dependency as a `typing.Protocol`. Put it in `src/domain/protocols.py` when the
 code using it and the implementations live in different layers, so both
 sides can import it.
 
@@ -284,7 +315,7 @@ missing or renamed method where the class is defined, instead of failing
 silently or far away. `__init__` does not need `@override`.
 
 ```python
-# src/domain/ports.py
+# src/domain/protocols.py
 class CoveragePublisher(Protocol):
     """Anything that can receive the latest coverage reports."""
 
@@ -324,8 +355,8 @@ column changes.
 
 ### BE-1 Wiring: build in `lifespan`, inject with `Depends`
 
-Every service, background component and publisher is long-lived: it is
-built once in `lifespan` in `main.py`. This works because none of them
+Every service, background component, publisher and presenter is
+long-lived: it is built once in `lifespan` in `main.py`. This works because none of them
 holds a session (BE-2).
 
 Routers receive these objects through a provider in
@@ -344,14 +375,18 @@ replace it with `app.dependency_overrides`.
 - Routers get the session from `AsyncDbSessionDep` and pass it on.
 - Background components receive a session factory from `lifespan` and open
   one session per run.
+- An updater run is its own use case, also when a router triggers it: it
+  opens its own session and commits once. A router triggers updaters only
+  after its own commit, because the updater's session cannot see data the
+  router has not committed yet.
 - Services, repositories and startup loaders never commit. Repositories may
   call `flush()` when they need values the database generates.
 - The outermost caller commits: the router for a request, or the background
   component for one run. `lifespan` commits once after all startup loaders
   have run.
 - A use case commits at most once. A read-only use case does not commit.
-- Publish, broadcast or notify (for example to the SSE stream) only after
-  the commit has succeeded.
+- Publish, broadcast, notify (for example to the SSE stream) or trigger an
+  updater only after the commit has succeeded.
 
 If an error is raised before the commit, the session closes without
 committing and nothing from that use case is saved. A router that writes
@@ -365,7 +400,7 @@ of `__init__` lets one instance serve both requests and background runs.
 
 ### BE-3 Time comes from an injected clock
 
-Only the composition root reads the real clock. It passes a
+Only `lifespan` reads the real clock. It passes a
 `clock: Callable[[], datetime]` to every service, background component and
 presenter that needs the current time, and to the clock provider.
 
@@ -410,9 +445,16 @@ they all share one event loop.
   names end in `Error` (PEP 8).
 - Exceptions know nothing about HTTP. The mapping from exception class to
   HTTP status is one table in `src/api/<version>/errors.py`, and each entry
-  is registered with `app.add_exception_handler`. Starlette uses the
-  handler of the closest parent class, so a subclass gets its parent's
-  status unless it has its own entry.
+  is registered with `app.add_exception_handler`. A subclass gets its
+  parent's status unless it has its own entry: in the example below,
+  `TargetEventNotFoundError` answers 404 through `NotFoundError`.
+- Framework errors such as FastAPI's `RequestValidationError` are not
+  `ManningPatrolError`s. Their handlers live in the same file, next to the
+  table.
+- A repository function that looks up one row returns `None` when nothing
+  is found, as `session.get` does. The caller decides whether that is an
+  error and raises its own exception. Repositories do not let SQLAlchemy's
+  `NoResultFound` reach their callers.
 - Do not override `__init__` only to store the message. `Exception` already
   does this; read it with `str(error)`.
 - When translating one exception into another, use `raise ... from`.
@@ -452,7 +494,7 @@ HTTP_STATUS: dict[type[ManningPatrolError], int] = {
 - [ ] Domain objects are frozen dataclasses and never read the clock (OOP-1, BE-3).
 - [ ] Classes receive collaborators through `__init__` and never store a session (OOP-2, BE-2).
 - [ ] Routers are thin: conversions use `to_domain()`, `from_domain()` or a repository (OOP-4).
-- [ ] A write commits once, in the router or background run, and publishing happens after the commit (BE-2).
+- [ ] A write commits once, in the router or updater run, and updaters and publishing run after the commit (BE-2).
 - [ ] No blocking calls in async code outside `lifespan` startup (BE-4).
 - [ ] New exceptions inherit from `ManningPatrolError`, and HTTP statuses live only in the mapping table (BE-5).
 
@@ -489,7 +531,7 @@ change them before the status moves to Accepted.
    | What | Proposed location |
    |---|---|
    | Base error and group errors | `src/domain/errors.py` |
-   | Shared protocols | `src/domain/ports.py` |
+   | Shared protocols | `src/domain/protocols.py` |
    | Engine and session factory | `src/db/engine.py` |
    | Startup loaders | `src/db/loaders/` |
    | Publishers and broadcasters | `src/publishers/` |
@@ -503,7 +545,10 @@ change them before the status moves to Accepted.
    class defaults), `PLR0913` (too many arguments), `FBT` (boolean flag
    arguments), `BLE001` (`except Exception`) and `TID251` (banned imports
    per layer). Each reports existing code, so each is a separate decision.
-8. **Recording the decision.** Once Accepted, change the status here and
+8. **Lookups that find nothing (BE-5).** Chosen: repositories return `None`
+   and the caller raises. Alternative: repositories raise `NotFoundError`
+   subclasses themselves.
+9. **Recording the decision.** Once Accepted, change the status here and
    write a short ADR that records the adoption and links to the commit
    where this file was accepted, so the ADR points at a fixed version.
 
@@ -515,10 +560,10 @@ disagree, the PEPs win. The choices in section 7 are our own.
 | Source | Used for |
 |---|---|
 | [PEP 8](https://peps.python.org/pep-0008/), "Designing for Inheritance" and "Naming Conventions" | Public and non-public names, getters and setters, exception naming |
-| [Python tutorial, Classes](https://docs.python.org/3/tutorial/classes.html) | Privacy by convention, name mangling |
+| [Python tutorial, Classes](https://docs.python.org/3/tutorial/classes.html) | Privacy by convention |
 | [PEP 557](https://peps.python.org/pep-0557/) | Dataclasses |
 | [PEP 544](https://peps.python.org/pep-0544/), [PEP 3119](https://peps.python.org/pep-3119/) | Protocols and abstract base classes |
-| [PEP 673](https://peps.python.org/pep-0673/), [PEP 698](https://peps.python.org/pep-0698/) | `Self` and `@override` |
+| [PEP 698](https://peps.python.org/pep-0698/) | `@override` |
 | [Python tutorial, user-defined exceptions](https://docs.python.org/3/tutorial/errors.html#user-defined-exceptions) | Exception hierarchy |
 | [asyncio, developing with asyncio](https://docs.python.org/3/library/asyncio-dev.html) | Blocking calls in async code |
 | [FastAPI, concurrency and async / await](https://fastapi.tiangolo.com/async/) | Which routes and dependencies run in a worker thread |
