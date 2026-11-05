@@ -196,46 +196,218 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-top: 16px;
+}
+
+.train-card-head h2 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.train-card-head .route-badge {
+  min-width: 30px;
+  height: 22px;
+  border-radius: 11px;
+  font-size: 12px;
 }
 
 .train-card-head h2 {
   margin: 0;
   color: #1e1e1e;
+  font-size: 24px;
+  font-weight: 800;
 }
 
-.ok-check {
-  color: #007d55;
-  font-size: 22px;
-}
-
-.train-empty {
-  color: #666666;
-  margin: 12px 0 0;
-}
-
-.train-list {
-  list-style: none;
-  margin: 14px 0 0;
-  padding: 14px 0 0;
-  border-top: 2px solid #e8e8e8;
-  display: grid;
-  gap: 14px;
-}
-
-.train-row {
-  background: #f2f4f7;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  padding: 12px 14px;
-}
-
-.train-row-top {
+.train-head-status {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.train-head-pct {
+  color: #1e1e1e;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ok-arrow {
+  color: #007d55;
+  font-size: 24px;
+}
+
+.low-arrow {
+  color: #e40037;
+  font-size: 24px;
+}
+
+.flat-arrow {
+  color: #8b6500;
+  font-size: 24px;
+}
+
+/* progress bar with a tick marking the manning target */
+.train-bar {
+  position: relative;
+  margin: 14px 0 0;
+}
+
+.train-bar .progress {
+  height: 10px;
+  border-radius: 5px;
+}
+
+.train-bar.slim .progress {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.train-bar-tick {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 16px;
+  border-radius: 1px;
+  background: #c9c9c9;
+}
+
+
+
+.train-summary.placeholder .placeholder-bar {
+  display: block;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f6f7f9 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: placeholder-shimmer 1.4s linear infinite;
+}
+
+.placeholder-bar.lines {
+  width: 40%;
+  height: 13px;
+}
+
+.placeholder-bar.pct {
+  width: 64px;
+  height: 34px;
+  border-radius: 6px;
+  margin-top: 6px;
+}
+
+.placeholder-bar.count {
+  width: 72px;
+  height: 30px;
+  border-radius: 6px;
+}
+
+.placeholder-bar.fill {
+  height: 100%;
+  width: 60%;
+}
+
+@keyframes placeholder-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.train-summary {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #f2f4f7;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+}
+
+.train-summary-main {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* placeholder keeps the old split so the shimmer bars have room */
+.train-summary.placeholder .train-summary-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.train-summary-pct-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.train-summary-pct {
+  color: #1e1e1e;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.train-summary-pct-row .ok-arrow,
+.train-summary-pct-row .low-arrow,
+.train-summary-pct-row .flat-arrow {
+  font-size: 26px;
+}
+
+.train-summary-side .train-bar {
+  align-self: stretch;
+  margin: 10px 0 4px;
+}
+
+.train-summary-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  align-items: flex-end;
+  gap: 4px;
+  padding-left: 16px;
+  border-left: 1px solid #e8e8e8;
+}
+
+.train-summary-label {
+  color: #666666;
+  font-size: 13px;
+}
+
+.train-summary-count-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.train-summary-count {
+  color: #1e1e1e;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.train-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(0, 125, 85, 0.12);
+  color: #007d55;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.train-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #007d55;
 }
 
 .progress {
