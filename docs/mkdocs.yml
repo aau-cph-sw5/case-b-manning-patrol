@@ -55,6 +55,7 @@ plugins:
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Glossary: glossary.md
   - Development:
     - Setup: development/setup.md
     - Backend (API): development/backend.md

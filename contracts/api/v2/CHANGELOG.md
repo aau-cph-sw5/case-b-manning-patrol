@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.7.0 - Positioning Interface: at-risk episode count per shift
+## v2.8.0 - Positioning Interface: at-risk episode count per shift
 - Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
   `AtRiskCount` — how many areas have been at-risk during a shift. An area is
   at-risk when the remaining time until its `overdue_at` falls within the
@@ -19,6 +19,13 @@
 - The control room dashboard uses this for the night shift's at-risk
   statistics.
   
+
+## v2.7.0 - Positioning Interface: manning percentages are 0..100 instead of 0..1
+- Positioning Interface: `TrainsUpdate.manning_percent`, `m1m2_manning_percent`
+  and `m3m4_manning_percent` are now percentages in the range 0..100 (e.g. 70
+  means 70% manned) instead of manned-time ratios in 0..1. Still null when the
+  group has no running time.
+
 ## v2.6.0 - Positioning Interface: per-train time fields removed from `Train`
 - Positioning Interface: `Train.manned_time_secs` and `Train.total_time_secs`
   removed from `TrainsUpdate` payloads — the per-train second counts are no

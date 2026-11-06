@@ -50,7 +50,8 @@ group encodes the area:
 |---|---|
 | `0001`–`002a` | Platform of station 1–42 |
 | `0081`–`00aa` | Concourse of station 1–42 (station number + `0x80`) |
-| `0050`, `0060` | Trains (not part of this file, see `fixtures/`) |
+| `0101`–`0122` | Trains `train-1` … `train-34` (M1 / M2, `trains.v1.json`, see below) |
+| `0201`–`0227` | Trains `train-35` … `train-73` (M3 / M4, `trains.v1.json`, see below) |
 
 ## How the file satisfies the acceptance criteria
 
@@ -61,6 +62,33 @@ group encodes the area:
 | The dataset is loaded from a versioned file and reloading is idempotent | The network lives in this JSON file under version control, not in code. `load_stations` reads the file and replaces the contents of the `station` and `patrolarea` tables in one transaction, so reloading it any number of times yields identical database state. `tests/test_ingest.py` loads the file twice and checks for 42 stations and 67 patrol areas both times, with foreign keys enforced. Because the tables are replaced on every start, rows added to them by hand are lost. |
 | Stations serving two lines are modelled once and referenced twice rather than duplicated | STN-010, STN-011, STN-031, STN-032 appear once, with both lines in `line_ids`. In the database they are one `station` row whose `line_ids` column holds both lines. |
 | A station added to the file appears in the system without a code change | Add an entry to `stations` and restart the app; `load_stations` reads the file, so no schema or code change is needed. |
+
+# Train dataset
+
+`trains.v1.json` lists the fleet. `load_trains` (`src/db/ingest.py`) loads it
+into the `train` and `trainline` tables on every start. The app calls
+`load_reference_data`, which runs `load_stations` first, because every
+`line_ids` value must exist in `stations.v1.json` and reloading the stations
+clears the train-line links. Do not call `load_stations` on its own, or every
+train loses its lines.
+
+| Field | Meaning |
+|---|---|
+| `train_id` | Stable train identifier. Survives a beacon swap. |
+| `slug` | Human-readable name shown on the dashboard. |
+| `beacon_id` | The beacon that names the train. An attribute, not the identity. |
+| `line_ids` | The lines the train can run on. Trains are shared within M1/M2 and within M3/M4, so every train lists both lines of its group. |
+
+| Group | Trains | Slugs | ID / beacon suffix |
+|---|---|---|---|
+| M1 / M2 | 34 | `train-1` … `train-34` | `0101` … `0122` |
+| M3 / M4 | 39 | `train-35` … `train-73` | `0201` … `0227` |
+
+Beacons use the station base `660e8400-e29b-41d4-a716-44665544` and IDs the
+base `770e8400-e29b-41d4-a716-44665544`, with the same suffix. The fleet size
+is an estimate, not a Metro figure. Every train counts toward the manned-time
+denominator for the whole shift; whether a train is "in service" is left to a
+separate ADR.
 
 # Shift schedule
 
