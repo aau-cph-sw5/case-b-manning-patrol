@@ -21,7 +21,7 @@ export type MockBeaconScannerOptions = {
   nextBeaconArrivalDelayRangeMs?: readonly [number, number];
 };
 
-const DEFAULT_CONNECTION_DURATION_RANGE_MS: readonly [number, number] = [1_000, 12_000];
+const DEFAULT_CONNECTION_DURATION_RANGE_MS: readonly [number, number] = [9_000, 45_000];
 const DEFAULT_NEXT_BEACON_ARRIVAL_DELAY_RANGE_MS: readonly [number, number] = [
   2_000,
   12_000,

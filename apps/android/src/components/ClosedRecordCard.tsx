@@ -4,17 +4,19 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { StatusBadge } from "@/components/StatusBadge";
 
-import type { Record } from "@/types/patrol_records/record";
+import { isPendingRecord, type HistoryEntry } from "@/types/patrol_records/record";
 
 import {
   formatDurationSecs,
   formatTimeOfDay,
   isPatrolled,
+  pendingDurationSecs,
   recordDurationSecs,
+  shortBeaconId,
 } from "@/utils/patrolRecord";
 
 type ClosedRecordCardProps = {
-  record: Record;
+  record: HistoryEntry;
   /** Current time in epoch ms; only the status computation reads it. */
   now: number;
 };
@@ -22,8 +24,31 @@ type ClosedRecordCardProps = {
 /**
  * Render one closed connection: the area name, the server's final patrol
  * status, the start time and how long the visit lasted.
+ *
+ * A pending placeholder has no resolved area or server status yet, so it
+ * shows the beacon id, an "Afventer…" badge and the duration computed from
+ * its own connect/disconnect timestamps.
  */
 export function ClosedRecordCard({ record, now }: ClosedRecordCardProps) {
+  if (isPendingRecord(record)) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.heading}>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            Beacon {shortBeaconId(record.beaconId)}
+          </Text>
+          <StatusBadge patrolled={false} pending />
+        </View>
+        <View style={styles.meta}>
+          <Text style={styles.metaText}>Start kl. {formatTimeOfDay(record.startedAt)}</Text>
+          <Text style={styles.metaText}>
+            Varighed: {formatDurationSecs(pendingDurationSecs(record))}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.heading}>

@@ -7,14 +7,21 @@ import { renderHook, act } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { usePatrolRecords } from "@/hooks/usePatrolRecords";
+import { clearPendingRecords } from "@/state/pendingRecords";
+import { notifyRecordsChanged, resetRecordsVersion } from "@/state/recordRefresh";
 import type { Record, RecordList } from "@/types/patrol_records/record";
 
-const { getPatrolRecords } = vi.hoisted(() => ({
+const { getPatrolRecords, retryMock } = vi.hoisted(() => ({
   getPatrolRecords: vi.fn(),
+  retryMock: vi.fn().mockResolvedValue(0),
 }));
 
 vi.mock("@/api/getPatrolRecords", () => ({
   getPatrolRecords,
+}));
+
+vi.mock("@/services/pendingEventSync", () => ({
+  retryPendingConnectionEvents: retryMock,
 }));
 
 function record(overrides: Partial<Record> = {}): Record {
@@ -54,6 +61,9 @@ async function flush() {
 
 afterEach(() => {
   getPatrolRecords.mockReset();
+  retryMock.mockReset().mockResolvedValue(0);
+  clearPendingRecords();
+  resetRecordsVersion();
   vi.restoreAllMocks();
 });
 
@@ -123,6 +133,39 @@ describe("usePatrolRecords", () => {
     expect(result.current.records).toEqual(second.records);
     expect(result.current.serverTime).toBe(second.time);
     expect(result.current.error).toBeNull();
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("re-sends pending events after a successful fetch and reconciles with a second fetch", async () => {
+    const first = recordList([record()]);
+    const second = recordList([
+      record({ status: "closed", endedAt: new Date("2025-10-09T10:05:00.000Z"), durationSecs: 300, patrolled: true }),
+    ]);
+    getPatrolRecords.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
+    retryMock.mockResolvedValue(1);
+
+    const { result } = renderHook(() => usePatrolRecords());
+    await flush();
+
+    expect(retryMock).toHaveBeenCalledTimes(1);
+    expect(getPatrolRecords).toHaveBeenCalledTimes(2);
+    expect(result.current.records).toEqual(second.records);
+    expect(result.current.serverTime).toBe(second.time);
+  });
+
+  it("refetches when an ingestion POST is acknowledged (records version bump)", async () => {
+    getPatrolRecords.mockResolvedValue(recordList([record()]));
+
+    const { result, rerender } = renderHook(() => usePatrolRecords());
+    await flush();
+    expect(getPatrolRecords).toHaveBeenCalledTimes(1);
+
+    // a confirmed connect/disconnect was acked by the backend
+    act(() => notifyRecordsChanged());
+    rerender();
+    await flush();
+
+    expect(getPatrolRecords).toHaveBeenCalledTimes(2);
     expect(result.current.loading).toBe(false);
   });
 
