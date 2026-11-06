@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.6.0 - Positioning Interface: at-risk episode count per shift
+## v2.8.0 - Positioning Interface: at-risk episode count per shift
 - Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
   `AtRiskCount` — how many areas have been at-risk during a shift. An area is
   at-risk when the remaining time until its `overdue_at` falls within the
@@ -19,13 +19,14 @@
 - The control room dashboard uses this for the night shift's at-risk
   statistics.
   
-## v2.5.0 - Positioning Interface: manning percentages are 0..100 instead of 0..1
+
+## v2.7.0 - Positioning Interface: manning percentages are 0..100 instead of 0..1
 - Positioning Interface: `TrainsUpdate.manning_percent`, `m1m2_manning_percent`
   and `m3m4_manning_percent` are now percentages in the range 0..100 (e.g. 70
   means 70% manned) instead of manned-time ratios in 0..1. Still null when the
   group has no running time.
 
-## v2.4.0 - Positioning Interface: per-train time fields removed from `Train`
+## v2.6.0 - Positioning Interface: per-train time fields removed from `Train`
 - Positioning Interface: `Train.manned_time_secs` and `Train.total_time_secs`
   removed from `TrainsUpdate` payloads — the per-train second counts are no
   longer exposed; only the aggregate `manning_percent` /
@@ -86,7 +87,7 @@
   `"M1 & M2"`) to an array of line ids (e.g. `["M1", "M2"]`). The field was
   introduced in the unpublished v2.0.1 draft, so no published interface breaks.
 
-## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes
+## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes & Health API contract
 - Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
   the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the
   updated `AtRiskThreshold`.
@@ -94,8 +95,6 @@
   `at_risk_threshold_minutes`; the threshold is now expressed in minutes
   instead of seconds. The field was introduced in the unpublished v2.0.1
   draft, so no published interface breaks.
-
-## v2.1.0 - Health API contract
 - Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
 - The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
 
