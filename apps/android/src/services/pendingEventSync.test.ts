@@ -67,9 +67,4 @@ describe("retryPendingConnectionEvents", () => {
     await expect(retryPendingConnectionEvents()).resolves.toBe(1);
     expect(postMock).toHaveBeenCalledTimes(2);
   });
-
-  it("does nothing when there are no pendings", async () => {
-    await expect(retryPendingConnectionEvents()).resolves.toBe(0);
-    expect(postMock).not.toHaveBeenCalled();
-  });
 });

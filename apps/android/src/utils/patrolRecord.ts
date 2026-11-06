@@ -51,14 +51,29 @@ export function isReconciledBy(record: Record, pending: PendingRecord): boolean 
  *
  * A pending whose connection the server has registered (see
  * {@link isReconciledBy}) is dropped — the server record wins and brings the
- * resolved area. The rest are prepended, since an unacknowledged connection
- * is newer than anything the server sent.
+ * resolved area. A closed pending also supersedes a matching still-open server
+ * record, so a locally ended connection stops its open timer immediately. The
+ * rest of the pendings are prepended, since an unacknowledged connection is
+ * newer than anything the server sent.
  */
 export function mergeWithPending(records: Record[], pending: PendingRecord[]): HistoryEntry[] {
   const unreconciled = pending.filter(
     (entry) => !records.some((record) => isReconciledBy(record, entry)),
   );
-  return [...unreconciled, ...records];
+  // a closed pending supersedes a matching still-open server record: the local
+  // disconnect is newer truth, and the open record would keep counting (and
+  // possibly show "Patruljeret") for a connection that has already ended
+  const closedPendingKeys = new Set(
+    pending
+      .filter((entry) => entry.status === "closed")
+      .map((entry) => `${entry.beaconId}-${entry.startedAt.getTime()}`),
+  );
+  const visibleRecords = records.filter(
+    (record) =>
+      record.status !== "open" ||
+      !closedPendingKeys.has(`${record.beaconId}-${record.startedAt.getTime()}`),
+  );
+  return [...unreconciled, ...visibleRecords];
 }
 
 // the server sends duration_secs null while a record is open, so the client

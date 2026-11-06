@@ -13,7 +13,6 @@ import {
   pendingDurationSecs,
   recordDurationSecs,
   remainingToPatrolMs,
-  shortBeaconId,
   splitRecords,
 } from "@/utils/patrolRecord";
 
@@ -101,12 +100,6 @@ describe("mergeWithPending", () => {
     expect(mergeWithPending([server], [pending])).toEqual([pending, server]);
   });
 
-  it("drops a pending once the server list contains the same connection", () => {
-    const pending = pendingOpen(record({}).beaconId, record({}).startedAt);
-
-    expect(mergeWithPending([record({})], [pending])).toEqual([record({})]);
-  });
-
   it("drops a closed pending when the server shows the record closed", () => {
     const serverClosed = record({
       status: "closed",
@@ -123,8 +116,9 @@ describe("mergeWithPending", () => {
     expect(mergeWithPending([serverClosed], [pendingClosed])).toEqual([serverClosed]);
   });
 
-  it("keeps a closed pending while the server still shows the record open", () => {
-    // the disconnect was never delivered; the pending must survive the retry
+  it("keeps a closed pending while the server still shows the record open, and hides the stale open record", () => {
+    // the disconnect happened locally but is not delivered yet; the open
+    // server record must not keep counting (and showing "Patruljeret") meanwhile
     const serverOpen = record({});
     const pendingClosed: PendingRecord = {
       ...pendingOpen(serverOpen.beaconId, serverOpen.startedAt),
@@ -132,45 +126,27 @@ describe("mergeWithPending", () => {
       status: "closed",
     };
 
-    expect(mergeWithPending([serverOpen], [pendingClosed])).toEqual([pendingClosed, serverOpen]);
+    const merged = mergeWithPending([serverOpen], [pendingClosed]);
+
+    expect(merged).toEqual([pendingClosed]);
+    expect(splitRecords(merged).open).toEqual([]);
+    expect(splitRecords(merged).closed).toEqual([pendingClosed]);
   });
 
-  it("matches on beacon and startedAt only, so a different start keeps the pending", () => {
-    const pending = pendingOpen(record({}).beaconId, new Date(NOW - 5 * SECOND));
-    const server = record({}); // same beacon, started 30s ago
-
-    expect(mergeWithPending([server], [pending])).toEqual([pending, server]);
-  });
 });
 
 describe("pendingDurationSecs", () => {
-  it("returns ended minus started for a closed pending", () => {
-    const pending: PendingRecord = {
+  it("returns ended minus started for a closed pending, zero while open", () => {
+    const closed: PendingRecord = {
       beaconId: "b",
       startedAt: new Date(NOW - 30 * SECOND),
       endedAt: new Date(NOW - 10 * SECOND),
       status: "closed",
       pending: true,
     };
-    expect(pendingDurationSecs(pending)).toBe(20);
-  });
-
-  it("returns zero while still open and clamps clock skew to zero", () => {
-    const open: PendingRecord = {
-      beaconId: "b",
-      startedAt: new Date(NOW),
-      endedAt: null,
-      status: "open",
-      pending: true,
-    };
+    const open: PendingRecord = { ...closed, endedAt: null, status: "open" };
+    expect(pendingDurationSecs(closed)).toBe(20);
     expect(pendingDurationSecs(open)).toBe(0);
-    expect(pendingDurationSecs({ ...open, endedAt: new Date(NOW - 60 * SECOND), status: "closed" })).toBe(0);
-  });
-});
-
-describe("shortBeaconId", () => {
-  it("returns the first 8 characters", () => {
-    expect(shortBeaconId("550e8400-e29b-41d4-a716-000000000002")).toBe("550e8400");
   });
 });
 

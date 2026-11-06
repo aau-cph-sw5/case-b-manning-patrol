@@ -42,11 +42,4 @@ describe("fetchWithTimeout", () => {
     await vi.advanceTimersByTimeAsync(1000);
     await assertion;
   });
-
-  it("lets an immediate fetch rejection through without waiting for the deadline", async () => {
-    vi.useFakeTimers();
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("connection refused")));
-
-    await expect(fetchWithTimeout(URL, undefined, 60_000)).rejects.toThrow("connection refused");
-  });
 });

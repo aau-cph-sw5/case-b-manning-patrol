@@ -3,7 +3,13 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
 import { postConnectionEvent } from "@/api/postConnectionEvent";
 import { BeaconEventService } from "@/services/BeaconEventService";
-import { addPendingRecord, markPendingClosed } from "@/state/pendingRecords";
+import {
+  addPendingRecord,
+  markPendingClosed,
+  markPendingDisconnected,
+  reopenProvisionalPending,
+} from "@/state/pendingRecords";
+import { notifyRecordsChanged } from "@/state/recordRefresh";
 import { scanReducer } from "@/state/scanReducer";
 import { showToast } from "@/state/toast";
 import { initialScanState, type BeaconConnectionEvent } from "@/types/beacon";
@@ -58,9 +64,14 @@ export function useBeaconScanner(scanner: BeaconScanner): UseBeaconScannerResult
             : `Afbrudt fra beacon`;
         showToast(message);
 
-        postConnectionEvent(event).catch((error: unknown) => {
-          console.warn(`could not forward ${event.event} for ${event.beacon_id}:`, error);
-        });
+        postConnectionEvent(event)
+          .then(() => {
+            // the ack means the server's records changed: the history refetches
+            notifyRecordsChanged();
+          })
+          .catch((error: unknown) => {
+            console.warn(`could not forward ${event.event} for ${event.beacon_id}:`, error);
+          });
       }),
     [],
   );
@@ -71,6 +82,15 @@ export function useBeaconScanner(scanner: BeaconScanner): UseBeaconScannerResult
 
   const onEvent = useCallback((event: BeaconConnectionEvent) => {
     dispatch({ type: "EVENT_RECEIVED", event });
+    // mirror the confirmation logic in the pending history at raw-event time:
+    // a raw disconnect provisionally closes the record (so its open timer stops
+    // at the real disconnect, not after the confirmation delay), and a raw
+    // reconnect re-opens it if the disconnect is never confirmed
+    if (event.event === "DISCONNECTED") {
+      markPendingDisconnected(event.beacon_id, new Date(event.timestamp));
+    } else {
+      reopenProvisionalPending(event.beacon_id);
+    }
     eventService.handleEvent(event);
   }, [eventService]);
 

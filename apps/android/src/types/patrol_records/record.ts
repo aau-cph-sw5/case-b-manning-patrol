@@ -73,6 +73,12 @@ export type PendingRecord = {
   endedAt: Date | null;
   /** "open" until the disconnect is confirmed, then "closed" — drives the history section. */
   status: RecordStatus;
+  /**
+   * True while the close came from a raw scanner disconnect that the
+   * BeaconEventService has not confirmed yet; a reconnect before confirmation
+   * re-opens the pending. Absent once the disconnect is confirmed.
+   */
+  provisional?: boolean;
   /** Always true; narrows a {@link HistoryEntry} down to the placeholder. */
   pending: true;
 };

@@ -6,13 +6,16 @@
 // fetch also re-sends pending connection events (services/pendingEventSync)
 // and fetches once more, so pendings (state/pendingRecords) whose events the
 // backend never received are retired instead of staying pending forever; the
-// screen merges the rest back in at render time.
+// screen merges the rest back in at render time. refetch also fires whenever
+// an ingestion POST is acknowledged (state/recordRefresh), so the history
+// reconciles right after each connect/disconnect without polling.
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getPatrolRecords } from "@/api/getPatrolRecords";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 import { retryPendingConnectionEvents } from "@/services/pendingEventSync";
 import { removeReconciledPendingRecords } from "@/state/pendingRecords";
+import { getRecordsVersion } from "@/state/recordRefresh";
 import type { Record, RecordList } from "@/types/patrol_records/record";
 
 // For a real-device build, restore DeviceInfo.getAndroidId(); Expo Go uses the mock ID.
@@ -106,6 +109,20 @@ export function usePatrolRecords(): UsePatrolRecordsResult {
       setLoading(false);
     }
   }, [applyList, flushPendings]);
+
+  // event-driven reconcile (patrol-record contract: re-fetch when an ingestion
+  // request is acknowledged): useBeaconScanner bumps the version on every
+  // acked connect/disconnect POST. The effect runs on every render — the
+  // screen ticks each second via useNow — but only fires a request when the
+  // version actually changed, so there is no per-second polling.
+  const lastSeenVersion = useRef(getRecordsVersion());
+  useEffect(() => {
+    const version = getRecordsVersion();
+    if (version !== lastSeenVersion.current) {
+      lastSeenVersion.current = version;
+      void refetch();
+    }
+  });
 
   return { records, serverTime, loading, error, refetch };
 }
