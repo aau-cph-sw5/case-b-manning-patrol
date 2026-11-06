@@ -5,14 +5,21 @@ import { StyleSheet, Text } from "react-native";
 type StatusBadgeProps = {
   /** Whether the visit counts as patrolled at the time being shown. */
   patrolled: boolean;
+  /** True for a pending placeholder the backend has not acknowledged yet. */
+  pending?: boolean;
 };
 
 /**
- * Render the "Patruljeret" / "Ikke patruljeret" pill.
+ * Render the status pill: "Patruljeret" / "Ikke patruljeret", or "Afventer…"
+ * for a pending placeholder.
  *
- * Green when the visit qualifies as patrolled, red when it does not.
+ * Green when the visit qualifies as patrolled, red when it does not, grey
+ * while pending.
  */
-export function StatusBadge({ patrolled }: StatusBadgeProps) {
+export function StatusBadge({ patrolled, pending = false }: StatusBadgeProps) {
+  if (pending) {
+    return <Text style={[styles.badge, styles.pending]}>Afventer…</Text>;
+  }
   return (
     <Text style={[styles.badge, patrolled ? styles.patrolled : styles.unpatrolled]}>
       {patrolled ? "Patruljeret" : "Ikke patruljeret"}
@@ -36,5 +43,9 @@ const styles = StyleSheet.create({
   unpatrolled: {
     backgroundColor: "#fdecec",
     color: "#ff4d4d",
+  },
+  pending: {
+    backgroundColor: "#ececea",
+    color: "#656865",
   },
 });

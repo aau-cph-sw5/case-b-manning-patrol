@@ -6,6 +6,9 @@
  * connections with their duration. Records come from {@link usePatrolRecords}
  * and are re-fetched every time the tab regains focus; the screen re-renders
  * each second via {@link useNow} so the open records' timers stay honest.
+ * Connections the backend has not acknowledged yet are merged in as pending
+ * placeholders (state/pendingRecords) at render time, so an offline connect
+ * or disconnect still shows in the matching section until a fetch reconciles it.
  *
  * Layout: the screen itself never scrolls. The open-connections box (green
  * panel) sits at the top and grows with its cards — up to five open
@@ -32,7 +35,8 @@ import { OpenRecordCard } from "@/components/OpenRecordCard";
 import PatrolHistoryHeader from "@/components/PatrolHistoryHeader";
 import { useNow } from "@/hooks/useNow";
 import { usePatrolRecords } from "@/hooks/usePatrolRecords";
-import { formatDayLabel, splitRecords } from "@/utils/patrolRecord";
+import { getPendingRecords } from "@/state/pendingRecords";
+import { formatDayLabel, mergeWithPending, splitRecords } from "@/utils/patrolRecord";
 
 /**
  * Render the patrol history screen.
@@ -53,10 +57,14 @@ export default function PatrolHistoryScreen() {
     void refetch();
   });
 
-  const { open, closed } = splitRecords(records);
+  // merge at render time: the useNow tick above re-reads the pending store
+  // every second, so a pending added on the patrol tab shows up here within
+  // one tick, and a successful fetch retires it via the hook
+  const entries = mergeWithPending(records, getPendingRecords());
+  const { open, closed } = splitRecords(entries);
   const connectionCount =
-    records.length === 1 ? "1 forbindelse" : `${records.length} forbindelser`;
-  const statusOnly = records.length === 0 && (loading || error !== null);
+    entries.length === 1 ? "1 forbindelse" : `${entries.length} forbindelser`;
+  const statusOnly = entries.length === 0 && (loading || error !== null);
 
   return (
     <View style={styles.screen}>

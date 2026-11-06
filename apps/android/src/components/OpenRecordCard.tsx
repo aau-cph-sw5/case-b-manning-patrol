@@ -4,12 +4,19 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { StatusBadge } from "@/components/StatusBadge";
 
-import type { Record } from "@/types/patrol_records/record";
+import { isPendingRecord, type HistoryEntry } from "@/types/patrol_records/record";
 
-import { formatTimeOfDay, isPatrolled, remainingToPatrolMs } from "@/utils/patrolRecord";
+import {
+  formatDurationSecs,
+  formatTimeOfDay,
+  isPatrolled,
+  openRecordElapsedMs,
+  remainingToPatrolMs,
+  shortBeaconId,
+} from "@/utils/patrolRecord";
 
 type OpenRecordCardProps = {
-  record: Record;
+  record: HistoryEntry;
   /** Current time in epoch ms; the status and progress are computed from it. */
   now: number;
 };
@@ -18,11 +25,32 @@ type OpenRecordCardProps = {
  * Render one open connection: the area name, the live patrol status, the
  * start time, the patrol requirement and a progress bar counting down to it.
  *
- * The countdown is recomputed from `now` on every render, so it stays honest
+ * A pending placeholder has no resolved area or patrol requirement yet, so it
+ * shows the beacon id, an "Afventer…" badge and only the elapsed time. The
+ * countdown is recomputed from `now` on every render, so it stays honest
  * between fetches. Once the requirement is met the bar is full and the
  * countdown label is hidden.
  */
 export function OpenRecordCard({ record, now }: OpenRecordCardProps) {
+  if (isPendingRecord(record)) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.heading}>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            Beacon {shortBeaconId(record.beaconId)}
+          </Text>
+          <StatusBadge patrolled={false} pending />
+        </View>
+        <View style={styles.meta}>
+          <Text style={styles.metaText}>Start kl. {formatTimeOfDay(record.startedAt)}</Text>
+          <Text style={styles.requirement}>
+            Varighed: {formatDurationSecs(openRecordElapsedMs(record, now) / 1000)}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   const patrolled = isPatrolled(record, now);
   const remainingMs = remainingToPatrolMs(record, now);
   const requirementMs = record.minPatrolDurationSecs * 1000;

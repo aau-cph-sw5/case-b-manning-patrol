@@ -9,6 +9,7 @@
  * display stays on the phone (ADR-0004). Until the real device id lands, the
  * session is reported for the synthetic steward the fixtures use.
  */
+import { fetchWithTimeout } from "@/api/fetchWithTimeout";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 import { PatrolSessionEvent } from "@/types/patrol_session/patrolSessionEvent";
 
@@ -19,7 +20,8 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
  *
  * Logs the body to the console before sending. Resolves once the server has
  * accepted the request (any 2xx; the contract answers 201) and rejects
- * otherwise, including when the server cannot be reached at all.
+ * otherwise, including when the server cannot be reached or does not answer
+ * within the fetch timeout (see {@link fetchWithTimeout}).
  */
 async function postPatrolSessionEvent(action: "start" | "stop", timestamp: string): Promise<void> {
 
@@ -32,7 +34,7 @@ async function postPatrolSessionEvent(action: "start" | "stop", timestamp: strin
 
     console.log(`POST /api/v2/patrol-session/${action} ${JSON.stringify(body)}`);
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_BASE_URL}/api/v2/patrol-session/${action}`,
       {
         method: "POST",

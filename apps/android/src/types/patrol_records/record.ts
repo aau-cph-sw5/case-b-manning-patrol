@@ -54,3 +54,33 @@ export type RecordArea = z.infer<typeof RecordAreaSchema>;
 export type Record = z.infer<typeof RecordSchema>;
 export type RecordList = z.infer<typeof RecordListSchema>;
 export type RecordStatus = Record["status"];
+
+/**
+ * A connection the phone has confirmed but the backend has not acknowledged
+ * yet (patrol-record contract: while the connect/disconnect POST is in
+ * flight or has failed, the client's local state is the source of origin).
+ *
+ * Client-only placeholder: it carries no `area`, because the backend resolves
+ * the beacon's area and the frontend has no reference sheet. It matches a
+ * server `Record` on `beaconId` + `startedAt`, since the server stamps
+ * `started_at` from the connect event's own device timestamp.
+ */
+export type PendingRecord = {
+  beaconId: string;
+  /** When the confirmed connect happened on the device. */
+  startedAt: Date;
+  /** Set when the disconnect was confirmed locally; null while still connected. */
+  endedAt: Date | null;
+  /** "open" until the disconnect is confirmed, then "closed" — drives the history section. */
+  status: RecordStatus;
+  /** Always true; narrows a {@link HistoryEntry} down to the placeholder. */
+  pending: true;
+};
+
+/** One row of the patrol history: a server record or a client-side pending placeholder. */
+export type HistoryEntry = Record | PendingRecord;
+
+/** Return whether a history entry is a pending placeholder rather than a server record. */
+export function isPendingRecord(entry: HistoryEntry): entry is PendingRecord {
+  return "pending" in entry;
+}

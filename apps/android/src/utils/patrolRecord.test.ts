@@ -2,15 +2,18 @@
 // split, the live age of an open record, and the patrolled threshold arithmetic.
 import { describe, expect, it } from "vitest";
 
-import type { Record } from "@/types/patrol_records/record";
+import type { PendingRecord, Record } from "@/types/patrol_records/record";
 import {
   formatDayLabel,
   formatDurationSecs,
   formatTimeOfDay,
   isPatrolled,
+  mergeWithPending,
   openRecordElapsedMs,
+  pendingDurationSecs,
   recordDurationSecs,
   remainingToPatrolMs,
+  shortBeaconId,
   splitRecords,
 } from "@/utils/patrolRecord";
 
@@ -58,6 +61,116 @@ describe("splitRecords", () => {
 
   it("returns two empty groups for a steward without records", () => {
     expect(splitRecords([])).toEqual({ open: [], closed: [] });
+  });
+
+  it("routes pending placeholders by their own status", () => {
+    const pendingOpen: PendingRecord = {
+      beaconId: "550e8400-e29b-41d4-a716-00000000000a",
+      startedAt: new Date(NOW - SECOND),
+      endedAt: null,
+      status: "open",
+      pending: true,
+    };
+    const pendingClosed: PendingRecord = {
+      ...pendingOpen,
+      endedAt: new Date(NOW),
+      status: "closed",
+    };
+
+    const serverOpen = record({});
+    const groups = splitRecords([pendingOpen, serverOpen, pendingClosed]);
+
+    expect(groups.open).toEqual([pendingOpen, serverOpen]);
+    expect(groups.closed).toEqual([pendingClosed]);
+  });
+});
+
+describe("mergeWithPending", () => {
+  const pendingOpen = (beaconId: string, startedAt: Date): PendingRecord => ({
+    beaconId,
+    startedAt,
+    endedAt: null,
+    status: "open",
+    pending: true,
+  });
+
+  it("prepends unreconciled pendings ahead of the server records", () => {
+    const server = record({});
+    const pending = pendingOpen("550e8400-e29b-41d4-a716-00000000000a", new Date(NOW - SECOND));
+
+    expect(mergeWithPending([server], [pending])).toEqual([pending, server]);
+  });
+
+  it("drops a pending once the server list contains the same connection", () => {
+    const pending = pendingOpen(record({}).beaconId, record({}).startedAt);
+
+    expect(mergeWithPending([record({})], [pending])).toEqual([record({})]);
+  });
+
+  it("drops a closed pending when the server shows the record closed", () => {
+    const serverClosed = record({
+      status: "closed",
+      endedAt: new Date(NOW - 10 * SECOND),
+      durationSecs: 20,
+      patrolled: true,
+    });
+    const pendingClosed: PendingRecord = {
+      ...pendingOpen(serverClosed.beaconId, serverClosed.startedAt),
+      endedAt: new Date(NOW - 10 * SECOND),
+      status: "closed",
+    };
+
+    expect(mergeWithPending([serverClosed], [pendingClosed])).toEqual([serverClosed]);
+  });
+
+  it("keeps a closed pending while the server still shows the record open", () => {
+    // the disconnect was never delivered; the pending must survive the retry
+    const serverOpen = record({});
+    const pendingClosed: PendingRecord = {
+      ...pendingOpen(serverOpen.beaconId, serverOpen.startedAt),
+      endedAt: new Date(NOW - 10 * SECOND),
+      status: "closed",
+    };
+
+    expect(mergeWithPending([serverOpen], [pendingClosed])).toEqual([pendingClosed, serverOpen]);
+  });
+
+  it("matches on beacon and startedAt only, so a different start keeps the pending", () => {
+    const pending = pendingOpen(record({}).beaconId, new Date(NOW - 5 * SECOND));
+    const server = record({}); // same beacon, started 30s ago
+
+    expect(mergeWithPending([server], [pending])).toEqual([pending, server]);
+  });
+});
+
+describe("pendingDurationSecs", () => {
+  it("returns ended minus started for a closed pending", () => {
+    const pending: PendingRecord = {
+      beaconId: "b",
+      startedAt: new Date(NOW - 30 * SECOND),
+      endedAt: new Date(NOW - 10 * SECOND),
+      status: "closed",
+      pending: true,
+    };
+    expect(pendingDurationSecs(pending)).toBe(20);
+  });
+
+  it("returns zero while still open and clamps clock skew to zero", () => {
+    const open: PendingRecord = {
+      beaconId: "b",
+      startedAt: new Date(NOW),
+      endedAt: null,
+      status: "open",
+      pending: true,
+    };
+    expect(pendingDurationSecs(open)).toBe(0);
+    expect(pendingDurationSecs({ ...open, endedAt: new Date(NOW - 60 * SECOND), status: "closed" })).toBe(0);
+  });
+});
+
+describe("shortBeaconId", () => {
+  it("returns the first 8 characters", () => {
+    expect(shortBeaconId("550e8400-e29b-41d4-a716-000000000002")).toBe("550e8400");
   });
 });
 
