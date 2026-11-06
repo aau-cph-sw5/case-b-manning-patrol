@@ -85,6 +85,15 @@ The system enforces two contractual requirements:
 
 Coverage is computed from the append-only event store, with late-arriving reports handled per [ADR-0009](adr/0009-late-arriving-report-rule.md).
 
+### Manning percentages on the trains stream
+
+The backend reports the manning ratio per stream event on `GET api/v2/trains/stream` as three fields: `manning_percent` (all trains), `m1m2_manning_percent` and `m3m4_manning_percent` (trains whose `line` contains M1/M2 or M3/M4). The ratio is manned time over running time, and the fields distinguish "no data" from "no manning":
+
+- **null** when the group has no running time at all (e.g. no M3/M4 train has run yet) — there is nothing to compute a ratio against
+- **0** when the group has running time but no manned time — the trains genuinely ran unmanned
+
+See `contracts/api/v2/positioning-interface/README.md` for the full payload.
+
 ## Contracts
 
 All inter-component communication goes through versioned OpenAPI contracts in `contracts/`:
