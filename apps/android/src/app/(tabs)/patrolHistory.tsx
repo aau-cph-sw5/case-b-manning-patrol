@@ -20,6 +20,7 @@
  */
 
 import { Stack, useFocusEffect } from "expo-router";
+import type { ComponentType } from "react";
 
 import {
   ActivityIndicator,
@@ -28,6 +29,9 @@ import {
   StyleSheet,
   Text,
   View,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
 } from "react-native";
 
 import { ClosedRecordCard } from "@/components/ClosedRecordCard";
@@ -81,8 +85,30 @@ export default function PatrolHistoryScreen() {
             now={now}
             onRetry={refetch}
           />
-          <OpenRecordsSection records={open} now={now} />
-          <ClosedRecordsSection records={closed} now={now} />
+          <RecordsSection
+            title="Åbne forbindelser"
+            records={open}
+            now={now}
+            countSingular="1 åben"
+            countPlural="åbne"
+            countStyle={listStyles.openCount}
+            listStyle={listStyles.openList}
+            emptyText="Ingen åbne forbindelser."
+            Card={OpenRecordCard}
+          />
+          <RecordsSection
+            title="Lukkede forbindelser"
+            records={closed}
+            now={now}
+            countSingular="1 afsluttet"
+            countPlural="afsluttede"
+            countStyle={listStyles.closedCount}
+            headingStyle={listStyles.closedHeading}
+            listStyle={listStyles.closedList}
+            scrollsInternally
+            emptyText="Ingen lukkede forbindelser."
+            Card={ClosedRecordCard}
+          />
           <Text style={listStyles.listNote}>Seneste forbindelser vises først.</Text>
         </View>
       )}
@@ -121,61 +147,86 @@ function StatusArea({ error, connectionCount, now, onRetry }: StatusAreaProps) {
   );
 }
 
-/** The green open-connections box; grows with its cards, no internal scroll. */
-function OpenRecordsSection({ records, now }: { records: HistoryEntry[]; now: number }) {
-  return (
-    <>
-      <View style={listStyles.sectionHeading}>
-        <Text style={listStyles.sectionTitle}>Åbne forbindelser</Text>
-        <Text style={listStyles.openCount}>
-          {records.length === 1 ? "1 åben" : `${records.length} åbne`}
-        </Text>
-      </View>
-      <View style={listStyles.openList}>
-        {records.length === 0 ? (
-          <Text style={listStyles.empty}>Ingen åbne forbindelser.</Text>
-        ) : (
-          records.map((record) => (
-            <OpenRecordCard
-              key={`${record.beaconId}-${record.startedAt.getTime()}`}
-              record={record}
-              now={now}
-            />
-          ))
-        )}
-      </View>
-    </>
-  );
-}
+type RecordCardProps = {
+  record: HistoryEntry;
+  now: number;
+};
 
-/** The grey closed-connections box; fills the remaining space, scrolls internally. */
-function ClosedRecordsSection({ records, now }: { records: HistoryEntry[]; now: number }) {
+type RecordsSectionProps = {
+  /** Heading shown above the list box. */
+  title: string;
+  records: HistoryEntry[];
+  now: number;
+  /** Count badge text when exactly one record is listed. */
+  countSingular: string;
+  /** Count badge text appended to the number when several records are listed. */
+  countPlural: string;
+  countStyle: StyleProp<TextStyle>;
+  /** Extra heading style, e.g. the top margin separating the closed section. */
+  headingStyle?: StyleProp<ViewStyle>;
+  listStyle: StyleProp<ViewStyle>;
+  /** Wrap the cards in a ScrollView so the box fills the remaining space and scrolls on its own. */
+  scrollsInternally?: boolean;
+  emptyText: string;
+  /** Card component for one record, e.g. OpenRecordCard or ClosedRecordCard. */
+  Card: ComponentType<RecordCardProps>;
+};
+
+/**
+ * Render one history section: a heading with a count badge above a list box
+ * showing either the empty text or one card per record.
+ *
+ * Without `scrollsInternally` the box grows with its cards (the open
+ * connections stay visible at a glance); with it the box fills the remaining
+ * space and its cards scroll inside it (the closed connections).
+ */
+function RecordsSection({
+  title,
+  records,
+  now,
+  countSingular,
+  countPlural,
+  countStyle,
+  headingStyle,
+  listStyle,
+  scrollsInternally = false,
+  emptyText,
+  Card,
+}: RecordsSectionProps) {
+  const body =
+    records.length === 0 ? (
+      <Text style={listStyles.empty}>{emptyText}</Text>
+    ) : (
+      records.map((record) => (
+        <Card
+          key={`${record.beaconId}-${record.startedAt.getTime()}`}
+          record={record}
+          now={now}
+        />
+      ))
+    );
   return (
     <>
-      <View style={[listStyles.sectionHeading, listStyles.closedHeading]}>
-        <Text style={listStyles.sectionTitle}>Lukkede forbindelser</Text>
-        <Text style={listStyles.closedCount}>
-          {records.length === 1 ? "1 afsluttet" : `${records.length} afsluttede`}
+      <View style={[listStyles.sectionHeading, headingStyle]}>
+        <Text style={listStyles.sectionTitle}>{title}</Text>
+        <Text style={countStyle}>
+          {records.length === 1
+            ? countSingular
+            : `${records.length} ${countPlural}`}
         </Text>
       </View>
-      <View style={listStyles.closedList}>
-        <ScrollView
-          style={listStyles.closedScroll}
-          contentContainerStyle={listStyles.listContent}
-        >
-          {records.length === 0 ? (
-            <Text style={listStyles.empty}>Ingen lukkede forbindelser.</Text>
-          ) : (
-            records.map((record) => (
-              <ClosedRecordCard
-                key={`${record.beaconId}-${record.startedAt.getTime()}`}
-                record={record}
-                now={now}
-              />
-            ))
-          )}
-        </ScrollView>
-      </View>
+      {scrollsInternally ? (
+        <View style={listStyle}>
+          <ScrollView
+            style={listStyles.closedScroll}
+            contentContainerStyle={listStyles.listContent}
+          >
+            {body}
+          </ScrollView>
+        </View>
+      ) : (
+        <View style={listStyle}>{body}</View>
+      )}
     </>
   );
 }
