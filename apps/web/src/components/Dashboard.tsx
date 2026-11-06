@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BsEmojiFrown } from 'react-icons/bs'
 import StationCard from './StationCard.tsx'
+import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
 import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
 import {
@@ -15,6 +16,7 @@ import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { toViewStations } from '../api/dashboardMapper.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
+import { useTrainStream } from '../hooks/useTrainStream'
 import Legend from './Legend.tsx'
 import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
@@ -29,9 +31,12 @@ function Dashboard() {
     () => (dashboard ? toViewStations(dashboard) : []),
     [dashboard],
   )
+  const { trainsUpdate } = useTrainStream()
+
   useEffect(() => {
-    if (dashboard) console.log("Dashboard SSE update:", dashboard);
-    if (error) console.error("SSE error:", error);
+    if (!import.meta.env.DEV) return
+    if (dashboard) console.log('Dashboard SSE update:', dashboard)
+    if (error) console.error('SSE error:', error)
   }, [dashboard, error])
 
   useEffect(() => {
@@ -94,6 +99,7 @@ function Dashboard() {
 
       <main className="dash">
         <div className="side-col">
+          <TrainCard update={trainsUpdate} lineGroup={lineGroup} />
           <aside className="card attention">
             <h2>Kræver handling ({attention.length})</h2>
             <ul className="attention-list">
