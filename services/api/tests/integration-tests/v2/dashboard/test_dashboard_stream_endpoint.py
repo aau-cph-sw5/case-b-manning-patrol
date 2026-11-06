@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import httpx2
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
@@ -28,7 +28,7 @@ def read_sse_event(lines) -> tuple[str | None, dict]:
     raise AssertionError("stream closed before an event was sent")
 
 
-def post_connect(http: httpx.Client) -> None:
+def post_connect(http: httpx2.Client) -> None:
     response = http.post(
         "/api/v2/connection/connect",
         json={
@@ -41,7 +41,7 @@ def post_connect(http: httpx.Client) -> None:
 
 
 def test_dashboard_stream_sends_a_stations_only_dashboard_event(live_base_url):
-    with httpx.Client(base_url=live_base_url, timeout=5.0) as http:
+    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
         with http.stream("GET", "/api/v2/dashboard/stream") as response:
             assert response.status_code == 200
             assert response.headers["content-type"].startswith("text/event-stream")
@@ -54,8 +54,8 @@ def test_dashboard_stream_sends_a_stations_only_dashboard_event(live_base_url):
 
 
 def test_dashboard_stream_reemits_when_coverage_is_recomputed(live_base_url):
-    with httpx.Client(base_url=live_base_url, timeout=5.0) as http:
-        with httpx.Client(base_url=live_base_url, timeout=5.0) as poster:
+    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
+        with httpx2.Client(base_url=live_base_url, timeout=5.0) as poster:
             with http.stream("GET", "/api/v2/dashboard/stream") as response:
                 lines = response.iter_lines()
                 read_sse_event(lines)
