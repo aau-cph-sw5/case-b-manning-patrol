@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 21,
-    backgroundColor: "#30916e",
+    backgroundColor: "#E40037",
   },
   markText: {
     color: "#ffffff",
