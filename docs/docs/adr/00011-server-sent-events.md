@@ -1,6 +1,6 @@
 # ADR 0011. Server-sent events for live compliance updates and steward alerts.
 
-**Status.** Proposed
+**Status.** Superseded by [ADR 0012](0012-train-manning-stream.md)
 **Date.** 2026-10-19
 **Deciders.** Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen, team 8
 **Related backlog items.** MET-B-007, MET-B-008, MET-B-009, MET-B-012, MET-B-013, MET-B-014, MET-B-015, MET-B-024
