@@ -24,6 +24,29 @@ const STEWARD_ID = MOCK_ANDROID_ID;
 // shown to the steward. the api's own error message is meant for developers.
 const FETCH_ERROR = "Kunne ikke hente historikken. Prøv igen.";
 
+/**
+ * Re-send pending connection events after a successful fetch, then fetch once
+ * more so the stored records retire their pendings.
+ *
+ * A successful fetch means the backend is reachable again. The retry runs
+ * before the follow-up fetch's reconcile, otherwise a still-open server record
+ * would drop a pending closed whose disconnect was never delivered.
+ */
+async function flushPendingsAfterFetch(
+  isCancelled: () => boolean,
+  applyList: (list: RecordList) => void,
+): Promise<void> {
+  const sent = await retryPendingConnectionEvents();
+  if (sent === 0 || isCancelled()) return;
+  try {
+    const fresh = await getPatrolRecords(STEWARD_ID);
+    if (isCancelled()) return;
+    applyList(fresh);
+  } catch {
+    // keep the list we already have; the pendings retry on the next success
+  }
+}
+
 export type UsePatrolRecordsResult = {
   records: Record[];
   // server time the current list was built at; null until the first response.
@@ -50,22 +73,12 @@ export function usePatrolRecords(): UsePatrolRecordsResult {
     setServerTime(list.time);
   }, []);
 
-  // a successful fetch means the backend is reachable again: re-send the
-  // connection events it never acknowledged, then fetch once more so those
-  // stored records retire their pendings. retry runs before applyList of the
-  // follow-up fetch, otherwise a still-open server record would drop a
-  // pending closed whose disconnect was never delivered.
-  const flushPendings = useCallback(async (isCancelled: () => boolean) => {
-    const sent = await retryPendingConnectionEvents();
-    if (sent === 0 || isCancelled()) return;
-    try {
-      const fresh = await getPatrolRecords(STEWARD_ID);
-      if (isCancelled()) return;
-      applyList(fresh);
-    } catch {
-      // keep the list we already have; the pendings retry on the next success
-    }
-  }, [applyList]);
+  // re-send the events the backend never acknowledged, then fetch once more so
+  // those stored records retire their pendings (see flushPendingsAfterFetch)
+  const flushPendings = useCallback(
+    (isCancelled: () => boolean) => flushPendingsAfterFetch(isCancelled, applyList),
+    [applyList],
+  );
 
   // the mount fetch reports through the promise callbacks, so the effect
   // body itself never calls setState

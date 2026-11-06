@@ -127,15 +127,15 @@ export function markPendingDisconnected(beaconId: string, endedAt: Date): void {
  */
 export function reopenProvisionalPending(beaconId: string): void {
   for (const pending of pendingByKey.values()) {
-    if (pending.beaconId === beaconId && pending.status === "closed" && pending.provisional === true) {
-      pendingByKey.set(key(pending.beaconId, pending.startedAt), {
-        ...pending,
-        status: "open",
-        endedAt: null,
-        provisional: undefined,
-      });
-      return;
-    }
+    if (pending.beaconId !== beaconId || pending.status !== "closed") continue;
+    if (pending.provisional !== true) continue;
+    pendingByKey.set(key(pending.beaconId, pending.startedAt), {
+      ...pending,
+      status: "open",
+      endedAt: null,
+      provisional: undefined,
+    });
+    return;
   }
 }
 

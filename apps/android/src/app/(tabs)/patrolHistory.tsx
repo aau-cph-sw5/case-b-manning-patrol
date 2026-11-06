@@ -71,25 +71,7 @@ export default function PatrolHistoryScreen() {
       <Stack.Screen options={{ title: "Patruljehistorik" }} />
       <PatrolHistoryHeader />
       {statusOnly ? (
-        <View style={styles.statusContent}>
-          {loading ? (
-            <View style={styles.center}>
-              <ActivityIndicator color="#940024" />
-              <Text style={styles.muted}>Henter historik...</Text>
-            </View>
-          ) : (
-            <View style={styles.center}>
-              <Text style={styles.errorText}>{error}</Text>
-              <Pressable
-                style={styles.retry}
-                onPress={() => void refetch()}
-                accessibilityRole="button"
-              >
-                <Text style={styles.retryText}>Prøv igen</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
+        <HistoryStatus loading={loading} error={error} onRetry={refetch} />
       ) : (
         <View style={styles.content}>
           <View style={styles.statusArea}>
@@ -110,15 +92,15 @@ export default function PatrolHistoryScreen() {
               <Text style={styles.dateCount}>{connectionCount}</Text>
             </View>
           </View>
-          <View style={styles.sectionHeading}>
-            <Text style={styles.sectionTitle}>Åbne forbindelser</Text>
-            <Text style={styles.openCount}>
+          <View style={listStyles.sectionHeading}>
+            <Text style={listStyles.sectionTitle}>Åbne forbindelser</Text>
+            <Text style={listStyles.openCount}>
               {open.length === 1 ? "1 åben" : `${open.length} åbne`}
             </Text>
           </View>
-          <View style={styles.openList}>
+          <View style={listStyles.openList}>
             {open.length === 0 ? (
-              <Text style={styles.empty}>Ingen åbne forbindelser.</Text>
+              <Text style={listStyles.empty}>Ingen åbne forbindelser.</Text>
             ) : (
               open.map((record) => (
                 <OpenRecordCard
@@ -129,19 +111,19 @@ export default function PatrolHistoryScreen() {
               ))
             )}
           </View>
-          <View style={[styles.sectionHeading, styles.closedHeading]}>
-            <Text style={styles.sectionTitle}>Lukkede forbindelser</Text>
-            <Text style={styles.closedCount}>
+          <View style={[listStyles.sectionHeading, listStyles.closedHeading]}>
+            <Text style={listStyles.sectionTitle}>Lukkede forbindelser</Text>
+            <Text style={listStyles.closedCount}>
               {closed.length === 1 ? "1 afsluttet" : `${closed.length} afsluttede`}
             </Text>
           </View>
-          <View style={styles.closedList}>
+          <View style={listStyles.closedList}>
             <ScrollView
-              style={styles.closedScroll}
-              contentContainerStyle={styles.listContent}
+              style={listStyles.closedScroll}
+              contentContainerStyle={listStyles.listContent}
             >
               {closed.length === 0 ? (
-                <Text style={styles.empty}>Ingen lukkede forbindelser.</Text>
+                <Text style={listStyles.empty}>Ingen lukkede forbindelser.</Text>
               ) : (
                 closed.map((record) => (
                   <ClosedRecordCard
@@ -153,7 +135,38 @@ export default function PatrolHistoryScreen() {
               )}
             </ScrollView>
           </View>
-          <Text style={styles.listNote}>Seneste forbindelser vises først.</Text>
+          <Text style={listStyles.listNote}>Seneste forbindelser vises først.</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+type HistoryStatusProps = {
+  loading: boolean;
+  error: string | null;
+  onRetry: () => Promise<void>;
+};
+
+/** Loading spinner or the steward-facing fetch error with a retry button. */
+function HistoryStatus({ loading, error, onRetry }: HistoryStatusProps) {
+  return (
+    <View style={styles.statusContent}>
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color="#940024" />
+          <Text style={styles.muted}>Henter historik...</Text>
+        </View>
+      ) : (
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable
+            style={styles.retry}
+            onPress={() => void onRetry()}
+            accessibilityRole="button"
+          >
+            <Text style={styles.retryText}>Prøv igen</Text>
+          </Pressable>
         </View>
       )}
     </View>
@@ -229,6 +242,10 @@ const styles = StyleSheet.create({
     color: "#656865",
     fontSize: 12,
   },
+});
+
+// list and card styles, kept in a separate sheet so each stays small
+const listStyles = StyleSheet.create({
   sectionHeading: {
     marginBottom: 10,
     flexDirection: "row",
