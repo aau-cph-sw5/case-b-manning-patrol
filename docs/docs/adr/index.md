@@ -21,7 +21,8 @@ numbering scheme.
 | [0008](0008-append-only-event-store-decision.md) | Append-only event store | Proposed | 2026-10-09 | MET-B-020 |
 | [0009](0009-late-arriving-report-rule.md) | Late-arriving report rule | Accepted | 2026-10-16 | MET-B-006 |
 | [0010](0010-patrol-completion.md) | Patrol completion | Proposed | 2026-10-16 | MET-B-007, 008, 009, 012–015, 024 |
-| [0011](00011-server-sent-events.md) | Server-sent events for live updates | Proposed | 2026-10-19 | MET-B-007–009, 012–015, 024 |
+| [0011](00011-server-sent-events.md) | Server-sent events for live updates | Superseded by [0012](0012-train-manning-stream.md) | 2026-10-19 | MET-B-007–009, 012–015, 024 |
+| [0012](0012-train-manning-stream.md) | Train manning on its own SSE stream | Proposed | 2026-11-05 | MET-B-011, 012 |
 
 ## Status Legend
 

@@ -75,5 +75,6 @@ nav:
     - "ADR-0009: Late-arriving report rule": adr/0009-late-arriving-report-rule.md
     - "ADR-0010: Patrol completion": adr/0010-patrol-completion.md
     - "ADR-0011: Server-sent events": adr/00011-server-sent-events.md
+    - "ADR-0012: Train manning stream": adr/0012-train-manning-stream.md
 
 copyright: MIT License
