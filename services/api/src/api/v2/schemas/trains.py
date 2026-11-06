@@ -10,7 +10,8 @@ from pydantic import BaseModel
 
 
 class TrainsUpdateTrain(BaseModel):
-    """Manned time of one train."""
+    """Update for a single train. Current steward IDs
+    are the IDs of the stewards currently on the train."""
 
     train_id: UUID
     slug: str
