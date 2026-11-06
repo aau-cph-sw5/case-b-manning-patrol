@@ -21,7 +21,6 @@ function dashboard(areas: Partial<Dashboard['stations'][0]['areas'][0]>[]): Dash
         })),
       },
     ],
-    trains: [],
     time: OVERDUE_AT,
   }
 }

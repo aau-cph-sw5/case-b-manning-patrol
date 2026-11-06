@@ -325,24 +325,30 @@
 							"$ref": "#/components/schemas/Train"
 						}
 					},
-					"manning_percent": {
-						"type": "number",
-						"nullable": true,
-						"description": "Manned-time ratio (0..1) over all trains: manned running time / total running time. Computed in the backend on every event; null when there is no running time.",
-						"example": 0.7
-					},
-					"m1m2_manning_percent": {
-						"type": "number",
-						"nullable": true,
-						"description": "Manned-time ratio (0..1) over trains whose line contains M1 or M2; null when that group has no running time.",
-						"example": 0.5
-					},
-					"m3m4_manning_percent": {
-						"type": "number",
-						"nullable": true,
-						"description": "Manned-time ratio (0..1) over trains whose line contains M3 or M4; null when that group has no running time.",
-						"example": 1.0
-					},
+				"manning_percent": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 100,
+					"nullable": true,
+					"description": "Manning percentage (0..100) over all trains: manned running time / total running time, expressed as a percentage. Computed in the backend on every event; null when there is no running time.",
+					"example": 70
+				},
+				"m1m2_manning_percent": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 100,
+					"nullable": true,
+					"description": "Manning percentage (0..100) over trains whose line contains M1 or M2; null when that group has no running time.",
+					"example": 50
+				},
+				"m3m4_manning_percent": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 100,
+					"nullable": true,
+					"description": "Manning percentage (0..100) over trains whose line contains M3 or M4; null when that group has no running time.",
+					"example": 100
+				},
 					"time": {
 						"type": "string",
 						"format": "date-time",
