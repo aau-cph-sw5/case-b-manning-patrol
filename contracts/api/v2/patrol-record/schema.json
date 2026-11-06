@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Patrol Record API",
 		"description": "Backend API contract for patrol records. A record bundles one steward's connection to one beacon: the connect event paired with its matching disconnect event, closed at the shift stop event, or left open while the steward is still connected. Records are served for the current shift only, filtered per steward. The steward's Android app uses them for its patrol history view.",
-		"version": "2.7.0"
+		"version": "2.8.0"
 	},
 	"servers": [
 		{
