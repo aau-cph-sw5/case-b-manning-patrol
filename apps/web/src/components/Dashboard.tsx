@@ -14,6 +14,7 @@ import {
 import { useNow } from '../hooks/useNow.ts'
 import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
+import { getAtRiskCount } from '../api/atRiskCountApi.ts'
 import { toViewStations } from '../api/dashboardMapper.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import { useTrainStream } from '../hooks/useTrainStream'
@@ -21,6 +22,9 @@ import Legend from './Legend.tsx'
 import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
 import './Dashboard.css'
+
+/** How often the at-risk episode count is refetched, in milliseconds. */
+const AT_RISK_COUNT_POLL_MS = 30_000
 
 function Dashboard() {
   const now = useNow()
@@ -48,6 +52,21 @@ function Dashboard() {
       .catch((error) => {
         console.error('Error fetching at-risk threshold:', error)
       })
+  }, [])
+
+  const [atRiskEpisodes, setAtRiskEpisodes] = useState<number | null>(0)
+
+  useEffect(() => {
+    const load = () =>
+      getAtRiskCount()
+        .then((count) => setAtRiskEpisodes(count.episodes))
+        .catch((error) => {
+          setAtRiskEpisodes(null)
+          console.error('Error fetching at-risk count:', error)
+        })
+    load()
+    const id = setInterval(load, AT_RISK_COUNT_POLL_MS)
+    return () => clearInterval(id)
   }, [])
 
   const handleRiskTimeChange = (value: number) => {
@@ -89,6 +108,9 @@ function Dashboard() {
       </header>
 
       <div className="legend-row">
+        <div className="nav-pill at-risk-total" role="status">
+          I risiko denne vagt ({atRiskEpisodes ?? '-'})
+        </div>
         {overdueCount > 0 && (
           <div className="nav-pill warn" role="status">
             <BsEmojiFrown className="smiley-icon" /> Overskredet stationer ({overdueCount})
