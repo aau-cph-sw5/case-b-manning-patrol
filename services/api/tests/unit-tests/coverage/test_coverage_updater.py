@@ -3,8 +3,10 @@ import contextlib
 import datetime
 import logging
 from datetime import timedelta
+from types import SimpleNamespace
 
 from src.domain.shift import Shift
+from src.services.station_coverage.at_risk_tracker import AtRiskTracker
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 
@@ -18,6 +20,9 @@ class FakeSession:
 
     async def commit(self):
         pass
+
+    async def get(self, model, id):
+        return SimpleNamespace(at_risk_threshold_minutes=15)
 
 
 class FakeService:
@@ -62,12 +67,14 @@ class FakeClock:
 def make_updater(clock_times):
     events = []
     service = FakeService()
-    tracker = FakeTracker(events)
+    overdue_tracker = FakeTracker(events)
+    at_risk_tracker = AtRiskTracker()
     publisher = FakePublisher(events)
     return (
         CoverageUpdater(
             service=service,  # ty: ignore[invalid-argument-type]
-            tracker=tracker,  # ty: ignore[invalid-argument-type]
+            overdue_tracker=overdue_tracker,  # ty: ignore[invalid-argument-type]
+            at_risk_tracker=at_risk_tracker,
             publisher=publisher,
             session_factory=lambda: FakeSession(),  # ty: ignore[invalid-argument-type]
             clock=FakeClock(clock_times),
