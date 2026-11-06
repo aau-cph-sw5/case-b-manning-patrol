@@ -46,7 +46,7 @@ export default function Index() {
     () =>
       createMockBeaconScanner({
         android_id: MOCK_ANDROID_ID,
-        beacon_ids: MOCK_BEACON_IDS.slice(0, 2),
+        beacon_ids: MOCK_BEACON_IDS,
       }),
     [],
   );
