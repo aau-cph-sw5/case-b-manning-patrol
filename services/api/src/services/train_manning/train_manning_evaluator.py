@@ -5,8 +5,8 @@ from src.domain.train_manning import TrainManningReport, TrainReference
 
 
 class TrainManningEvaluator:
+    @staticmethod
     def evaluate(
-        self,
         train: TrainReference,
         intervals: list[StewardPatrolInterval],
         shift_start_time: datetime,
@@ -17,7 +17,7 @@ class TrainManningEvaluator:
             for interval in intervals
         ]
         manned_time = sum(
-            (span.end - span.start for span in self._union(spans)),
+            (span.end - span.start for span in TrainManningEvaluator._union(spans)),
             timedelta(0),
         )
         running_time = now - shift_start_time
@@ -34,7 +34,8 @@ class TrainManningEvaluator:
             as_of=now,
         )
 
-    def _union(self, spans: list[TimeSpan]) -> list[TimeSpan]:
+    @staticmethod
+    def _union(spans: list[TimeSpan]) -> list[TimeSpan]:
         merged: list[TimeSpan] = []
         for span in sorted(spans, key=lambda span: span.start):
             if merged and merged[-1].touches(span):

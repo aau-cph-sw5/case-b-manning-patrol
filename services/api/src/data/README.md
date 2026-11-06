@@ -94,7 +94,7 @@ separate ADR.
 
 `shifts.v1.json` defines when the night shift runs. Coverage is computed per
 shift: `CoverageUpdater` reads the file once at startup through
-`ShiftSchedule.from_file` (`src/services/coverage/shift_schedule.py`).
+`ShiftSchedule.from_file` (`src/services/shared/shift_schedule.py`).
 
 | Field | Meaning |
 |---|---|
