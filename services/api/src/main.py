@@ -14,7 +14,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.db.repository.train import get_train_lines, get_trains
 from src.services.event_producer import EventValidationError, TargetEventNotFoundError
+from src.services.shared.interval_builder import IntervalBuilder
+from src.services.shared.shift_schedule import ShiftSchedule
+from src.services.station_coverage.at_risk_tracker import AtRiskTracker
 from src.services.station_coverage.coverage_clock_tick import CoverageClockTick
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_updater import CoverageUpdater
@@ -24,9 +28,7 @@ from src.services.station_coverage.coverage_window import (
     CoverageWindow,
 )
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
-from src.services.station_coverage.interval_builder import IntervalBuilder
 from src.services.station_coverage.overdue_tracker import OverdueTracker
-from src.services.station_coverage.shift_schedule import ShiftSchedule
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 from src.services.train_manning.train_manning_clock_tick import TrainManningClockTick
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
@@ -38,17 +40,20 @@ from src.services.train_manning.train_manning_updater import (
     TrainManningDeps,
     TrainManningUpdater,
 )
+from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 
 from .api.v2.routers import (
     adjustment,
+    at_risk_tracker,
     config,
     connection,
     dashboard_stream,
     health,
     patrol_record,
     patrol_session,
+    trains_stream,
 )
-from .db.ingest import load_stations
+from .db.ingest import load_reference_data
 from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
 
@@ -57,18 +62,21 @@ API_PREFIX_V2 = "/api/v2"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Set up the database and coverage pipeline, and shut them down on exit.
+    """Set up the database, coverage and train manning pipelines; stop them on exit.
 
-    Creates missing tables, reloads stations from the data file, computes
-    coverage once and starts the 5-second clock tick. The coverage updater,
-    SSE broadcaster and dashboard presenter are put on ``app.state`` for the
-    routers.
+    Creates missing tables, reloads stations and trains from the data files,
+    computes coverage and train manning once and starts a 5-second clock tick
+    for each. The updaters, SSE broadcasters and presenters are put on
+    ``app.state`` for the dashboard and trains stream routers.
     """
     await init_db()
     async with AsyncSession(engine) as session:
-        await load_stations(session)
+        await load_reference_data(session)
         dashboard_presenter = DashboardPresenter(
             await get_stations(session), await get_station_lines(session)
+        )
+        trains_update_presenter = TrainsUpdatePresenter(
+            await get_trains(session), await get_train_lines(session)
         )
 
     builder = IntervalBuilder()
@@ -79,10 +87,12 @@ async def lifespan(app: FastAPI):
     shift_schedule = ShiftSchedule.from_file()
     sse_broadcaster = SseCoverageBroadcaster()
     overdue_tracker = OverdueTracker()
+    at_risk_tracker = AtRiskTracker()
     service = CoverageService(builder, rule)
     coverage_updater = CoverageUpdater(
         service=service,
-        tracker=overdue_tracker,
+        overdue_tracker=overdue_tracker,
+        at_risk_tracker=at_risk_tracker,
         publisher=sse_broadcaster,
         session_factory=lambda: AsyncSession(engine),
         clock=lambda: datetime.now(UTC),
@@ -98,7 +108,6 @@ async def lifespan(app: FastAPI):
             shift_schedule=shift_schedule,
         ),
     )
-
     await coverage_updater.refresh()
     await train_manning_updater.refresh()
     coverage_tick = asyncio.create_task(
@@ -113,6 +122,8 @@ async def lifespan(app: FastAPI):
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
+    app.state.trains_update_presenter = trains_update_presenter
+    app.state.shift_schedule = shift_schedule
 
     yield
     coverage_tick.cancel()
@@ -169,12 +180,14 @@ app.add_middleware(
 )
 
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
+app.include_router(at_risk_tracker.router, prefix=API_PREFIX_V2)
 app.include_router(config.router, prefix=API_PREFIX_V2)
 app.include_router(dashboard_stream.router, prefix=API_PREFIX_V2)
 app.include_router(health.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_record.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 app.include_router(connection.router, prefix=API_PREFIX_V2)
+app.include_router(trains_stream.router, prefix=API_PREFIX_V2)
 
 
 @app.get("/ping")

@@ -1,4 +1,5 @@
 from .adjustment import Adjustment, AdjustmentBase
+from .at_risk_log import AtRiskLogEntry
 from .config import Config
 from .event import Event
 from .line import Line
@@ -12,6 +13,7 @@ from .train_line import TrainLine
 __all__ = [
     "Adjustment",
     "AdjustmentBase",
+    "AtRiskLogEntry",
     "Config",
     "Event",
     "Line",
