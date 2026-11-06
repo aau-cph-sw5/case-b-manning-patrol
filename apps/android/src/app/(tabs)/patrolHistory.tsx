@@ -8,9 +8,12 @@
  * each second via {@link useNow} so the open records' timers stay honest.
  *
  * Layout: the screen itself never scrolls. The open-connections box (green
- * panel) is fixed at the top, and the closed-connections box (grey panel)
- * fills the remaining space below it. Each box scrolls its own cards
- * internally, so thumb-scrolling inside a box never moves the main screen.
+ * panel) sits at the top and grows with its cards — up to five open
+ * connections are shown at a glance without any scrolling — so the box is
+ * flexible rather than fixed. The closed-connections box (grey panel) is
+ * pushed down as the open box expands and fills all remaining space; it
+ * scrolls its own cards internally, so thumb-scrolling inside it never
+ * moves the main screen.
  */
 
 import { Stack, useFocusEffect } from "expo-router";
@@ -31,17 +34,16 @@ import { useNow } from "@/hooks/useNow";
 import { usePatrolRecords } from "@/hooks/usePatrolRecords";
 import { formatDayLabel, splitRecords } from "@/utils/patrolRecord";
 
-/** Cap on the open-connections box so the closed box always stays on screen. */
-const OPEN_LIST_MAX_HEIGHT = 280;
-
 /**
  * Render the patrol history screen.
  *
  * While the first fetch is in flight a loading indicator is shown; a failed
  * fetch renders the hook's Danish error with a retry button, and previously
  * fetched records stay on screen while a refetch fails. Once records are
- * shown, the open box stays fixed at the top and the closed box scrolls its
- * cards internally.
+ * shown, the open box grows flexibly with its cards (no internal scrolling,
+ * so all open connections are visible at a glance) and pushes the closed box
+ * down; the closed box fills the remaining space and scrolls its cards
+ * internally.
  */
 export default function PatrolHistoryScreen() {
   const { records, loading, error, refetch } = usePatrolRecords();
@@ -107,22 +109,17 @@ export default function PatrolHistoryScreen() {
             </Text>
           </View>
           <View style={styles.openList}>
-            <ScrollView
-              style={styles.openScroll}
-              contentContainerStyle={styles.listContent}
-            >
-              {open.length === 0 ? (
-                <Text style={styles.empty}>Ingen åbne forbindelser.</Text>
-              ) : (
-                open.map((record) => (
-                  <OpenRecordCard
-                    key={`${record.beaconId}-${record.startedAt.getTime()}`}
-                    record={record}
-                    now={now}
-                  />
-                ))
-              )}
-            </ScrollView>
+            {open.length === 0 ? (
+              <Text style={styles.empty}>Ingen åbne forbindelser.</Text>
+            ) : (
+              open.map((record) => (
+                <OpenRecordCard
+                  key={`${record.beaconId}-${record.startedAt.getTime()}`}
+                  record={record}
+                  now={now}
+                />
+              ))
+            )}
           </View>
           <View style={[styles.sectionHeading, styles.closedHeading]}>
             <Text style={styles.sectionTitle}>Lukkede forbindelser</Text>
@@ -253,12 +250,9 @@ const styles = StyleSheet.create({
   },
   openList: {
     padding: 8,
+    gap: 8,
     borderRadius: 20,
     backgroundColor: "#d9f0e3",
-  },
-  openScroll: {
-    flexGrow: 0,
-    maxHeight: OPEN_LIST_MAX_HEIGHT,
   },
   closedList: {
     flex: 1,
