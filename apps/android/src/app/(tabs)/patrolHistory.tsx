@@ -36,6 +36,7 @@ import { OpenRecordCard } from "@/components/OpenRecordCard";
 import PatrolHistoryHeader from "@/components/PatrolHistoryHeader";
 import { useNow } from "@/hooks/useNow";
 import { usePatrolRecords } from "@/hooks/usePatrolRecords";
+import type { Record } from "@/types/patrol_records/record";
 import { formatDayLabel, splitRecords } from "@/utils/patrolRecord";
 
 /** How many closed-connection cards the grey box shows before scrolling internally. */
@@ -61,8 +62,167 @@ const CLOSED_LIST_FALLBACK_HEIGHT = 520;
 export default function PatrolHistoryScreen() {
   const { records, loading, error, refetch } = usePatrolRecords();
   const now = useNow();
-  const [closedCardHeight, setClosedCardHeight] = useState(0);
+  useFocusEffect(() => {
+    void refetch();
+  });
 
+  const { open, closed } = splitRecords(records);
+  const statusOnly = records.length === 0 && (loading || error !== null);
+
+  return (
+    <View style={styles.screen}>
+      <Stack.Screen options={{ title: "Patruljehistorik" }} />
+      <PatrolHistoryHeader />
+      {statusOnly ? (
+        <HistoryStatus loading={loading} error={error} onRetry={refetch} />
+      ) : (
+        <HistoryRecords
+          open={open}
+          closed={closed}
+          now={now}
+          error={error}
+          recordCount={records.length}
+          onRetry={refetch}
+        />
+      )}
+    </View>
+  );
+}
+
+type HistoryStatusProps = {
+  loading: boolean;
+  error: string | null;
+  onRetry: () => Promise<void>;
+};
+
+function HistoryStatus({ loading, error, onRetry }: HistoryStatusProps) {
+  return (
+    <View style={styles.statusContent}>
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color="#940024" />
+          <Text style={styles.muted}>Henter historik...</Text>
+        </View>
+      ) : (
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable
+            style={styles.retry}
+            onPress={() => void onRetry()}
+            accessibilityRole="button"
+          >
+            <Text style={styles.retryText}>Prøv igen</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+}
+
+type HistoryRecordsProps = {
+  open: Record[];
+  closed: Record[];
+  now: number;
+  error: string | null;
+  recordCount: number;
+  onRetry: () => Promise<void>;
+};
+
+function HistoryRecords({
+  open,
+  closed,
+  now,
+  error,
+  recordCount,
+  onRetry,
+}: HistoryRecordsProps) {
+  const connectionCount =
+    recordCount === 1 ? "1 forbindelse" : `${recordCount} forbindelser`;
+
+  return (
+    <View style={styles.body}>
+      <HistoryStatusArea
+        error={error}
+        connectionCount={connectionCount}
+        now={now}
+        onRetry={onRetry}
+      />
+      <ScrollView
+        style={styles.page}
+        contentContainerStyle={styles.pageContent}
+        keyboardDismissMode="on-drag"
+      >
+        <OpenRecordsSection records={open} now={now} />
+        <ClosedRecordsSection records={closed} now={now} />
+        <Text style={recordStyles.listNote}>Seneste forbindelser vises først.</Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+type HistoryStatusAreaProps = {
+  error: string | null;
+  connectionCount: string;
+  now: number;
+  onRetry: () => Promise<void>;
+};
+
+function HistoryStatusArea({
+  error,
+  connectionCount,
+  now,
+  onRetry,
+}: HistoryStatusAreaProps) {
+  return (
+    <View style={styles.statusArea}>
+      {error !== null ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable
+            onPress={() => void onRetry()}
+            accessibilityRole="button"
+            hitSlop={8}
+          >
+            <Text style={styles.retryText}>Prøv igen</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <View style={styles.dateRow}>
+        <Text style={styles.dateLabel}>I dag · {formatDayLabel(new Date(now))}</Text>
+        <Text style={styles.dateCount}>{connectionCount}</Text>
+      </View>
+    </View>
+  );
+}
+
+function OpenRecordsSection({ records, now }: { records: Record[]; now: number }) {
+  return (
+    <>
+      <View style={recordStyles.sectionHeading}>
+        <Text style={recordStyles.sectionTitle}>Åbne forbindelser</Text>
+        <Text style={recordStyles.openCount}>
+          {records.length === 1 ? "1 åben" : `${records.length} åbne`}
+        </Text>
+      </View>
+      <View style={recordStyles.openList}>
+        {records.length === 0 ? (
+          <Text style={recordStyles.empty}>Ingen åbne forbindelser.</Text>
+        ) : (
+          records.map((record) => (
+            <OpenRecordCard
+              key={`${record.beaconId}-${record.startedAt.getTime()}`}
+              record={record}
+              now={now}
+            />
+          ))
+        )}
+      </View>
+    </>
+  );
+}
+
+function ClosedRecordsSection({ records, now }: { records: Record[]; now: number }) {
+  const [closedCardHeight, setClosedCardHeight] = useState(0);
   const closedListMaxHeight =
     closedCardHeight > 0
       ? CLOSED_CARDS_VISIBLE * closedCardHeight +
@@ -74,114 +234,35 @@ export default function PatrolHistoryScreen() {
     setClosedCardHeight(event.nativeEvent.layout.height);
   };
 
-  useFocusEffect(() => {
-    void refetch();
-  });
-
-  const { open, closed } = splitRecords(records);
-  const connectionCount =
-    records.length === 1 ? "1 forbindelse" : `${records.length} forbindelser`;
-  const statusOnly = records.length === 0 && (loading || error !== null);
-
   return (
-    <View style={styles.screen}>
-      <Stack.Screen options={{ title: "Patruljehistorik" }} />
-      <PatrolHistoryHeader />
-      {statusOnly ? (
-        <View style={styles.statusContent}>
-          {loading ? (
-            <View style={styles.center}>
-              <ActivityIndicator color="#940024" />
-              <Text style={styles.muted}>Henter historik...</Text>
-            </View>
+    <>
+      <View style={[recordStyles.sectionHeading, recordStyles.closedHeading]}>
+        <Text style={recordStyles.sectionTitle}>Lukkede forbindelser</Text>
+        <Text style={recordStyles.closedCount}>
+          {records.length === 1 ? "1 afsluttet" : `${records.length} afsluttede`}
+        </Text>
+      </View>
+      <View style={recordStyles.closedList}>
+        <ScrollView
+          style={[recordStyles.closedScroll, { maxHeight: closedListMaxHeight }]}
+          contentContainerStyle={recordStyles.listContent}
+          nestedScrollEnabled
+        >
+          {records.length === 0 ? (
+            <Text style={recordStyles.empty}>Ingen lukkede forbindelser.</Text>
           ) : (
-            <View style={styles.center}>
-              <Text style={styles.errorText}>{error}</Text>
-              <Pressable
-                style={styles.retry}
-                onPress={() => void refetch()}
-                accessibilityRole="button"
+            records.map((record, index) => (
+              <View
+                key={`${record.beaconId}-${record.startedAt.getTime()}`}
+                onLayout={index === 0 ? handleClosedCardLayout : undefined}
               >
-                <Text style={styles.retryText}>Prøv igen</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
-      ) : (
-        <View style={styles.body}>
-          <View style={styles.statusArea}>
-            {error !== null ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorText}>{error}</Text>
-                <Pressable
-                  onPress={() => void refetch()}
-                  accessibilityRole="button"
-                  hitSlop={8}
-                >
-                  <Text style={styles.retryText}>Prøv igen</Text>
-                </Pressable>
+                <ClosedRecordCard record={record} now={now} />
               </View>
-            ) : null}
-            <View style={styles.dateRow}>
-              <Text style={styles.dateLabel}>I dag · {formatDayLabel(new Date(now))}</Text>
-              <Text style={styles.dateCount}>{connectionCount}</Text>
-            </View>
-          </View>
-          <ScrollView
-            style={styles.page}
-            contentContainerStyle={styles.pageContent}
-            keyboardDismissMode="on-drag"
-          >
-            <View style={styles.sectionHeading}>
-              <Text style={styles.sectionTitle}>Åbne forbindelser</Text>
-              <Text style={styles.openCount}>
-                {open.length === 1 ? "1 åben" : `${open.length} åbne`}
-              </Text>
-            </View>
-            <View style={styles.openList}>
-              {open.length === 0 ? (
-                <Text style={styles.empty}>Ingen åbne forbindelser.</Text>
-              ) : (
-                open.map((record) => (
-                  <OpenRecordCard
-                    key={`${record.beaconId}-${record.startedAt.getTime()}`}
-                    record={record}
-                    now={now}
-                  />
-                ))
-              )}
-            </View>
-            <View style={[styles.sectionHeading, styles.closedHeading]}>
-              <Text style={styles.sectionTitle}>Lukkede forbindelser</Text>
-              <Text style={styles.closedCount}>
-                {closed.length === 1 ? "1 afsluttet" : `${closed.length} afsluttede`}
-              </Text>
-            </View>
-            <View style={styles.closedList}>
-              <ScrollView
-                style={[styles.closedScroll, { maxHeight: closedListMaxHeight }]}
-                contentContainerStyle={styles.listContent}
-                nestedScrollEnabled
-              >
-                {closed.length === 0 ? (
-                  <Text style={styles.empty}>Ingen lukkede forbindelser.</Text>
-                ) : (
-                  closed.map((record, index) => (
-                    <View
-                      key={`${record.beaconId}-${record.startedAt.getTime()}`}
-                      onLayout={index === 0 ? handleClosedCardLayout : undefined}
-                    >
-                      <ClosedRecordCard record={record} now={now} />
-                    </View>
-                  ))
-                )}
-              </ScrollView>
-            </View>
-            <Text style={styles.listNote}>Seneste forbindelser vises først.</Text>
-          </ScrollView>
-        </View>
-      )}
-    </View>
+            ))
+          )}
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
@@ -261,6 +342,9 @@ const styles = StyleSheet.create({
     color: "#656865",
     fontSize: 12,
   },
+});
+
+const recordStyles = StyleSheet.create({
   sectionHeading: {
     marginBottom: 10,
     flexDirection: "row",
