@@ -49,6 +49,10 @@
   background: #e40037;
 }
 
+.nav-pill.at-risk-total {
+  background: #474e5f;
+}
+
 .nav-pill .smiley-icon {
   font-size: 20px;
 }
