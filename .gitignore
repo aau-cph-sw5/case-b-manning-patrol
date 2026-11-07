@@ -59,3 +59,9 @@ site/
 
 # OS files
 Thumbs.db
+
+# Figma scratch context, never commit
+temp-mistral-context-view/
+
+# Local todo list
+TODO.txt

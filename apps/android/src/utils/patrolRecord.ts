@@ -55,3 +55,54 @@ export function formatTimeOfDay(date: Date): string {
     .map((part) => String(part).padStart(2, "0"))
     .join(":");
 }
+
+/** Danish month names, indexed by `Date.getMonth()`, for day labels. */
+const MONTH_NAMES = [
+  "januar",
+  "februar",
+  "marts",
+  "april",
+  "maj",
+  "juni",
+  "juli",
+  "august",
+  "september",
+  "oktober",
+  "november",
+  "december",
+];
+
+/**
+ * Format a date as a Danish day label, e.g. "26. oktober 2026".
+ *
+ * Uses the device's time zone, like {@link formatTimeOfDay}.
+ */
+export function formatDayLabel(date: Date): string {
+  return `${date.getDate()}. ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+/**
+ * Return how long a record lasted in whole seconds.
+ *
+ * Closed records carry the server's `durationSecs`; when it is missing the
+ * span is computed from `endedAt - startedAt` and clamped at zero. A record
+ * with neither counts as zero seconds.
+ */
+export function recordDurationSecs(record: Record): number {
+  if (record.durationSecs !== null) return record.durationSecs;
+  if (record.endedAt !== null) {
+    return Math.max(0, (record.endedAt.getTime() - record.startedAt.getTime()) / 1000);
+  }
+  return 0;
+}
+
+/**
+ * Format whole seconds as a short Danish duration: "45 sek" under a minute,
+ * otherwise "12 min" rounded to the nearest minute. Negative input shows as
+ * zero.
+ */
+export function formatDurationSecs(totalSecs: number): string {
+  const secs = Math.max(0, Math.round(totalSecs));
+  if (secs < 60) return `${secs} sek`;
+  return `${Math.round(secs / 60)} min`;
+}
