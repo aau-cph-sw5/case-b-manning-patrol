@@ -4,7 +4,8 @@
 // only ever see the camelCase RecordList type. resolves with the records once
 // the server answers
 // 200 and rejects otherwise, including when the server
-// cannot be reached at all.
+// cannot be reached or does not answer within the fetch timeout.
+import { fetchWithTimeout } from "@/api/fetchWithTimeout";
 import { RecordListSchema, type RecordList } from "@/types/patrol_records/record";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -14,7 +15,7 @@ export async function getPatrolRecords(androidId: string): Promise<RecordList> {
 
   console.log(`GET ${url}`);
 
-  const response = await fetch(url);
+  const response = await fetchWithTimeout(url);
   if (!response.ok) {
     throw new Error(`the backend rejected the record request: ${response.status}`);
   }

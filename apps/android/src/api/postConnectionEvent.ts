@@ -4,6 +4,7 @@
  *
  * The endpoint says what happened, so the body carries no event field.
  */
+import { fetchWithTimeout } from "@/api/fetchWithTimeout";
 import type { BeaconConnectionEvent } from "@/types/beacon";
 import { ConnectionEvent } from "@/types/connection/connectionEvent";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
@@ -37,7 +38,7 @@ export async function postConnectionEvent(event: BeaconConnectionEvent): Promise
 
     console.log(`POST /api/v2/connection/${action} ${JSON.stringify(body)}`);
 
-    const response = await fetch(`${API_BASE_URL}/api/v2/connection/${action}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v2/connection/${action}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

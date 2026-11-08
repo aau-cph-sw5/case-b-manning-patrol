@@ -2,18 +2,50 @@
 // shift, fetched from the backend on mount and re-fetched through refetch()
 // when the screen regains focus (the reconcile step of the patrol-record
 // contract, contracts/api/v2/patrol-record). a failed fetch keeps the last
-// good list, so a dropped connection never blanks the history.
+// good list, so a dropped connection never blanks the history. a successful
+// fetch also re-sends pending connection events (services/pendingEventSync)
+// and fetches once more, so pendings (state/pendingRecords) whose events the
+// backend never received are retired instead of staying pending forever; the
+// screen merges the rest back in at render time. refetch also fires whenever
+// an ingestion POST is acknowledged (state/recordRefresh), so the history
+// reconciles right after each connect/disconnect without polling.
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getPatrolRecords } from "@/api/getPatrolRecords";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
-import type { Record } from "@/types/patrol_records/record";
+import { retryPendingConnectionEvents } from "@/services/pendingEventSync";
+import { removeReconciledPendingRecords } from "@/state/pendingRecords";
+import { getRecordsVersion } from "@/state/recordRefresh";
+import type { Record, RecordList } from "@/types/patrol_records/record";
 
 // For a real-device build, restore DeviceInfo.getAndroidId(); Expo Go uses the mock ID.
 const STEWARD_ID = MOCK_ANDROID_ID;
 
 // shown to the steward. the api's own error message is meant for developers.
 const FETCH_ERROR = "Kunne ikke hente historikken. Prøv igen.";
+
+/**
+ * Re-send pending connection events after a successful fetch, then fetch once
+ * more so the stored records retire their pendings.
+ *
+ * A successful fetch means the backend is reachable again. The retry runs
+ * before the follow-up fetch's reconcile, otherwise a still-open server record
+ * would drop a pending closed whose disconnect was never delivered.
+ */
+async function flushPendingsAfterFetch(
+  isCancelled: () => boolean,
+  applyList: (list: RecordList) => void,
+): Promise<void> {
+  const sent = await retryPendingConnectionEvents();
+  if (sent === 0 || isCancelled()) return;
+  try {
+    const fresh = await getPatrolRecords(STEWARD_ID);
+    if (isCancelled()) return;
+    applyList(fresh);
+  } catch {
+    // keep the list we already have; the pendings retry on the next success
+  }
+}
 
 export type UsePatrolRecordsResult = {
   records: Record[];
@@ -34,6 +66,20 @@ export function usePatrolRecords(): UsePatrolRecordsResult {
   // a focus refetch can land while the mount fetch is still running; this stops a second request
   const requestInFlight = useRef(false);
 
+  // the fetch is the reconcile step: server records retire matching pendings
+  const applyList = useCallback((list: RecordList) => {
+    removeReconciledPendingRecords(list.records);
+    setRecords(list.records);
+    setServerTime(list.time);
+  }, []);
+
+  // re-send the events the backend never acknowledged, then fetch once more so
+  // those stored records retire their pendings (see flushPendingsAfterFetch)
+  const flushPendings = useCallback(
+    (isCancelled: () => boolean) => flushPendingsAfterFetch(isCancelled, applyList),
+    [applyList],
+  );
+
   // the mount fetch reports through the promise callbacks, so the effect
   // body itself never calls setState
   useEffect(() => {
@@ -43,10 +89,10 @@ export function usePatrolRecords(): UsePatrolRecordsResult {
       (list) => {
         requestInFlight.current = false;
         if (cancelled) return;
-        setRecords(list.records);
-        setServerTime(list.time);
+        applyList(list);
         setError(null);
         setLoading(false);
+        void flushPendings(() => cancelled);
       },
       () => {
         requestInFlight.current = false;
@@ -58,7 +104,7 @@ export function usePatrolRecords(): UsePatrolRecordsResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyList, flushPendings]);
 
   const refetch = useCallback(async () => {
     if (requestInFlight.current) return;
@@ -67,15 +113,29 @@ export function usePatrolRecords(): UsePatrolRecordsResult {
     setError(null);
     try {
       const list = await getPatrolRecords(STEWARD_ID);
-      setRecords(list.records);
-      setServerTime(list.time);
+      applyList(list);
+      void flushPendings(() => false);
     } catch {
       setError(FETCH_ERROR);
     } finally {
       requestInFlight.current = false;
       setLoading(false);
     }
-  }, []);
+  }, [applyList, flushPendings]);
+
+  // event-driven reconcile (patrol-record contract: re-fetch when an ingestion
+  // request is acknowledged): useBeaconScanner bumps the version on every
+  // acked connect/disconnect POST. The effect runs on every render — the
+  // screen ticks each second via useNow — but only fires a request when the
+  // version actually changed, so there is no per-second polling.
+  const lastSeenVersion = useRef(getRecordsVersion());
+  useEffect(() => {
+    const version = getRecordsVersion();
+    if (version !== lastSeenVersion.current) {
+      lastSeenVersion.current = version;
+      void refetch();
+    }
+  });
 
   return { records, serverTime, loading, error, refetch };
 }
