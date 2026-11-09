@@ -1,10 +1,133 @@
 # Changelog
 
+## v2.8.0 - Positioning Interface: at-risk episode count per shift
+- Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
+  `AtRiskCount` — how many areas have been at-risk during a shift. An area is
+  at-risk when the remaining time until its `overdue_at` falls within the
+  configured `at_risk_threshold_minutes`.
+- The count is per episode: an area that is patrolled and later becomes
+  at-risk again counts as a new episode. Overdue areas are not counted
+  separately, since they passed through at-risk first.
+- The optional `shift_start` query parameter (ISO 8601 with offset) selects
+  the shift to count for. Without it, the endpoint returns the count for the
+  latest shift from the server's shift schedule — for example, last night's
+  shift when asked for in the morning.
+- The backend counts episodes during the same 5-second coverage recompute
+  that feeds `/api/v2/dashboard/stream`; there is no separate counting job.
+  Each counted episode is written to the database, so the number survives a
+  server restart in the middle of a shift without counting anything twice.
+- The control room dashboard uses this for the night shift's at-risk
+  statistics.
+  
+
+## v2.7.0 - Positioning Interface: manning percentages are 0..100 instead of 0..1
+- Positioning Interface: `TrainsUpdate.manning_percent`, `m1m2_manning_percent`
+  and `m3m4_manning_percent` are now percentages in the range 0..100 (e.g. 70
+  means 70% manned) instead of manned-time ratios in 0..1. Still null when the
+  group has no running time.
+
+## v2.6.0 - Positioning Interface: per-train time fields removed from `Train`
+- Positioning Interface: `Train.manned_time_secs` and `Train.total_time_secs`
+  removed from `TrainsUpdate` payloads — the per-train second counts are no
+  longer exposed; only the aggregate `manning_percent` /
+  `m1m2_manning_percent` / `m3m4_manning_percent` ratios (0..1) remain.
+
+## v2.5.0 - Patrol Record: `status` is `open` | `closed`
+- Patrol Record: `Record.status` changed from `"pending"` | `"registered"` to
+  `"open"` | `"closed"`, matching the record's lifecycle: open while the connection
+  runs, closed once the disconnect event is stored. No client consumes the field
+  yet, so the rename is made in v2 rather than a new major version.
+- Patrol Record: `Record.duration_secs` is no longer nullable. Open records state
+  the duration as of the response time (`time - started_at`), like `patrolled`;
+  clients still render their own running timer from `started_at`.
+  
+## v2.4.0 - Positioning Interface: separate trains stream with manning percentages; `line` and `current_steward_ids` on Train
+- Positioning Interface: new SSE endpoint `GET /api/v2/trains/stream` — every
+  message is an SSE event named `trains` whose `data` is a `TrainsUpdate`
+  (`trains: Train[]`, `manning_percent`, `m1m2_manning_percent`,
+  `m3m4_manning_percent`, `time`). The percentages are manned-time ratios
+  (0..1, null when the group has no running time) computed in the backend on
+  every event from the event-derived reports — never stored on the train,
+  since trains are not persisted state. `Dashboard` is stations-only again
+  (`stations`, `time`), so the steward Android app only ever receives stations.
+- Positioning Interface: `Train` gained a required `line: string[]` field — the
+  metro lines the train serves (e.g. `["M1", "M2"]`, same convention as
+  `Area.line` from v2.2.0) — so the dashboard can group manned trains per line
+  (M1M2 / M3M4).
+- Positioning Interface: `Train.current_steward_id` (UUID | null) changed to
+  `Train.current_steward_ids` (UUID[]) so multiple stewards on one train are
+  all visible; empty array means unmanned.
+- `Dashboard.trains` was previously always emitted empty, so no published
+  interface breaks.
+
+## v2.3.0 - Patrol Record API contract; connect acknowledgement returns the area
+- Added the Patrol Record API contract (`patrol-record/`): `GET /api/v2/record?android_id={id}`
+  returns `RecordList`, one steward's patrol records for the current shift only.
+- Each `Record` bundles one connect event with its matching disconnect event (closed
+  at the shift stop event, or left open while the steward is still connected),
+  resolves the beacon to its `RecordArea`, and states `min_patrol_duration_secs`
+  (10 for platform, 20 for concourse), whether that threshold has been passed
+  (`patrolled`), and a `status` of `pending` (connection still running) or
+  `registered` (disconnect event stored, closing the record).
+- The steward's Android app uses this for its patrol history view: pending records
+  as current connections with a client-side running timer, registered records as
+  closed records with their duration.
+- Positioning Ingestion: the `POST /api/v2/connection/connect` 201 acknowledgement
+  now returns the stored event plus the beacon's resolved area
+  (`connect-event-stored`), so the client can display where it is immediately
+  instead of a pending placeholder. The body was previously unspecified, so no
+  published interface breaks.
+- Positioning Ingestion: the 201 acknowledgements now specify their bodies via
+  `stored-event` (and `connect-event-stored` for connect). The
+  `POST /api/v2/connection/disconnect` acknowledgement registers the record
+  server-side — the moment the record's status becomes `registered`.
+
+## v2.2.0 - Positioning Interface: `line` is an array of strings
+- Positioning Interface: `Area.line` changed from a single string (e.g.
+  `"M1 & M2"`) to an array of line ids (e.g. `["M1", "M2"]`). The field was
+  introduced in the unpublished v2.0.1 draft, so no published interface breaks.
+
+## v2.1.0 - Positioning Interface: updatable at-risk threshold in minutes & Health API contract
+- Positioning Interface: added `POST /api/v2/config/at-risk-threshold` to update
+  the at-risk threshold; it accepts an `AtRiskThreshold` body and returns the
+  updated `AtRiskThreshold`.
+- Positioning Interface: `AtRiskThreshold.at_risk_threshold_secs` renamed to
+  `at_risk_threshold_minutes`; the threshold is now expressed in minutes
+  instead of seconds. The field was introduced in the unpublished v2.0.1
+  draft, so no published interface breaks.
+- Added the Health API contract (`health/`): `GET /api/v2/health` reports that the backend is running, and `GET /api/v2/health/db` verifies the database connection.
+- The backend serves both endpoints under `/api/v2`; the v1 health routes are removed.
+
 ## v2.0.1 - Initial draft (unpublished)
+- Positioning Interface: replaced `GET /api/v2/dashboard`,
+  `GET /api/v2/stations/{stationID}`, `GET /api/v2/trains/{trainID}`,
+  `WS /stationUpdate` and `WS /trainUpdate` with a single SSE stream,
+  `GET /api/v2/dashboard/stream`, consumed by the control room and the Android
+  app. Every event holds the full dashboard, including the stations and trains
+  that did not change, and is sent on every recompute (agreed in the nexus
+  sprint meeting).
+- Positioning Interface: `DashboardResponse` renamed to `Dashboard` and given a
+  `time` field (when the event was sent). `StationResponse` and
+  `TrainResponse` removed.
+- Positioning Interface: `Station.slug` and `Station.station_name` replaced by
+  `name`.
+- Positioning Interface: `Station.station_id` is a plain string (for example
+  `"STN-001"`), not a UUID, matching the station dataset the backend serves.
+- Positioning Interface: added `GET /api/v2/config/at-risk-threshold` returning
+  `AtRiskThreshold` with `at_risk_threshold_secs` — how much time must remain
+  before an area becomes overdue for it to be considered at-risk.
+- Positioning Interface: `StationArea` replaced by `Area` with `area_id`,
+  `name`, `line`, `area_type`, `covered_now` and `overdue_at`. `beacon_id`,
+  `slug`, `last_manned_at`, `current_steward_id` and `status` removed.
+- `POST /api/v2/patrol-session/stop` now also closes open connections: the
+  server appends a disconnect event (stamped with the stop `timestamp`) for
+  every connect event of that `android_id` that has no matching disconnect,
+  so clients no longer need to POST `/connection/disconnect` when a session
+  ends.
 - Draft of Adjustment Event API contract for group review. Not yet published.
 - `POST /api/v2/adjustment` appends a manual correction to the append-only
   event store; there is no update or delete path.
-- `AdjustmentEventCreate` request: `actor`, optional `target_event_id` (an
+- `AdjustmentEventCreate` request: `android_id`, optional `target_event_id` (an
   adjustment may point at another adjustment), a `corrected_fact` in the same
   vocabulary as the ingestion events, and the mandatory `reason` and `author`
   audit fields.

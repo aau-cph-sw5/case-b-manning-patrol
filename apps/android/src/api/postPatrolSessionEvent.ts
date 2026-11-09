@@ -1,17 +1,28 @@
-// the backend requests for starting and stopping a steward's patrol session, per
-// contracts/positioning-ingestion/v2. this is the only file that knows how sessions reach
-// the server; useSession calls it and turns a rejection into the steward's message.
-// each function resolves once the server has accepted the request (201) and rejects
-// otherwise, including when the server cannot be reached at all.
-//
-// the contract's PatrolSessionEvenet carries only the device id: the startedAt stays on the phone
-// (ADR-0004) and is not sent. until the real device id lands, the patrol sessionis reported for
-// the synthetic steward the fixtures use.
+/**
+ * The backend requests for starting and stopping a steward's patrol session
+ * (contracts/api/v2/positioning-ingestion).
+ *
+ * This is the only module that knows how sessions reach the server;
+ * `usePatrolSession` calls it and turns a rejection into the steward's message.
+ * The body is the contract's patrol-session-event: the device id and the ISO
+ * timestamp passed in. The session's `startedAt` used for the elapsed-time
+ * display stays on the phone (ADR-0004). Until the real device id lands, the
+ * session is reported for the synthetic steward the fixtures use.
+ */
+import { fetchWithTimeout } from "@/api/fetchWithTimeout";
 import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 import { PatrolSessionEvent } from "@/types/patrol_session/patrolSessionEvent";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
 
+/**
+ * POST a patrol-session-event to `/api/v2/patrol-session/{action}`.
+ *
+ * Logs the body to the console before sending. Resolves once the server has
+ * accepted the request (any 2xx; the contract answers 201) and rejects
+ * otherwise, including when the server cannot be reached or does not answer
+ * within the fetch timeout (see {@link fetchWithTimeout}).
+ */
 async function postPatrolSessionEvent(action: "start" | "stop", timestamp: string): Promise<void> {
 
   try {
@@ -23,7 +34,7 @@ async function postPatrolSessionEvent(action: "start" | "stop", timestamp: strin
 
     console.log(`POST /api/v2/patrol-session/${action} ${JSON.stringify(body)}`);
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_BASE_URL}/api/v2/patrol-session/${action}`,
       {
         method: "POST",
@@ -41,10 +52,27 @@ async function postPatrolSessionEvent(action: "start" | "stop", timestamp: strin
   }
 }
 
+/**
+ * Report that the steward started a patrol session.
+ *
+ * @param timestamp - Device time of the start, ISO 8601 UTC.
+ * @returns Resolves once the backend accepted it; rejects when it refuses or
+ *   cannot be reached.
+ */
 export async function startPatrolSession(timestamp: string): Promise<void> {
   await postPatrolSessionEvent("start", timestamp);
 }
 
+/**
+ * Report that the steward stopped the patrol session.
+ *
+ * The backend also closes every connection still open for this device, so no
+ * separate disconnect needs to be sent.
+ *
+ * @param timestamp - Device time of the stop, ISO 8601 UTC.
+ * @returns Resolves once the backend accepted it; rejects when it refuses or
+ *   cannot be reached.
+ */
 export async function stopPatrolSession(timestamp: string): Promise<void> {
   await postPatrolSessionEvent("stop", timestamp);
 }

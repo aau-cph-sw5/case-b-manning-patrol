@@ -1,10 +1,13 @@
 # Manning Patrol Android Frontend
 
 Steward-facing Android app for the Manning Patrol system: shows and drives the steward's
-patrol session, and receives the beacon signals that document presence. Built with Expo SDK 57,
+patrol session, and receives the beacon signals that document presence. Built with Expo SDK 58,
 React Native, expo-router and strict TypeScript.
 
 ## Setup
+
+Requires Node.js 22.13+, 24.3+ or 26+. Expo SDK 58 does not support odd-numbered
+releases (23, 25).
 
 ```bash
 npm install

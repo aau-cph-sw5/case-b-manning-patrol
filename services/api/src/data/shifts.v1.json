@@ -1,0 +1,5 @@
+{
+  "version": "2026-10-22.1",
+  "timezone": "Europe/Copenhagen",
+  "night_shift": { "start": "00:00", "end": "06:00" }
+}

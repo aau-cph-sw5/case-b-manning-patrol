@@ -15,7 +15,7 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
+  font: clamp(12px, 0.6vw + 10px, 18px)/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--text);
@@ -24,10 +24,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,11 +47,10 @@
 }
 
 #root {
-  width: 1126px;
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -76,7 +71,7 @@ h2 {
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
-  margin: 32px 0;
+  margin: 16px 0;
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
@@ -108,4 +103,58 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* ---- Dashboard (Metro control-room design) ---- */
+
+.dashboard-page {
+  text-align: left;
+  background: #f2f4f7;
+  color: #1e1e1e;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  text-align: left;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.smiley-icon {
+  flex: none;
+  font-size: 18px;
+}
+
+.text-green {
+  color: #007d55;
+}
+
+.text-yellow {
+  color: #8b6500;
+}
+
+.text-red {
+  color: #e40037;
+}
+
+/* status colors double as filled rows/buttons (station levels, attention list) */
+.row-green {
+  background-color: #007d55;
+  color: #fff;
+}
+
+.row-yellow {
+  background-color: #ffc82d;
+  color: #1e1e1e;
+}
+
+.row-red {
+  background-color: #e40037;
+  color: #fff;
 }

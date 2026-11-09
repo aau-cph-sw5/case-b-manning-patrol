@@ -1,0 +1,107 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Health API",
+		"description": "Backend API contract for health checks. Used by clients, dashboards, and infrastructure to verify the backend is running and connected to the database.",
+		"version": "2.1.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/api/v2/health": {
+			"get": {
+				"summary": "Liveness check",
+				"description": "Reports that the backend is running. Never touches the database, so it answers even when the database is down.",
+				"responses": {
+					"200": {
+						"description": "Backend is running",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthStatus"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v2/health/db": {
+			"get": {
+				"summary": "Database health check",
+				"description": "Verifies the database connection by running a trivial query.",
+				"responses": {
+					"200": {
+						"description": "Database is reachable",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DatabaseHealthStatus"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Database is unreachable",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"HealthStatus": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"description": "Always \"ok\" when the backend is running.",
+						"example": "ok"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable status message.",
+						"example": "Manning Patrol Backend running"
+					}
+				},
+				"required": ["status", "message"]
+			},
+			"DatabaseHealthStatus": {
+				"type": "object",
+				"properties": {
+					"database": {
+						"type": "string",
+						"description": "Always \"up\" when the database answers.",
+						"example": "up"
+					}
+				},
+				"required": ["database"]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": ["code", "message"]
+			}
+		}
+	}
+}

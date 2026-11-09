@@ -1,6 +1,4 @@
-// drag-to-confirm behaviour for a slider thumb. the thumb rests on one side; dragging it far enough
-// towards the other side completes the slide, anything less springs it back.
-// position is tracked as progress (0 = left end, 1 = right end) so it doesn't depend on the track width.
+/** Drag-to-confirm gesture for a slider thumb. */
 import { useEffect } from "react";
 import { Gesture } from "react-native-gesture-handler";
 import {
@@ -12,17 +10,34 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-// share of the way the thumb must be dragged before the slide counts
+/** Share of the way the thumb must be dragged before the slide counts. */
 const COMPLETE_AT = 0.8;
 
 type SlideGestureOptions = {
+  /** Side the thumb rests on; a change animates the thumb there. */
   restSide: "left" | "right";
-  // distance in points between the left and right ends
+  /** Distance in points between the left and right ends; 0 disables the gesture. */
   travel: number;
   enabled: boolean;
+  /** Called on the JS thread when a slide completes. */
   onComplete: () => void;
 };
 
+/**
+ * Build the pan gesture and animated style for a slider thumb.
+ *
+ * The thumb rests on one side; dragging it far enough towards the other side
+ * completes the slide, anything less springs it back. Position is tracked as
+ * progress (0 = left end, 1 = right end) so it does not depend on the track
+ * width. The gesture only activates after a clear sideways move, so vertical
+ * scrolling still works.
+ *
+ * After a completed slide the thumb stays at the far end until `restSide`
+ * changes, which the caller does by moving to the next status.
+ *
+ * @returns The gesture for a `GestureDetector` and the style for the thumb's
+ *   `Animated.View`.
+ */
 export function useSlideGesture({ restSide, travel, enabled, onComplete }: SlideGestureOptions) {
   const restProgress = restSide === "left" ? 0 : 1;
   const progress = useSharedValue(restProgress);
