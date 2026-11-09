@@ -10,38 +10,31 @@
  * placeholders (state/pendingRecords) at render time, so an offline connect
  * or disconnect still shows in the matching section until a fetch reconciles it.
  *
- * Layout: the screen itself never scrolls. The open-connections box (green
- * panel) sits at the top and grows with its cards — up to five open
- * connections are shown at a glance without any scrolling — so the box is
- * flexible rather than fixed. The closed-connections box (grey panel) is
- * pushed down as the open box expands and fills all remaining space; it
- * scrolls its own cards internally, so thumb-scrolling inside it never
- * moves the main screen.
+ * Layout: the header and the date row stay pinned at the top; everything below
+ * lives on a scrollable page, so the screen scrolls like a document when the
+ * open box pushes content off-screen. The open-connections box (green panel)
+ * grows and shrinks with its cards and never scrolls. The closed-connections
+ * box (grey panel) keeps a fixed height of a few cards and scrolls its own
+ * records internally, so it stays visible no matter how many connections are
+ * open. Each section is its own component under components/patrolHistory.
  */
 
 import { Stack, useFocusEffect } from "expo-router";
-import type { ComponentType } from "react";
 
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { ClosedRecordCard } from "@/components/ClosedRecordCard";
-import { OpenRecordCard } from "@/components/OpenRecordCard";
+import { ClosedConnectionsSection } from "@/components/patrolHistory/ClosedConnectionsSection";
+import { HistoryStatus } from "@/components/patrolHistory/HistoryStatus";
+import { OpenConnectionsSection } from "@/components/patrolHistory/OpenConnectionsSection";
+import { StatusArea } from "@/components/patrolHistory/StatusArea";
 import PatrolHistoryHeader from "@/components/PatrolHistoryHeader";
+
 import { useNow } from "@/hooks/useNow";
 import { usePatrolRecords } from "@/hooks/usePatrolRecords";
+
 import { getPendingRecords } from "@/state/pendingRecords";
-import type { HistoryEntry } from "@/types/patrol_records/record";
-import { formatDayLabel, mergeWithPending, splitRecords } from "@/utils/patrolRecord";
+
+import { mergeWithPending, splitRecords } from "@/utils/patrolRecord";
 
 /**
  * Render the patrol history screen.
@@ -49,10 +42,8 @@ import { formatDayLabel, mergeWithPending, splitRecords } from "@/utils/patrolRe
  * While the first fetch is in flight a loading indicator is shown; a failed
  * fetch renders the hook's Danish error with a retry button, and previously
  * fetched records stay on screen while a refetch fails. Once records are
- * shown, the open box grows flexibly with its cards (no internal scrolling,
- * so all open connections are visible at a glance) and pushes the closed box
- * down; the closed box fills the remaining space and scrolls its cards
- * internally.
+ * shown, the header and date row stay pinned and the rest of the screen is a
+ * scrollable page with the two sections on it.
  */
 export default function PatrolHistoryScreen() {
   const { records, loading, error, refetch } = usePatrolRecords();
@@ -78,185 +69,23 @@ export default function PatrolHistoryScreen() {
       {statusOnly ? (
         <HistoryStatus loading={loading} error={error} onRetry={refetch} />
       ) : (
-        <View style={styles.content}>
+        <>
           <StatusArea
             error={error}
             connectionCount={connectionCount}
             now={now}
             onRetry={refetch}
           />
-          <RecordsSection
-            title="Åbne forbindelser"
-            records={open}
-            now={now}
-            countSingular="1 åben"
-            countPlural="åbne"
-            countStyle={listStyles.openCount}
-            listStyle={listStyles.openList}
-            emptyText="Ingen åbne forbindelser."
-            Card={OpenRecordCard}
-          />
-          <RecordsSection
-            title="Lukkede forbindelser"
-            records={closed}
-            now={now}
-            countSingular="1 afsluttet"
-            countPlural="afsluttede"
-            countStyle={listStyles.closedCount}
-            headingStyle={listStyles.closedHeading}
-            listStyle={listStyles.closedList}
-            scrollsInternally
-            emptyText="Ingen lukkede forbindelser."
-            Card={ClosedRecordCard}
-          />
-          <Text style={listStyles.listNote}>Seneste forbindelser vises først.</Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-type StatusAreaProps = {
-  error: string | null;
-  connectionCount: string;
-  now: number;
-  onRetry: () => Promise<void>;
-};
-
-/** Error banner (on a failed refetch) above the date row. */
-function StatusArea({ error, connectionCount, now, onRetry }: StatusAreaProps) {
-  return (
-    <View style={styles.statusArea}>
-      {error !== null ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Pressable
-            onPress={() => void onRetry()}
-            accessibilityRole="button"
-            hitSlop={8}
-          >
-            <Text style={styles.retryText}>Prøv igen</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      <View style={styles.dateRow}>
-        <Text style={styles.dateLabel}>I dag · {formatDayLabel(new Date(now))}</Text>
-        <Text style={styles.dateCount}>{connectionCount}</Text>
-      </View>
-    </View>
-  );
-}
-
-type RecordCardProps = {
-  record: HistoryEntry;
-  now: number;
-};
-
-type RecordsSectionProps = {
-  /** Heading shown above the list box. */
-  title: string;
-  records: HistoryEntry[];
-  now: number;
-  /** Count badge text when exactly one record is listed. */
-  countSingular: string;
-  /** Count badge text appended to the number when several records are listed. */
-  countPlural: string;
-  countStyle: StyleProp<TextStyle>;
-  /** Extra heading style, e.g. the top margin separating the closed section. */
-  headingStyle?: StyleProp<ViewStyle>;
-  listStyle: StyleProp<ViewStyle>;
-  /** Wrap the cards in a ScrollView so the box fills the remaining space and scrolls on its own. */
-  scrollsInternally?: boolean;
-  emptyText: string;
-  /** Card component for one record, e.g. OpenRecordCard or ClosedRecordCard. */
-  Card: ComponentType<RecordCardProps>;
-};
-
-/**
- * Render one history section: a heading with a count badge above a list box
- * showing either the empty text or one card per record.
- *
- * Without `scrollsInternally` the box grows with its cards (the open
- * connections stay visible at a glance); with it the box fills the remaining
- * space and its cards scroll inside it (the closed connections).
- */
-function RecordsSection({
-  title,
-  records,
-  now,
-  countSingular,
-  countPlural,
-  countStyle,
-  headingStyle,
-  listStyle,
-  scrollsInternally = false,
-  emptyText,
-  Card,
-}: RecordsSectionProps) {
-  const body =
-    records.length === 0 ? (
-      <Text style={listStyles.empty}>{emptyText}</Text>
-    ) : (
-      records.map((record) => (
-        <Card
-          key={`${record.beaconId}-${record.startedAt.getTime()}`}
-          record={record}
-          now={now}
-        />
-      ))
-    );
-  return (
-    <>
-      <View style={[listStyles.sectionHeading, headingStyle]}>
-        <Text style={listStyles.sectionTitle}>{title}</Text>
-        <Text style={countStyle}>
-          {records.length === 1
-            ? countSingular
-            : `${records.length} ${countPlural}`}
-        </Text>
-      </View>
-      {scrollsInternally ? (
-        <View style={listStyle}>
           <ScrollView
-            style={listStyles.closedScroll}
-            contentContainerStyle={listStyles.listContent}
+            style={styles.page}
+            contentContainerStyle={styles.pageContent}
+            keyboardDismissMode="on-drag"
           >
-            {body}
+            <OpenConnectionsSection records={open} now={now} />
+            <ClosedConnectionsSection records={closed} now={now} />
+            <Text style={styles.listNote}>Seneste forbindelser vises først.</Text>
           </ScrollView>
-        </View>
-      ) : (
-        <View style={listStyle}>{body}</View>
-      )}
-    </>
-  );
-}
-
-type HistoryStatusProps = {
-  loading: boolean;
-  error: string | null;
-  onRetry: () => Promise<void>;
-};
-
-/** Loading spinner or the steward-facing fetch error with a retry button. */
-function HistoryStatus({ loading, error, onRetry }: HistoryStatusProps) {
-  return (
-    <View style={styles.statusContent}>
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color="#940024" />
-          <Text style={styles.muted}>Henter historik...</Text>
-        </View>
-      ) : (
-        <View style={styles.center}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Pressable
-            style={styles.retry}
-            onPress={() => void onRetry()}
-            accessibilityRole="button"
-          >
-            <Text style={styles.retryText}>Prøv igen</Text>
-          </Pressable>
-        </View>
+        </>
       )}
     </View>
   );
@@ -267,125 +96,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  statusContent: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  content: {
+  page: {
     flex: 1,
     minHeight: 0,
+  },
+  pageContent: {
     paddingHorizontal: 16,
-    paddingTop: 20,
     paddingBottom: 22,
-  },
-  center: {
-    alignItems: "center",
-    gap: 12,
-  },
-  muted: {
-    color: "#656865",
-    fontSize: 13,
-  },
-  errorText: {
-    color: "#ff4d4d",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: "#fdecec",
-  },
-  retry: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: "#940024",
-  },
-  retryText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  statusArea: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dateLabel: {
-    color: "#202220",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  dateCount: {
-    color: "#656865",
-    fontSize: 12,
-  },
-});
-
-// list and card styles, kept in a separate sheet so each stays small
-const listStyles = StyleSheet.create({
-  sectionHeading: {
-    marginBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  closedHeading: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    color: "#202220",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  openCount: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 999,
-    backgroundColor: "#eaf4ef",
-    color: "#216b51",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  closedCount: {
-    color: "#656865",
-    fontSize: 12,
-  },
-  openList: {
-    padding: 8,
-    gap: 8,
-    borderRadius: 20,
-    backgroundColor: "#d9f0e3",
-  },
-  closedList: {
-    flex: 1,
-    minHeight: 0,
-    padding: 8,
-    borderRadius: 20,
-    overflow: "hidden",
-    backgroundColor: "#d8d8d8",
-  },
-  closedScroll: {
-    flex: 1,
-  },
-  listContent: {
-    gap: 8,
-  },
-  empty: {
-    padding: 6,
-    color: "#656865",
-    fontSize: 13,
   },
   listNote: {
     marginTop: 10,
