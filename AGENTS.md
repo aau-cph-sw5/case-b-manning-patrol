@@ -11,7 +11,7 @@ Metro "manning/patrol" compliance system: documents that trains are manned >= 70
 contracts/                        versioned interfaces other teams build against
 docs/adr/                         architecture decision records
 services/api                       Python 3.13 / FastAPI, uv
-apps/android                       Expo SDK 57 / React Native steward app
+apps/android                       Expo SDK 58 / React Native steward app
 apps/web                           Vite + React 19 + TypeScript dashboard
 ```
 
@@ -55,10 +55,34 @@ uv run positioning-simulator
 - Lint rules: E, W, F, I, N, UP, B. Modern syntax (py313): `X | None`,
   `dict[...]`, `datetime.UTC`, sorted imports.
 
+### Docstrings and comments (PEP 8 / PEP 257)
+
+Code is read by other groups who did not write it. Follow
+[PEP 8](https://peps.python.org/pep-0008/) and its docstring conventions
+([PEP 257](https://peps.python.org/pep-0257/)) so a reader understands a
+module, class or function from its docstring without reading the body.
+`src/scripts/seed.py` is the reference example.
+
+- Every module, public class and public function/method gets a docstring.
+  Private helpers (`_name`) only need one when their purpose is not obvious.
+- Use `"""triple double quotes"""`. One-liners fit on one line, are a
+  sentence in imperative mood ("Return ...", not "Returns ..."), and end
+  with a period.
+- Multi-line: summary line, blank line, then details; closing `"""` on its
+  own line.
+- Describe behavior and intent the name does not already say: edge cases,
+  what `None` means, ordering, side effects (DB writes, commits). Never just
+  restate the name ("Health check endpoint.").
+- FastAPI route docstrings are published in the OpenAPI docs; write them for
+  API consumers.
+- Avoid inline `#` comments. Prefer clear names and docstrings; keep a
+  comment only for a non-obvious *why* that cannot live in a docstring.
+- When changing behavior, update the docstring in the same commit.
+
 ## Android frontend (apps/android)
 
 Also read `apps/android/AGENTS.md`. Expo versions move
-fast: check the versioned docs (https://docs.expo.dev/versions/v57.0.0/)
+fast: check the versioned docs (https://docs.expo.dev/versions/v58.0.0/)
 before using an API.
 
 ```bash
@@ -67,7 +91,7 @@ npm run lint               # expo lint
 ```
 
 CI runs `npm ci && npm run build --if-present && npm test --if-present` on
-Node 20 and 22; adding a `test` script makes CI run it.
+Node 22 and 24; adding a `test` script makes CI run it.
 
 ## Desktop frontend (apps/web)
 
@@ -76,11 +100,46 @@ npm install
 npm run dev     # vite
 npm run build   # tsc -b && vite build — the type check lives here
 npm run lint    # oxlint
+npm test        # vitest run
+npm run coverage   # vitest with v8 coverage, fails below 80%
 ```
 
 - Do not bypass `tsc -b` with `vite build` alone.
 - React Compiler is enabled; do not add manual memoization without checking
   whether the compiler already handles it.
+
+## Frontend doc comments (TSDoc)
+
+Applies to both `apps/android/src` and `apps/web/src`. It is the TypeScript
+counterpart of the backend's docstring rules: follow
+[TSDoc](https://tsdoc.org/) so a reader understands a module, component, hook
+or function from its doc comment without reading the body.
+`apps/android/src/api/stationEventStream.ts` is the reference example.
+
+- Every module gets a short file-level comment, first in the file, saying
+  what it provides. Every exported function, hook, component, class, type and
+  interface gets a doc comment. Non-exported helpers only need one when their
+  purpose is not obvious.
+- Use `/** ... */` directly above the declaration, never `//`, so editors show
+  it on hover.
+- One-liners are an imperative sentence ("Return ...", "Connect ...", not
+  "Returns ..." or "This hook ..."), starting with a capital letter and ending
+  with a period: `/** Return the toast currently on screen, or null when none is. */`
+- Multi-line: summary line, blank line, then details. Use `@param` /
+  `@returns` only when they add something the name and type don't (units,
+  what null or an empty array means). Never repeat the TypeScript types.
+- Describe behavior and intent the name does not already say: edge cases,
+  what null means, timing, side effects (network calls, localStorage, timers,
+  subscriptions and how to clean them up). Never just restate the name.
+- Hooks and components: say what the hook returns, when it re-renders or
+  resubscribes, and what it cleans up on unmount. SSE and network code: name
+  the endpoint and contract, and say how errors are reported.
+- Interface and type fields whose meaning is not obvious get a `/** ... */`
+  above the field, not a trailing `// ...`. Keep contract version notes.
+- Avoid inline `//` comments. Keep one only for a non-obvious *why* that
+  cannot live in a doc comment.
+- No references to issues or PRs. Test, generated and config files are exempt.
+- When changing behavior, update the doc comment in the same commit.
 
 ## Contracts and docs
 

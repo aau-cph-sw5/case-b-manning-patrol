@@ -20,6 +20,8 @@ dependencies = [
     "greenlet>=3.5.6",
     "pytest-asyncio>=1.4.0",
     "httpx2>=2.13.1",
+    "alembic>=1.20.0",
+    "tzdata>=2026.5",
 ]
 
 [project.scripts]
@@ -54,6 +56,10 @@ select = [
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
 ]
+
+[tool.ruff.lint.isort]
+# The local alembic/ migrations folder would otherwise shadow the package.
+known-third-party = ["alembic"]
 
 [dependency-groups]
 dev = [

@@ -1,30 +1,48 @@
-// stands in for the real BLE scanner: simulates a steward walking past beacons, connecting
-// to one, holding it for a while, losing it, then reaching the next. no Bluetooth is
-// involved, so it runs in Expo Go and on the emulator; the real scanner can be dropped in
-// behind the same BeaconScanner interface.
+/**
+ * Stands in for the real BLE scanner: simulates a steward walking past beacons,
+ * connecting to one, holding it for a while, losing it, then reaching the next.
+ *
+ * No Bluetooth is involved, so it runs in Expo Go and on the emulator; the real
+ * scanner can be dropped in behind the same {@link BeaconScanner} interface.
+ */
 import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
 import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
 import type { BeaconScanner } from "@/types/BeaconScanner";
 
+/** Settings for {@link createMockBeaconScanner}. */
 export type MockBeaconScannerOptions = {
-  // the device this phone claims to be.
+  /** The device this phone claims to be. Not read by the scanner: its events carry no device id. */
   android_id: string;
+  /** Beacons to visit in order; defaults to all {@link MOCK_BEACON_IDS}. */
   beacon_ids?: readonly string[];
-  // how long a beacon stays connected and how long until the next beacon arrival.
+  /** [min, max) in ms of how long a beacon stays connected. */
   connectionDurationRangeMs?: readonly [number, number];
+  /** [min, max) in ms of how long until the next beacon arrives. */
   nextBeaconArrivalDelayRangeMs?: readonly [number, number];
 };
 
-const DEFAULT_CONNECTION_DURATION_RANGE_MS: readonly [number, number] = [1_000, 12_000];
+const DEFAULT_CONNECTION_DURATION_RANGE_MS: readonly [number, number] = [9_000, 45_000];
 const DEFAULT_NEXT_BEACON_ARRIVAL_DELAY_RANGE_MS: readonly [number, number] = [
   2_000,
   12_000,
 ];
 
+/** Return a uniformly random delay in [min, max). */
 function randomDelay(range: readonly [number, number]): number {
   return range[0] + Math.random() * (range[1] - range[0]);
 }
 
+/**
+ * Create a scanner that simulates a steward walking past beacons.
+ *
+ * `start` connects to the next beacon at once and keeps scheduling further
+ * arrivals after random delays; each connection ends with a DISCONNECTED after
+ * a random duration, so several beacons can be connected at the same time.
+ * Beacons are visited round robin and revisited only after their previous
+ * connection has ended. `stop` cancels every timer without emitting
+ * DISCONNECTED for beacons still connected. Starting again resumes with the
+ * next beacon in the list.
+ */
 export function createMockBeaconScanner(options: MockBeaconScannerOptions): BeaconScanner {
   const {
     beacon_ids = MOCK_BEACON_IDS,

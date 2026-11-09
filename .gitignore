@@ -45,7 +45,7 @@ ENV/
 
 # Testing
 .pytest_cache/
-.coverage
+.coverage/
 htmlcov/
 .tox/
 .nox/
@@ -54,5 +54,14 @@ htmlcov/
 *.log
 logs/
 
+# MkDocs
+site/
+
 # OS files
 Thumbs.db
+
+# Figma scratch context, never commit
+temp-mistral-context-view/
+
+# Local todo list
+TODO.txt
