@@ -119,3 +119,34 @@ How the schedule is used:
   the day.
 
 Changing the shift times only needs an edit to this file and a restart.
+
+# Permission matrix
+
+`permissions.v1.json` is the agreed role-based access matrix for presence
+data (Metro decision of 7 November 2026, source story B6.2). It is data, not
+code: enforcement reads this file, so a change of policy is a reviewed edit
+here, not a code change. The ethical line is drawn in time, not by
+aggregation: roles scoped to `current` cannot reach historical shifts, and
+only the Operations Administrator can.
+
+| Level | Field | Meaning |
+|---|---|---|
+| Top | `version` | Audit stamp of the file contents; `2026-11-07.1` encodes the Metro decision date. |
+| Top | `source` | Provenance of the matrix. |
+| Top | `default` | `deny`: anything not granted to a role is denied. This is what gives the IT Administrator no presence access. |
+| Top | `audit.log_every_individual_presence_access` | Every read of an individual steward record must be written to the B-020 audit record. |
+| Role | `role` / `label` | Stable role identifier / human-readable name. |
+| Grant | `data` | `presence` = individual steward presence records; `reference` = the registration sheet (locations, trains, beacons). |
+| Grant | `subject` | `own` = only the role holder's own records; `all` = every steward's records. |
+| Grant | `lines` | `own` = the role holder's own line; `all` = all lines. |
+| Grant | `shift_scope` | `current` = only the current shift (see `shifts.v1.json`; the exact current/history boundary is an ADR topic); `all` = current and historical shifts. Carries no time restriction for `reference` data. |
+
+The five roles, as granted:
+
+| Role | Presence data | Reference data |
+|---|---|---|
+| Steward | Own records, current shift | — |
+| Steward Supervisor | All records, own line, current shift | — |
+| Control Room Operator | All records, all lines, current shift | — |
+| Operations Administrator | All records, all lines, current and historical | — |
+| IT Administrator | — | All (registration and replacement of locations, trains, beacons) |
