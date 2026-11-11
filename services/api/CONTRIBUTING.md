@@ -42,8 +42,8 @@ Router → Service → Repository → Database
 ## 2. Function Rules
 
 - A function does one thing only.
-- Keep a function short. Target: not more than about 15 lines.
-- Use not more than 3 to 4 real parameters. The session is not a real parameter.
+- Keep a function short. Target: not more than about 20 lines (not including docstrings).
+- Use not more than 4 real parameters. The session is not a real parameter.
 - Always call parameters by keyword at the call site. Example: `greet(message="hello")`.
 - If you need more than 4 parameters, make a frozen dataclass that holds the input data.
 
