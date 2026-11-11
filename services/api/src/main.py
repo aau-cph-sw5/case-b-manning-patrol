@@ -135,8 +135,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(
         run_anonymize,
         'cron',
-        hour=datetime.now(UTC).hour, minute=datetime.now(UTC).minute + 1
-        #hour=2, minute=0
+        hour=2, minute=0
     )
     scheduler.start()
 

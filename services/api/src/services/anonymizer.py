@@ -4,7 +4,7 @@ from sqlmodel import select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models.adjustment_author import AdjustmentAuthor
 
-RETENTION_PERIOD = timedelta(minutes=1) #days=5*365
+RETENTION_PERIOD = timedelta(days=5*365)
 
 async def anonymize_old_records(session: AsyncSession):
     """anonymize authors of adjustments older than retention period"""
