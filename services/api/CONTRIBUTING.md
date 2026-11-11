@@ -61,8 +61,8 @@ Router → Service → Repository → Database
 
 Objects are built in two places only:
 
-- `main.py` builds the objects that live as long as the application runs.
-- `dependencies.py` builds the objects that live for one request.
+- The fastapi lifespan builds the objects that live as long as the application runs, e.g in `main.py`.
+- Objects that live for one request are build in a common place, e.g `dependencies.py`.
 
 Everywhere else, you get an object from the outside. You do not build it yourself:
 
