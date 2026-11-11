@@ -10,7 +10,7 @@
 
 ## Context
 
-[MET-B-023](https://github.com/aau-cph-sw5/case-b-manning-patrol/issues/21) limits a steward to their own presence records for the current shift. Supervisors and Control Room Operators may access other stewards' current-shift records, while only the Operations Administrator may access historical presence records. The IT Administrator's reference-data responsibilities do not imply presence access.
+[MET-B-023](https://github.com/aau-cph-sw5/case-b-manning-patrol/issues/21) limits a steward to their own presence records for the current shift. Steward Supervisors and Control Room Operators may access other stewards' current-shift records, while only the Operations Administrator may access historical presence records. The IT Administrator's reference-data responsibilities do not imply presence access.
 
 The Android steward app also shows shared station patrol status and countdowns. A patrol performed by one steward updates the coverage information used by the others, helping them decide where another patrol is needed. The current station stream carries area coverage information without steward identities; the separate train stream includes individual steward IDs, as described in [ADR 0012](0012-train-manning-stream.md).
 
