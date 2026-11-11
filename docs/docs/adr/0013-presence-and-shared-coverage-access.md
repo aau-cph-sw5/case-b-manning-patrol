@@ -1,8 +1,11 @@
 # ADR 0013. Separate individual presence access from shared patrol coverage.
 
 **Status.** Proposed
+
 **Date.** 2026-11-10
+
 **Deciders.** Pending team review
+
 **Related backlog items.** MET-B-023, MET-B-020, MET-B-022
 
 ## Context
