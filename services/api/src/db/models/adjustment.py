@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlmodel import Field, SQLModel
 
 from src.domain.event import EventType
+from src.db.models.adjustment_author import AdjustmentAuthor
 
 
 class AdjustmentBase(SQLModel):
@@ -14,7 +15,6 @@ class AdjustmentBase(SQLModel):
     target_event_id: UUID | None = None
     android_id: UUID
     reason: str
-    author: str
     server_timestamp: datetime
     source: str
 

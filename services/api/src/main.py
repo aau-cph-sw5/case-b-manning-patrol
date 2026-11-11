@@ -5,6 +5,7 @@ Main FastAPI application.
 """
 
 import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
@@ -15,6 +16,7 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.train import get_train_lines, get_trains
+from src.services.anonymizer import anonymize_old_records
 from src.services.event_producer import EventValidationError, TargetEventNotFoundError
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
@@ -125,7 +127,20 @@ async def lifespan(app: FastAPI):
     app.state.trains_update_presenter = trains_update_presenter
     app.state.shift_schedule = shift_schedule
 
+    async def run_anonymize():
+        async with AsyncSession(engine) as session:
+            await anonymize_old_records(session)
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        run_anonymize,
+        'cron',
+        hour=2, minute=0
+    )
+    scheduler.start()
+
     yield
+    scheduler.shutdown()
     coverage_tick.cancel()
     train_manning_tick.cancel()
     await engine.dispose()
