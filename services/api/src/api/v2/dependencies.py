@@ -7,7 +7,7 @@ from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import engine
-from src.services.event_producer import EventProducer
+from src.services.event_store.event_producer import EventProducer
 
 
 async def get_async_db_session() -> AsyncGenerator[AsyncSession]:
