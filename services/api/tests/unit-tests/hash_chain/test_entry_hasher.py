@@ -1,4 +1,3 @@
-import hashlib
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -7,7 +6,6 @@ import pytest
 from src.db.models.event import Event
 from src.domain.event import EventType
 from src.services.hash_chain.entry_hasher import GENESIS_HASH, HashedEntry, hash_entry
-from src.services.hash_chain.entry_stringifier import stringify
 
 EVENT_ID = UUID("10000000-0000-0000-0000-000000000001")
 STEWARD = UUID("660e8400-e29b-41d4-a716-446655440001")
@@ -16,7 +14,14 @@ DEVICE_AT = datetime(2026, 5, 30, 3, 0, tzinfo=UTC)
 SERVER_AT = datetime(2026, 5, 30, 3, 0, 5, tzinfo=UTC)
 OTHER_PREVIOUS_HASH = "f" * 64
 
-GOLDEN_HEADER_HASH = "a1bb40026efaf5b528b61680141aa43996ba13ade649986d944cdd417ba22589"
+GOLDEN_CONTENT_HASH = "c6fabbf488b9a9bc5826dab2b88c7083bd2aab7accbefa34cbb3702071621ee6"
+"""sha256 of GOLDEN_EVENT from test_entry_stringifier.py."""
+GOLDEN_HEADER_HASH = "23d96ff06016161032a1777d37ef10893849f45aadc451364df21cad7c34f44e"
+"""sha256 of GENESIS_HASH followed by GOLDEN_CONTENT_HASH."""
+GOLDEN_HEADER_HASH_AFTER_F = (
+    "96c40c6591f7f0960244ca958580a93e8a24c291f1d377aea929c312a4667b2b"
+)
+"""sha256 of OTHER_PREVIOUS_HASH ("f" * 64) followed by GOLDEN_CONTENT_HASH."""
 
 
 def make_event(source: str = "test") -> Event:
@@ -31,21 +36,17 @@ def make_event(source: str = "test") -> Event:
     )
 
 
-def sha256(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-def test_content_hash_is_the_hash_of_the_stringified_entry():
+def test_content_hash_matches_the_golden_content_hash():
     hashed = hash_entry(make_event(), GENESIS_HASH)
 
-    assert hashed.content_hash == sha256(stringify(make_event()))
+    assert hashed.content_hash == GOLDEN_CONTENT_HASH
 
 
-def test_header_hash_covers_previous_hash_then_content_hash():
+def test_relinked_entry_matches_the_golden_header_hash():
     hashed = hash_entry(make_event(), OTHER_PREVIOUS_HASH)
 
     assert hashed.previous_hash == OTHER_PREVIOUS_HASH
-    assert hashed.header_hash == sha256(OTHER_PREVIOUS_HASH + hashed.content_hash)
+    assert hashed.header_hash == GOLDEN_HEADER_HASH_AFTER_F
 
 
 def test_first_entry_matches_the_golden_header_hash():
