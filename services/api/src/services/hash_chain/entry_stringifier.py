@@ -3,8 +3,9 @@
 The same entry must always give exactly the same string, whenever and wherever
 it is stringified: keys are sorted, there is no whitespace, UUIDs are lowercase
 strings and every timestamp is written in UTC. Only the fields listed in
-``EVENT_FIELDS`` and ``ADJUSTMENT_FIELDS`` are included, so the hash format
-changes only when someone edits those lists on purpose.
+``EVENT_FIELDS`` and ``ADJUSTMENT_FIELDS`` are included, and every string is
+tagged with ``FORMAT_VERSION``, so the hash format changes only when someone
+edits those lists or bumps the version on purpose.
 """
 
 import json
@@ -17,6 +18,10 @@ from src.db.models.event import Event
 
 ChainEntry = Event | Adjustment
 """A stored row that belongs in the chain: an ``Event`` or an ``Adjustment``."""
+
+
+FORMAT_VERSION = 1
+"""Version of the string format, written into every stringified entry as ``"v"``."""
 
 EVENT_FIELDS = (
     "event_id",
@@ -48,7 +53,9 @@ def stringify(entry: ChainEntry) -> str:
     """Return ``entry`` as a compact JSON string with sorted keys.
 
     A ``kind`` key ("event" or "adjustment") is added so an event and an
-    adjustment can never produce the same string. ``None`` becomes ``null``.
+    adjustment can never produce the same string, and a ``"v"`` key carries
+    ``FORMAT_VERSION`` so entries hashed under an older format stay
+    recognisable. ``None`` becomes ``null``.
 
     Raises TypeError for anything other than an ``Event`` or ``Adjustment``
     row (API schemas and domain records are not hashed), and ValueError for a
@@ -64,6 +71,7 @@ def stringify(entry: ChainEntry) -> str:
         )
     fields = {name: _to_json_value(getattr(entry, name)) for name in field_names}
     fields["kind"] = kind
+    fields["v"] = FORMAT_VERSION
     return json.dumps(fields, sort_keys=True, separators=(",", ":"))
 
 
