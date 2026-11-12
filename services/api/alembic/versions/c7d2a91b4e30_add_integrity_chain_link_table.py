@@ -1,4 +1,4 @@
-"""add integrity entry table
+"""add integrity chain link table
 
 Revision ID: c7d2a91b4e30
 Revises: a004a99997d0
@@ -22,11 +22,14 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
-        "integrityentry",
+        "integritychainlink",
         sa.Column("entry_id", sa.Uuid(), nullable=False),
-        sa.Column("chain", sa.String(length=32), nullable=False),
+        sa.Column(
+            "chain",
+            sa.Enum("EVENTS", "ADJUSTMENTS", name="chainname"),
+            nullable=False,
+        ),
         sa.Column("seq", sa.Integer(), nullable=False),
-        sa.Column("record_type", sa.String(length=32), nullable=False),
         sa.Column("record_id", sa.Uuid(), nullable=False),
         sa.Column("prev_hash", sa.String(length=64), nullable=False),
         sa.Column("content_hash", sa.String(length=64), nullable=False),
@@ -40,11 +43,14 @@ def upgrade() -> None:
         sa.UniqueConstraint("chain", "seq"),
     )
     op.create_index(
-        op.f("ix_integrityentry_chain"), "integrityentry", ["chain"], unique=False
+        op.f("ix_integritychainlink_chain"),
+        "integritychainlink",
+        ["chain"],
+        unique=False,
     )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_index(op.f("ix_integrityentry_chain"), table_name="integrityentry")
-    op.drop_table("integrityentry")
+    op.drop_index(op.f("ix_integritychainlink_chain"), table_name="integritychainlink")
+    op.drop_table("integritychainlink")
