@@ -13,9 +13,9 @@ class StewardIdentity(SQLModel, table=True):
     Events will point here through ``steward_ref`` instead of storing
     ``android_id``, so the person is only stored in this table. Each steward
     gets a new random ``steward_ref`` every shift, so old and new records
-    cannot be linked to each other. Anonymisation after 5 years 
+    cannot be linked to each other. Anonymisation after 5 years
     sets ``android_id`` to None and sets ``anonymised_at``.
-    rows are never deleted.
+    Rows are never deleted.
     """
 
     __tablename__ = "steward_identity"
