@@ -11,7 +11,7 @@ from src.api.v2.dependencies import get_async_db_session
 from src.db.repository import event
 from src.domain.event import EventType
 from src.main import app
-from src.services.event_producer import EventProducer
+from src.services.event_store.event_producer import EventProducer
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 TIMESTAMP = "2026-09-21T10:00:00+00:00"
