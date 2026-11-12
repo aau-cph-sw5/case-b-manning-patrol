@@ -7,6 +7,7 @@ from fastapi.sse import ServerSentEvent
 from src.api.v2.routers.dashboard_stream import stream
 from src.api.v2.schemas.dashboard import Dashboard
 from src.main import app as main_app
+from src.security.current_user import User
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
 
 
@@ -33,7 +34,8 @@ def make_request(presenter, coverage_updater=None):
 def open_stream(request) -> AsyncGenerator[ServerSentEvent]:
     # The route is annotated AsyncIterable because that is what FastAPI
     # accepts for SSE, but the tests need the generator interface.
-    return cast(AsyncGenerator[ServerSentEvent], stream(request))
+    user = User(user_id="user-001", role="steward")
+    return cast(AsyncGenerator[ServerSentEvent], stream(request, user))
 
 
 def station_ids(event: ServerSentEvent) -> list[str]:

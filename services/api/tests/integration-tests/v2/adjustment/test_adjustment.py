@@ -13,6 +13,14 @@ AUTHOR_ID = "880e8400-e29b-41d4-a716-446655440003"
 REASON = "Beacon never fired on arrival; steward confirms platform patrol."
 TARGET_EVENT_ID = "770e8400-e29b-41d4-a716-446655440002"
 
+SUPERVISOR_HEADERS = {"Authorization": "Bearer dev-supervisor-token"}
+
+
+def post_adjustment(client, payload):
+    """POST an adjustment as a steward supervisor (the role allowed to adjust)."""
+    return client.post("/api/v2/adjustment", json=payload, headers=SUPERVISOR_HEADERS)
+
+
 VALID_ADJUSTMENT: dict[str, Any] = {
     "android_id": ANDROID_ID,
     "corrected_fact": {
@@ -26,7 +34,7 @@ VALID_ADJUSTMENT: dict[str, Any] = {
 
 
 def test_adjustment_returns_stored_adjustment(client):
-    response = client.post("/api/v2/adjustment", json=VALID_ADJUSTMENT)
+    response = post_adjustment(client, VALID_ADJUSTMENT)
 
     assert response.status_code == 201
     adjustment = response.json()
@@ -53,7 +61,7 @@ def test_adjustment_can_target_a_recorded_event(client):
     ).json()
     payload = {**VALID_ADJUSTMENT, "target_event_id": event["event_id"]}
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 201
     assert response.json()["target_event_id"] == event["event_id"]
@@ -62,7 +70,7 @@ def test_adjustment_can_target_a_recorded_event(client):
 def test_adjustment_source_is_not_taken_from_request_body(client):
     payload = {**VALID_ADJUSTMENT, "source": "ANDROID"}
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 201
     assert response.json()["source"] != "ANDROID"
@@ -78,7 +86,7 @@ def test_adjustment_rejects_connect_fact_without_beacon(client):
         },
     }
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -96,7 +104,7 @@ def test_adjustment_rejects_disconnect_fact_without_beacon(client):
         },
     }
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -114,7 +122,7 @@ def test_adjustment_rejects_unknown_fact_type(client):
         },
     }
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -126,7 +134,7 @@ def test_adjustment_rejects_missing_android_id(client):
     payload = dict(VALID_ADJUSTMENT)
     del payload["android_id"]
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -138,7 +146,7 @@ def test_adjustment_rejects_missing_reason(client):
     payload = dict(VALID_ADJUSTMENT)
     del payload["reason"]
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -150,7 +158,7 @@ def test_adjustment_rejects_missing_author(client):
     payload = dict(VALID_ADJUSTMENT)
     del payload["author"]
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -162,7 +170,7 @@ def test_adjustment_rejects_missing_corrected_fact(client):
     payload = dict(VALID_ADJUSTMENT)
     del payload["corrected_fact"]
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 400
     error = response.json()
@@ -173,7 +181,7 @@ def test_adjustment_rejects_missing_corrected_fact(client):
 def test_adjustment_rejects_unknown_target_event(client):
     payload = {**VALID_ADJUSTMENT, "target_event_id": TARGET_EVENT_ID}
 
-    response = client.post("/api/v2/adjustment", json=payload)
+    response = post_adjustment(client, payload)
 
     assert response.status_code == 404
     error = response.json()

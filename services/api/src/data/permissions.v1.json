@@ -1,0 +1,47 @@
+{
+  "version": "2026-11-10.1",
+  "source": "Metro role decision of 7 November 2026 (source story B6.2), with team interpretations proposed in ADR 0013",
+  "default": "deny",
+  "audit": { "log_every_individual_presence_access": true },
+  "roles": [
+    {
+      "role": "steward",
+      "label": "Steward",
+      "grants": [
+        { "data": "presence", "subject": "own", "lines": "all", "shift_scope": "current" },
+        { "data": "coverage", "subject": "all", "lines": "own", "shift_scope": "current" }
+      ]
+    },
+    {
+      "role": "steward_supervisor",
+      "label": "Steward Supervisor",
+      "grants": [
+        { "data": "presence", "subject": "all", "lines": "own", "shift_scope": "current" },
+        { "data": "coverage", "subject": "all", "lines": "own", "shift_scope": "current" }
+      ]
+    },
+    {
+      "role": "control_room_operator",
+      "label": "Control Room Operator",
+      "grants": [
+        { "data": "presence", "subject": "all", "lines": "all", "shift_scope": "current" },
+        { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
+      ]
+    },
+    {
+      "role": "operations_administrator",
+      "label": "Operations Administrator",
+      "grants": [
+        { "data": "presence", "subject": "all", "lines": "all", "shift_scope": "all" },
+        { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
+      ]
+    },
+    {
+      "role": "it_administrator",
+      "label": "IT Administrator",
+      "grants": [
+        { "data": "reference", "subject": "all", "lines": "all", "shift_scope": "all" }
+      ]
+    }
+  ]
+}

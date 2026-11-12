@@ -1,9 +1,13 @@
 """Endpoint for supervisor corrections to recorded events."""
 
-from fastapi import APIRouter, Request, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
 from src.api.v2.schemas.adjustment import AdjustmentEventCreate, AdjustmentEventStored
+from src.authorization.dependencies import require_permission
+from src.security.current_user import User
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
 
 router = APIRouter(tags=["adjustment"])
@@ -14,6 +18,9 @@ async def adjustment_event(
     adjustment_event: AdjustmentEventCreate,
     producer: EventProducerDep,
     request: Request,
+    user: Annotated[
+        User, Depends(require_permission("presence.all.own_lines.current_shift"))
+    ],
 ) -> AdjustmentEventStored:
     """Record a correction to a steward event.
 

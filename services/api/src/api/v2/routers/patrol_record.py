@@ -2,9 +2,10 @@
 
 import logging
 from datetime import UTC, datetime
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -16,6 +17,7 @@ from src.api.v2.schemas.patrol_record import (
     RecordList,
     Status,
 )
+from src.authorization.dependencies import require_permission
 from src.db.models.event import Event
 from src.db.repository.event import (
     get_connection_events_by_android_id,
@@ -25,6 +27,7 @@ from src.db.repository.patrol_area import get_patrol_areas
 from src.db.repository.station import get_station_lines, get_stations
 from src.domain.event import EventType
 from src.domain.patrol_area import AreaKind
+from src.security.current_user import User
 from src.services.station_coverage.coverage_window import MIN_QUALIFYING_DURATIONS
 
 logger = logging.getLogger(__name__)
@@ -37,7 +40,13 @@ class RecordBuildError(Exception):
 
 
 @router.get("/record")
-async def get_records(android_id: UUID, session: AsyncDbSessionDep) -> RecordList:
+async def get_records(
+    android_id: UUID,
+    session: AsyncDbSessionDep,
+    user: Annotated[
+        User, Depends(require_permission("presence.own.all_lines.current_shift"))
+    ],
+) -> RecordList:
     """Return the steward's patrol records for the current shift, most recent first.
 
     Raises RecordBuildError if the database cannot be read.

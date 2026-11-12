@@ -119,6 +119,7 @@ full setup: `docker-compose.yml` defines the local PostgreSQL container
 ### Seeding
 
 - Run `uv run python -m src.scripts.seed` — applies pending migrations, then inserts the fixture event timeline (only inserts rows that are missing).
+- Run `uv run replay-fixtures` — with `uv run dev` running, POSTs the fixture event timeline to the authenticated v2 ingestion endpoints (`Authorization: Bearer dev-steward-token` by default; override with `--token` / `DEV_TOKEN`).
 
 ### Resetting the database
 

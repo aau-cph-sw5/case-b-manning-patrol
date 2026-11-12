@@ -3,11 +3,14 @@
 import asyncio
 from collections.abc import AsyncIterable
 from datetime import UTC, datetime
+from typing import Annotated
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
+from src.authorization.dependencies import require_permission
 from src.domain.train_manning import TrainManningReport
+from src.security.current_user import User
 from src.services.train_manning.train_manning_publisher import (
     SseTrainManningBroadcaster,
 )
@@ -18,7 +21,12 @@ router = APIRouter(tags=["positioning-interface"])
 
 
 @router.get("/trains/stream", response_class=EventSourceResponse)
-async def stream(request: Request) -> AsyncIterable[ServerSentEvent]:
+async def stream(
+    request: Request,
+    user: Annotated[
+        User, Depends(require_permission("coverage.all.own_lines.current_shift"))
+    ],
+) -> AsyncIterable[ServerSentEvent]:
     """Stream train manning as server-sent `trains` events.
 
     The latest known train manning is sent as soon as the client connects.

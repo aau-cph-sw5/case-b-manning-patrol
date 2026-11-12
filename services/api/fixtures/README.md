@@ -18,20 +18,22 @@ uv sync
 uv run dev
 ```
 
-The server runs on `http://localhost:8000`. Open the website, then open the
-browser's developer tools console and paste:
+The server runs on `http://localhost:8000`. In a second terminal, replay the
+fixture timeline through the API:
 
-```js
-const ws = new WebSocket("ws://localhost:8000/api/v1/ws/observation-events");
-ws.onopen = () => console.log("CONNECTED");
-ws.onmessage = (event) => console.log("EVENT:", event.data);
-ws.onerror = (error) => console.log("ERROR:", error);
-ws.onclose = () => console.log("CLOSED");
+```bash
+uv run replay-fixtures                                  # as the default dev steward
+uv run replay-fixtures --token dev-supervisor-token     # authenticate as another role
 ```
 
-The stream of fixture events will then be played back with the original
-delays in between, so the console shows `EVENT:` lines arriving in
-real time, in chronological order.
+Each fixture event is POSTed to the matching `/api/v2/...` ingestion endpoint
+with an `Authorization: Bearer <token>` header, so it passes the mock-token
+authentication (`src/security/`) and the RBAC check against
+`src/data/permissions.v1.json` (`src/authorization/`). Events are replayed
+with the original delays divided by 100 (`--speed`). Requests without a
+header default to `dev-steward-token`; unknown tokens get 401 and a role
+without the required grant gets 403. To insert the fixture straight into the
+database instead (bypassing the API), run `uv run python -m src.scripts.seed`.
 
 ## Beacon naming
 
