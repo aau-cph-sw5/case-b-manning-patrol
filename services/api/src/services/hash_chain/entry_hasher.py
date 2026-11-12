@@ -46,7 +46,11 @@ def hash_entry(entry: ChainEntry, previous_hash: str) -> HashedEntry:
         raise ValueError("previous_hash must be 64 lowercase hex characters")
     content_hash = _sha256(stringify(entry))
     header_hash = _sha256(previous_hash + content_hash)
-    return HashedEntry(content_hash, previous_hash, header_hash)
+    return HashedEntry(
+        content_hash=content_hash,
+        previous_hash=previous_hash,
+        header_hash=header_hash,
+    )
 
 
 def _sha256(text: str) -> str:
