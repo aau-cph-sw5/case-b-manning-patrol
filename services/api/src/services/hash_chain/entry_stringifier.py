@@ -49,7 +49,7 @@ ADJUSTMENT_FIELDS = (
 """``Adjustment`` columns included in the string; must cover every column."""
 
 
-def stringify(entry: ChainEntry) -> str:
+def stringify_entry(entry: ChainEntry) -> str:
     """Return ``entry`` as a compact JSON string with sorted keys.
 
     A ``kind`` key ("event" or "adjustment") is added so an event and an

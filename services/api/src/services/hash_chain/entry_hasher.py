@@ -11,7 +11,7 @@ import hashlib
 import re
 from dataclasses import dataclass
 
-from src.services.hash_chain.entry_stringifier import ChainEntry, stringify
+from src.services.hash_chain.entry_stringifier import ChainEntry, stringify_entry
 
 GENESIS_HASH = "0" * 64
 """The previous hash of the first entry in a chain, which has no predecessor."""
@@ -44,7 +44,7 @@ def hash_entry(entry: ChainEntry, previous_hash: str) -> HashedEntry:
     """
     if not _SHA256_HEX.fullmatch(previous_hash):
         raise ValueError("previous_hash must be 64 lowercase hex characters")
-    content_hash = _sha256(stringify(entry))
+    content_hash = _sha256(stringify_entry(entry))
     header_hash = _sha256(previous_hash + content_hash)
     return HashedEntry(
         content_hash=content_hash,
