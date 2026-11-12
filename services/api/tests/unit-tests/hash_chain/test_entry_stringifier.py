@@ -10,6 +10,7 @@ from src.domain.event import EventRecord, EventType
 from src.services.hash_chain.entry_stringifier import (
     ADJUSTMENT_FIELDS,
     EVENT_FIELDS,
+    FORMAT_VERSION,
     stringify,
 )
 from src.services.shared.event_record_mapper import EventRecordMapper
@@ -31,7 +32,7 @@ GOLDEN_EVENT = (
     '"event_type":"connect",'
     '"kind":"event",'
     '"server_timestamp":"2026-05-30T03:00:05+00:00",'
-    '"source":"test"}'
+    '"source":"test","v":1}'
 )
 
 GOLDEN_ADJUSTMENT = (
@@ -45,7 +46,7 @@ GOLDEN_ADJUSTMENT = (
     '"reason":"missed stop",'
     '"server_timestamp":"2026-05-30T03:00:05+00:00",'
     '"source":"test",'
-    '"target_event_id":"10000000-0000-0000-0000-000000000001"}'
+    '"target_event_id":"10000000-0000-0000-0000-000000000001","v":1}'
 )
 
 
@@ -115,6 +116,11 @@ def test_none_beacon_id_is_written_as_null():
 def test_event_and_adjustment_are_tagged_with_their_kind():
     assert '"kind":"event"' in stringify(make_event())
     assert '"kind":"adjustment"' in stringify(make_adjustment())
+
+
+def test_payload_is_tagged_with_the_format_version():
+    assert f'"v":{FORMAT_VERSION}' in stringify(make_event())
+    assert f'"v":{FORMAT_VERSION}' in stringify(make_adjustment())
 
 
 def test_naive_timestamp_is_rejected():
