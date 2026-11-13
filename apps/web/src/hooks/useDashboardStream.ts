@@ -3,7 +3,7 @@
  * localStorage so a reload shows the last known state at once.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { Dashboard } from "@/api/dashboardApi";
 import { subscribeToDashboard } from "@/api/dashboardApi";
 
@@ -35,7 +35,7 @@ function parseStoredDashboard(stored: string | null): Dashboard | null {
  * - `isLoading`: true until the first event or error, even while a saved
  *   dashboard is shown.
  * - `error`: set on a connection error and cleared by the next event. The
- *   browser keeps reconnecting meanwhile, so an error is not final. Its
+ *   stream keeps reconnecting meanwhile, so an error is not final. Its
  *   message is always "SSE connection error", since error events carry no
  *   data.
  * - `lastUpdated`: the server's `time` of the shown dashboard (ISO 8601), so a
@@ -52,28 +52,20 @@ export function useDashboardStream(): {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    eventSourceRef.current = subscribeToDashboard(
+    return subscribeToDashboard(
       (newDashboard: Dashboard) => {
         setDashboard(newDashboard);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newDashboard));
         setError(null);
         setIsLoading(false);
       },
-      (event: Event) => {
-        setError(new Error((event as MessageEvent).data || "SSE connection error"));
+      () => {
+        setError(new Error("SSE connection error"));
         setIsLoading(false);
       }
     );
-
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-    };
   }, []);
 
   return { dashboard, isLoading, error, lastUpdated: dashboard?.time || null };

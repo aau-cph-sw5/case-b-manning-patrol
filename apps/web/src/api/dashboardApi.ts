@@ -6,6 +6,8 @@
  * The backend URL comes from `VITE_API_URL` and defaults to
  * http://localhost:8000.
  */
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { getAccessToken } from "@/api/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -95,91 +97,88 @@ export interface ApiError {
 }
 
 /**
- * Open a bare EventSource on the dashboard stream.
+ * Open an authenticated stream and call `callback` with each parsed `eventName` event.
  *
- * No listeners are attached: the caller handles the `dashboard` events and
- * must call `.close()` when done. {@link subscribeToDashboard} does both the
- * opening and the parsing.
+ * Uses fetch-event-source instead of the browser's EventSource, which cannot
+ * send headers: every connection attempt sends `Authorization: Bearer <token>`
+ * from {@link getAccessToken}. It keeps retrying, one second apart unless the
+ * server sends a `retry:` field, after a dropped connection, an HTTP error, or
+ * the server ending the stream. It stays connected while the tab is hidden.
+ * Disconnecting before the token arrives opens no stream at all.
+ *
+ * A payload that is not valid JSON is logged with `console.error` and skipped;
+ * valid JSON is passed on without checking it against the contract.
+ *
+ * @param onError - Called on every failed connection attempt, and when the
+ *   token cannot be got, with the underlying error.
+ * @returns A function that closes the stream and stops retrying.
  */
-export function connectDashboardStream(): EventSource {
-  return new EventSource(`${API_BASE_URL}${API_VERSION}/dashboard/stream`);
+function subscribeToStream<T>(
+  path: string,
+  eventName: string,
+  callback: (data: T) => void,
+  onError?: (error: unknown) => void
+): () => void {
+  const controller = new AbortController();
+
+  getAccessToken()
+    .then((token) => {
+      if (controller.signal.aborted) {
+        return;
+      }
+      return fetchEventSource(`${API_BASE_URL}${API_VERSION}${path}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+        openWhenHidden: true,
+        onmessage(message) {
+          if (message.event !== eventName) {
+            return;
+          }
+          try {
+            callback(JSON.parse(message.data) as T);
+          } catch (error) {
+            console.error(`Failed to parse ${eventName} event:`, error);
+          }
+        },
+        onclose() {
+          // fetch-event-source only retries on a thrown error; a stream the
+          // server ends would otherwise stay closed for good.
+          throw new Error(`The server closed the ${eventName} stream`);
+        },
+        onerror(error) {
+          onError?.(error);
+        },
+      });
+    })
+    .catch((error: unknown) => onError?.(error));
+
+  return () => controller.abort();
 }
 
 /**
- * Open the dashboard stream and call `callback` with each parsed event.
+ * Open the dashboard stream and call `callback` with each parsed `dashboard` event.
  *
- * Only events named `dashboard` are handled. A payload that is not valid JSON
- * is logged with `console.error` and skipped; valid JSON is passed on without
- * checking it against the contract. Reconnecting is left to the browser, which
- * retries a dropped connection by itself but gives up for good when the server
- * answers with an HTTP error.
+ * See {@link subscribeToStream} for authentication, reconnecting and errors.
  *
- * @param onError - Set as the EventSource's `onerror`. It receives a plain
- *   Event with no message, on every failed connection attempt.
- * @returns The EventSource; call `.close()` to disconnect.
+ * @returns A function that closes the stream; call it on unmount.
  */
 export function subscribeToDashboard(
   callback: (dashboard: Dashboard) => void,
-  onError?: (error: Event) => void
-): EventSource {
-  const eventSource = new EventSource(`${API_BASE_URL}${API_VERSION}/dashboard/stream`);
-
-  eventSource.addEventListener("dashboard", (event) => {
-    try {
-      const dashboard: Dashboard = JSON.parse(event.data);
-      callback(dashboard);
-    } catch (error) {
-      console.error("Failed to parse dashboard event:", error);
-    }
-  });
-
-  if (onError) {
-    eventSource.onerror = onError;
-  }
-
-  return eventSource;
+  onError?: (error: unknown) => void
+): () => void {
+  return subscribeToStream("/dashboard/stream", "dashboard", callback, onError);
 }
 
 /**
- * Open a bare EventSource on the trains stream.
+ * Open the trains stream and call `callback` with each parsed `trains` event.
  *
- * No listeners are attached: the caller handles the `trains` events and must
- * call `.close()` when done. {@link subscribeToTrains} does both the opening
- * and the parsing.
- */
-export function connectTrainsStream(): EventSource {
-  return new EventSource(`${API_BASE_URL}${API_VERSION}/trains/stream`);
-}
-
-/**
- * Open the trains stream and call `callback` with each parsed event.
+ * See {@link subscribeToStream} for authentication, reconnecting and errors.
  *
- * Only events named `trains` are handled. A payload that is not valid JSON is
- * logged with `console.error` and skipped; valid JSON is passed on without
- * checking it against the contract. Reconnecting is left to the browser.
- *
- * @param onError - Set as the EventSource's `onerror`. It receives a plain
- *   Event with no message, on every failed connection attempt.
- * @returns The EventSource; call `.close()` to disconnect.
+ * @returns A function that closes the stream; call it on unmount.
  */
 export function subscribeToTrains(
   callback: (update: TrainsUpdate) => void,
-  onError?: (error: Event) => void
-): EventSource {
-  const eventSource = new EventSource(`${API_BASE_URL}${API_VERSION}/trains/stream`);
-
-  eventSource.addEventListener("trains", (event) => {
-    try {
-      const update: TrainsUpdate = JSON.parse(event.data);
-      callback(update);
-    } catch (error) {
-      console.error("Failed to parse trains event:", error);
-    }
-  });
-
-  if (onError) {
-    eventSource.onerror = onError;
-  }
-
-  return eventSource;
+  onError?: (error: unknown) => void
+): () => void {
+  return subscribeToStream("/trains/stream", "trains", callback, onError);
 }

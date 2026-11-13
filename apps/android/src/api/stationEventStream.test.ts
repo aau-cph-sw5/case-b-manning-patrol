@@ -12,11 +12,13 @@ const { MockEventSource, instances } = vi.hoisted(() => {
   class MockEventSource {
     static instances: MockEventSource[] = [];
     url: string;
+    options: { headers?: Record<string, string> } | undefined;
     listeners: Record<string, Listener[]> = {};
     closed = false;
 
-    constructor(url: string) {
+    constructor(url: string, options?: { headers?: Record<string, string> }) {
       this.url = url;
+      this.options = options;
       MockEventSource.instances.push(this);
     }
 
@@ -32,6 +34,10 @@ const { MockEventSource, instances } = vi.hoisted(() => {
 });
 
 vi.mock("react-native-sse", () => ({ default: MockEventSource }));
+
+const { getAccessToken } = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
+
+vi.mock("@/api/auth", () => ({ getAccessToken }));
 
 
 const validPayload = JSON.stringify({
@@ -55,21 +61,23 @@ const validPayload = JSON.stringify({
   time: "2026-10-23T09:59:00.000Z",
 });
 
-function connect() {
+async function connect() {
   const onUpdate = vi.fn();
   const onError = vi.fn();
   const disconnect = connectToStationUpdates(onUpdate, onError);
+  await vi.waitFor(() => expect(instances).toHaveLength(1));
   const source = instances[0];
   return { onUpdate, onError, disconnect, source };
 }
 
 beforeEach(() => {
   instances.length = 0;
+  getAccessToken.mockReset().mockResolvedValue("test-token");
 });
 
 describe("connectToStationUpdates", () => {
-  it("opens one stream per call with open, dashboard and error handlers", () => {
-    const { source } = connect();
+  it("opens one stream per call with open, dashboard and error handlers", async () => {
+    const { source } = await connect();
 
     expect(instances).toHaveLength(1);
     expect(source.url).toBe("http://localhost:8000/api/v2/dashboard/stream");
@@ -80,8 +88,8 @@ describe("connectToStationUpdates", () => {
     ]);
   });
 
-  it("delivers a valid payload to onUpdate with overdueAt as a Date", () => {
-    const { onUpdate, onError, source } = connect();
+  it("delivers a valid payload to onUpdate with overdueAt as a Date", async () => {
+    const { onUpdate, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: validPayload });
 
@@ -96,8 +104,8 @@ describe("connectToStationUpdates", () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it("delivers each message as its own snapshot", () => {
-    const { onUpdate, source } = connect();
+  it("delivers each message as its own snapshot", async () => {
+    const { onUpdate, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: validPayload });
     source.listeners["dashboard"][0]({ data: validPayload });
@@ -105,8 +113,8 @@ describe("connectToStationUpdates", () => {
     expect(onUpdate).toHaveBeenCalledTimes(2);
   });
 
-  it("ignores messages without data", () => {
-    const { onUpdate, onError, source } = connect();
+  it("ignores messages without data", async () => {
+    const { onUpdate, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: null });
 
@@ -114,8 +122,8 @@ describe("connectToStationUpdates", () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it("routes a malformed payload to onError instead of onUpdate", () => {
-    const { onUpdate, onError, source } = connect();
+  it("routes a malformed payload to onError instead of onUpdate", async () => {
+    const { onUpdate, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({
       data: JSON.stringify({ stations: [{ areas: [] }] }),
@@ -125,8 +133,8 @@ describe("connectToStationUpdates", () => {
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
-  it("routes a non-JSON payload to onError", () => {
-    const { onUpdate, onError, source } = connect();
+  it("routes a non-JSON payload to onError", async () => {
+    const { onUpdate, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: "not json" });
 
@@ -134,8 +142,8 @@ describe("connectToStationUpdates", () => {
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
-  it("routes stream errors to onError with the event", () => {
-    const { onError, source } = connect();
+  it("routes stream errors to onError with the event", async () => {
+    const { onError, source } = await connect();
     const event = { data: null };
 
     source.listeners["error"][0](event);
@@ -144,12 +152,45 @@ describe("connectToStationUpdates", () => {
     expect(onError.mock.calls[0][0]).toBe(event);
   });
 
-  it("closes the stream from the returned disconnect", () => {
-    const { disconnect, source } = connect();
+  it("closes the stream from the returned disconnect", async () => {
+    const { disconnect, source } = await connect();
 
     expect(source.closed).toBe(false);
     disconnect();
 
     expect(source.closed).toBe(true);
+  });
+
+  it("sends the access token as a bearer Authorization header", async () => {
+    const { source } = await connect();
+
+    expect(source.options?.headers).toEqual({ Authorization: "Bearer test-token" });
+  });
+
+  it("opens no stream when disconnected before the token arrives", async () => {
+    let resolveToken: (token: string) => void = () => {};
+    getAccessToken.mockReturnValue(
+      new Promise<string>((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+
+    const disconnect = connectToStationUpdates(vi.fn(), vi.fn());
+    disconnect();
+    resolveToken("test-token");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(instances).toHaveLength(0);
+  });
+
+  it("routes a failure to get the token to onError", async () => {
+    const failure = new Error("no token");
+    getAccessToken.mockRejectedValue(failure);
+    const onError = vi.fn();
+
+    connectToStationUpdates(vi.fn(), onError);
+
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(failure));
+    expect(instances).toHaveLength(0);
   });
 });

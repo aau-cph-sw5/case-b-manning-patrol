@@ -4,7 +4,7 @@
  * last known state at once.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { TrainsUpdate } from "@/api/dashboardApi";
 import { subscribeToTrains } from "@/api/dashboardApi";
 
@@ -37,7 +37,7 @@ function parseStoredTrains(stored: string | null): TrainsUpdate | null {
  * - `isLoading`: true until the first event or error, even while a saved
  *   update is shown.
  * - `error`: set on a connection error and cleared by the next event. The
- *   browser keeps reconnecting meanwhile, so an error is not final. Its
+ *   stream keeps reconnecting meanwhile, so an error is not final. Its
  *   message is always "SSE connection error", since error events carry no
  *   data.
  * - `lastUpdated`: the server's `time` of the shown update (ISO 8601), so a
@@ -54,28 +54,20 @@ export function useTrainStream(): {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    eventSourceRef.current = subscribeToTrains(
+    return subscribeToTrains(
       (newUpdate: TrainsUpdate) => {
         setTrainsUpdate(newUpdate);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newUpdate));
         setError(null);
         setIsLoading(false);
       },
-      (event: Event) => {
-        setError(new Error((event as MessageEvent).data || "SSE connection error"));
+      () => {
+        setError(new Error("SSE connection error"));
         setIsLoading(false);
       }
     );
-
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-    };
   }, []);
 
   return { trainsUpdate, isLoading, error, lastUpdated: trainsUpdate?.time || null };
