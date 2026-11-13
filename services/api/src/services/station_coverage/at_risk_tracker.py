@@ -1,6 +1,5 @@
 """Count at-risk episodes and append them to the at-risk log."""
 
-import logging
 from datetime import datetime, timedelta
 
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -9,7 +8,6 @@ from src.db.repository.at_risk_log import append_new_entries
 from src.domain.coverage import AtRiskDetected, StationCoverageReport
 
 SYSTEM_SOURCE = "system"
-logger = logging.getLogger(__name__)
 
 
 class AtRiskTracker:
@@ -18,6 +16,7 @@ class AtRiskTracker:
     def __init__(self) -> None:
         # (station_id, area_id, overdue_at)
         # overdue_at makes the key unique pr. episode.
+        self._counted: set[tuple[str, str, datetime]] = set()
         self.total: int = 0
         self.shift_start: datetime | None = None
 
@@ -31,11 +30,7 @@ class AtRiskTracker:
         """Count new at-risk episodes and append them to the at-risk log."""
         entries = self._new_entries(reports, now, threshold)
         if entries:
-            try:
-                await append_new_entries(session, entries)
-            except Exception as e:
-                logger.error(f"Error occurred while appending at-risk entries: {e}")
-
+            await append_new_entries(session, entries)
         return len(entries)
 
     def _new_entries(
@@ -51,7 +46,9 @@ class AtRiskTracker:
                 if area.covered_now or area.overdue_at is None:
                     continue
                 at_risk_at = area.overdue_at - threshold
-                if now >= at_risk_at:
+                key = (station.station_id, area.area.area_id, area.overdue_at)
+                if now >= at_risk_at and key not in self._counted:
+                    self._counted.add(key)
                     new_entries.append(
                         AtRiskDetected(
                             area=area.area,
@@ -67,5 +64,6 @@ class AtRiskTracker:
 
     def reset_for_new_shift(self, shift_start: datetime) -> None:
         """Called when the shift changes, so the shift starts from zero."""
+        self._counted.clear()
         self.total = 0
         self.shift_start = shift_start
