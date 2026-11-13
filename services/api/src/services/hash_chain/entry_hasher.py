@@ -1,4 +1,4 @@
-"""Hash a stored event or adjustment and link it to the entry before it.
+"""Hash a stringified entry and link it to the head hash before it.
 
 Each entry gets three values: a hash of its own content, the head hash of the
 previous entry, and a new head hash over both. Because every head hash
@@ -10,8 +10,6 @@ persist.
 import hashlib
 import re
 from dataclasses import dataclass
-
-from src.services.hash_chain.entry_stringifier import ChainEntry, EntryStringifier
 
 GENESIS_HASH = "0" * 64
 """The previous hash of the first entry in a chain, which has no predecessor."""
@@ -36,11 +34,15 @@ class HashedEntry:
 
 
 class EntryHasher:
-    """Hash chain entries and link each one onto the previous head hash."""
+    """Hash entry text and link it onto the previous head hash.
+
+    Works on text only and knows nothing about events or adjustments;
+    ``ChainLinker`` turns an entry into text first.
+    """
 
     @staticmethod
-    def hash_entry(entry: ChainEntry, prev_hash: str) -> HashedEntry:
-        """Return the hashes of ``entry`` chained onto ``prev_hash``.
+    def hash_text(text: str, prev_hash: str) -> HashedEntry:
+        """Return the hashes of ``text`` chained onto ``prev_hash``.
 
         Pass ``GENESIS_HASH`` for the first entry. Raises ValueError if
         ``prev_hash`` is not 64 lowercase hex characters, since the head hash
@@ -48,7 +50,7 @@ class EntryHasher:
         """
         if not _SHA256_HEX.fullmatch(prev_hash):
             raise ValueError("prev_hash must be 64 lowercase hex characters")
-        content_hash = EntryHasher._sha256(EntryStringifier.stringify_entry(entry))
+        content_hash = EntryHasher._sha256(text)
         head_hash = EntryHasher._sha256(prev_hash + content_hash)
         return HashedEntry(
             content_hash=content_hash,
