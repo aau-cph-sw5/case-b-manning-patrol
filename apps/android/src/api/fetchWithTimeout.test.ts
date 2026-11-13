@@ -22,6 +22,30 @@ describe("fetchWithTimeout", () => {
     expect(fetchMock).toHaveBeenCalledWith(URL, expect.objectContaining({ method: "POST" }));
   });
 
+  it("sends the access token as a bearer Authorization header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchWithTimeout(URL);
+
+    const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+    expect(headers.get("Authorization")).toBe("Bearer steward");
+  });
+
+  it("keeps the caller's own headers next to the Authorization header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchWithTimeout(URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+    expect(headers.get("Content-Type")).toBe("application/json");
+    expect(headers.get("Authorization")).toBe("Bearer steward");
+  });
+
   it("aborts a request that never answers once the deadline passes", async () => {
     vi.useFakeTimers();
     // a fetch that only settles when its signal aborts, like a hung connection
