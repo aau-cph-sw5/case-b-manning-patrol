@@ -11,5 +11,5 @@ class User:
 def get_current_user() -> User:
     return User(
         user_id="test-user-001",
-        role="patrol_supervisor"
+        role="steward"
     )

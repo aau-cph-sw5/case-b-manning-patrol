@@ -1,10 +1,12 @@
 """Endpoints for beacon connect and disconnect events from steward phones."""
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
 from src.api.v2.schemas.ingestion import ConnectionEvent
+from src.authorization.dependencies import require_permission
 from src.domain.event import EventType
+from src.security.current_user import User
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
 
@@ -13,7 +15,7 @@ router = APIRouter(tags=["connection"])
 
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
 async def connection_event(
-    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request
+    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request, user: User = Depends(require_permission("steward.view"))
 ):
     """Record that a steward's phone connected to a beacon.
 
