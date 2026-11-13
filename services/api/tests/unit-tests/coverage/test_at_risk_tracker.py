@@ -19,75 +19,61 @@ class FakeAtRiskLog:
     def __init__(self) -> None:
         self.entries: list[AtRiskDetected] = []
 
-    async def get_entry_ids(self, session: AsyncSession) -> set[str]:
-        return {entry.stable_entry_id for entry in self.entries}
-
-    async def append_entries(
+    async def append_new_entries(
         self, session: AsyncSession, entries: list[AtRiskDetected]
-    ) -> None:
+    ) -> int:
         self.entries.extend(entries)
+        return len(entries)
 
 
 @pytest.fixture(autouse=True)
 def log(monkeypatch) -> FakeAtRiskLog:
     fake = FakeAtRiskLog()
-    monkeypatch.setattr(at_risk_tracker, "get_entry_ids", fake.get_entry_ids)
-    monkeypatch.setattr(at_risk_tracker, "append_entries", fake.append_entries)
+    monkeypatch.setattr(at_risk_tracker, "append_new_entries", fake.append_new_entries)
     return fake
 
 
-async def test_area_counts_once_when_it_crosses_the_threshold(station_report, now, log):
+async def test_area_counts_once_when_it_crosses_the_threshold(station_report, now):
     tracker = AtRiskTracker()
     report = station_report(
         "marmorkirken", covered_now=False, as_of=now, last_covered_at=now
     )
 
     assert (
-        await tracker.track(
-            SESSION, [report], now + timedelta(minutes=44), THRESHOLD, shift_start=now
-        )
+        await tracker.track(SESSION, [report], now + timedelta(minutes=44), THRESHOLD)
         == 0
     )
     assert (
-        await tracker.track(
-            SESSION, [report], now + timedelta(minutes=45), THRESHOLD, shift_start=now
-        )
+        await tracker.track(SESSION, [report], now + timedelta(minutes=45), THRESHOLD)
         == 1
     )
     assert (
-        await tracker.track(
-            SESSION, [report], now + timedelta(minutes=50), THRESHOLD, shift_start=now
-        )
+        await tracker.track(SESSION, [report], now + timedelta(minutes=50), THRESHOLD)
         == 0
     )
-    assert len(log.entries) == 1
+    assert tracker.total == 1
 
 
-async def test_covered_area_is_never_counted(station_report, now, log):
+async def test_covered_area_is_never_counted(station_report, now):
     tracker = AtRiskTracker()
     report = station_report(
         "kongens-nytorv", covered_now=True, as_of=now, last_covered_at=None
     )
 
     assert (
-        await tracker.track(
-            SESSION, [report], now + timedelta(hours=3), THRESHOLD, shift_start=now
-        )
-        == 0
+        await tracker.track(SESSION, [report], now + timedelta(hours=3), THRESHOLD) == 0
     )
-    assert log.entries == []
+    assert tracker.total == 0
 
 
-async def test_rescued_area_counts_again_in_a_new_episode(station_report, now, log):
+async def test_rescued_area_counts_again_in_a_new_episode(station_report, now):
     tracker = AtRiskTracker()
 
     first = station_report(
         "marmorkirken", covered_now=False, as_of=now, last_covered_at=now
     )
     assert (
-        await tracker.track(
-            SESSION, [first], now + timedelta(minutes=45), THRESHOLD, shift_start=now
-        )
+        await tracker.track(SESSION, [first], now + timedelta(minutes=45), THRESHOLD)
         == 1
     )
 
@@ -97,46 +83,34 @@ async def test_rescued_area_counts_again_in_a_new_episode(station_report, now, l
     )
     assert (
         await tracker.track(
-            SESSION,
-            [second],
-            rescued_at + timedelta(minutes=44),
-            THRESHOLD,
-            shift_start=now,
+            SESSION, [second], rescued_at + timedelta(minutes=44), THRESHOLD
         )
         == 0
     )
     assert (
         await tracker.track(
-            SESSION,
-            [second],
-            rescued_at + timedelta(minutes=45),
-            THRESHOLD,
-            shift_start=now,
+            SESSION, [second], rescued_at + timedelta(minutes=45), THRESHOLD
         )
         == 1
     )
-    assert len(log.entries) == 2
+    assert tracker.total == 2
 
 
-async def test_entries_are_stamped_with_the_given_shift_start(station_report, now, log):
+async def test_reset_for_new_shift_starts_from_zero(station_report, now):
     tracker = AtRiskTracker()
     report = station_report(
         "marmorkirken", covered_now=False, as_of=now, last_covered_at=now
     )
-    shift_start = now - timedelta(hours=8)
+    await tracker.track(SESSION, [report], now + timedelta(minutes=45), THRESHOLD)
 
+    tracker.reset_for_new_shift(now + timedelta(hours=8))
+
+    assert tracker.total == 0
+    assert tracker.shift_start == now + timedelta(hours=8)
     assert (
-        await tracker.track(
-            SESSION,
-            [report],
-            now + timedelta(minutes=45),
-            THRESHOLD,
-            shift_start=shift_start,
-        )
+        await tracker.track(SESSION, [report], now + timedelta(minutes=45), THRESHOLD)
         == 1
     )
-
-    assert log.entries[0].shift_start == shift_start
 
 
 async def test_two_stations_count_independently(station_report, now, log):
@@ -151,15 +125,11 @@ async def test_two_stations_count_independently(station_report, now, log):
     ]
 
     assert (
-        await tracker.track(
-            SESSION, reports, now + timedelta(minutes=45), THRESHOLD, shift_start=now
-        )
+        await tracker.track(SESSION, reports, now + timedelta(minutes=45), THRESHOLD)
         == 2
     )
     assert (
-        await tracker.track(
-            SESSION, reports, now + timedelta(minutes=46), THRESHOLD, shift_start=now
-        )
+        await tracker.track(SESSION, reports, now + timedelta(minutes=46), THRESHOLD)
         == 0
     )
 
@@ -167,3 +137,4 @@ async def test_two_stations_count_independently(station_report, now, log):
         "marmorkirken",
         "kongens-nytorv",
     }
+    assert tracker.total == 2
