@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+from sqlalchemy.exc import NoResultFound
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
@@ -105,11 +106,10 @@ class EventProducer:
         if target_event_id is not None:
             try:
                 await get_event(self._session, target_event_id)
-            except Exception:
+            except NoResultFound:
                 raise TargetEventNotFoundError(
                     "target event id does not exist"
                 ) from None
-
         adjustment = Adjustment(
             adjustment_id=uuid4(),
             target_event_id=target_event_id,
