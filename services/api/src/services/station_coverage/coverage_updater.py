@@ -52,7 +52,7 @@ class CoverageUpdater:
         stays frozen at its end. Overdue episodes are written to the overdue
         log with the actual clock time as detection time, and the session is
         committed before the reports are stored for ``snapshot`` and
-        published. Concurrent calls are serialized by a lock.
+        published.
         """
         async with self._lock:
             now = self._clock()
@@ -72,7 +72,6 @@ class CoverageUpdater:
                     as_of,
                     timedelta(minutes=config.at_risk_threshold_minutes),
                 )
-                await session.commit()
             self._last_published = reports
             self._publisher.publish(reports)
 
