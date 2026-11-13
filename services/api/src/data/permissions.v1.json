@@ -3,6 +3,14 @@
   "source": "Metro role decision of 7 November 2026 (source story B6.2), with team interpretations proposed in ADR 0013",
   "default": "deny",
   "audit": { "log_every_individual_presence_access": true },
+  "permissions": {
+    "steward_patrol_view": {
+      "description": "Allows stewards to view their patrol interface."
+    },
+    "connection_event_send": {
+      "description": "Allows sending connection events."
+    }
+  },
   "roles": [
     {
       "role": "steward",
@@ -12,11 +20,11 @@
         { "data": "coverage", "subject": "all", "lines": "own", "shift_scope": "current" }
       ],
       "permissions": [
-        "connection_event_send", "own_patrol_record_view"
+        "connection_event_send", "steward_patrol_view"
       ]
     },
     {
-      "role": "steward_supervisor",
+      "role": "stewardSupervisor",
       "label": "Steward Supervisor",
       "grants": [
         { "data": "presence", "subject": "all", "lines": "own", "shift_scope": "current" },
@@ -24,7 +32,7 @@
       ]
     },
     {
-      "role": "control_room_operator",
+      "role": "controlRoomOperator",
       "label": "Control Room Operator",
       "grants": [
         { "data": "presence", "subject": "all", "lines": "all", "shift_scope": "current" },

@@ -15,7 +15,7 @@ router = APIRouter(tags=["connection"])
 
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
 async def connection_event(
-    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request, user: User = Depends(require_permission("steward.view"))
+    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request, user: User = Depends(require_permission("steward_patrol_view"))
 ):
     """Record that a steward's phone connected to a beacon.
 

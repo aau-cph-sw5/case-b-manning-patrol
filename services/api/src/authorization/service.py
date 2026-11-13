@@ -8,7 +8,7 @@ def has_permission(
     config: AuthorizationConfig
 ) -> bool:
 
-    role = config.roles.get(user.role)
+    role = config.get_role(user.role)
 
     if role is None:
         return False
