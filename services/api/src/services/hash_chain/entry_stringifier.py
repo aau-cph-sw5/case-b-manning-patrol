@@ -49,44 +49,53 @@ ADJUSTMENT_FIELDS = (
 """``Adjustment`` columns included in the string; must cover every column."""
 
 
-def stringify_entry(entry: ChainEntry) -> str:
-    """Return ``entry`` as a compact JSON string with sorted keys.
+class EntryStringifier:
+    """Write chain entries in the one fixed string format that gets hashed."""
 
-    A ``kind`` key ("event" or "adjustment") is added so an event and an
-    adjustment can never produce the same string, and a ``"v"`` key carries
-    ``FORMAT_VERSION`` so entries hashed under an older format stay
-    recognisable. ``None`` becomes ``null``.
+    @staticmethod
+    def stringify_entry(entry: ChainEntry) -> str:
+        """Return ``entry`` as a compact JSON string with sorted keys.
 
-    Raises TypeError for anything other than an ``Event`` or ``Adjustment``
-    row (API schemas and domain records are not hashed), and ValueError for a
-    timestamp without a time zone.
-    """
-    if isinstance(entry, Event):
-        kind, field_names = "event", EVENT_FIELDS
-    elif isinstance(entry, Adjustment):
-        kind, field_names = "adjustment", ADJUSTMENT_FIELDS
-    else:
-        raise TypeError(
-            f"Cannot stringify {type(entry).__name__}; expected Event or Adjustment",
-        )
-    fields = {name: _to_json_value(getattr(entry, name)) for name in field_names}
-    fields["kind"] = kind
-    fields["v"] = FORMAT_VERSION
-    return json.dumps(fields, sort_keys=True, separators=(",", ":"))
+        A ``kind`` key ("event" or "adjustment") is added so an event and an
+        adjustment can never produce the same string, and a ``"v"`` key
+        carries ``FORMAT_VERSION`` so entries hashed under an older format
+        stay recognisable. ``None`` becomes ``null``.
 
+        Raises TypeError for anything other than an ``Event`` or
+        ``Adjustment`` row (API schemas and domain records are not hashed),
+        and ValueError for a timestamp without a time zone.
+        """
+        if isinstance(entry, Event):
+            kind, field_names = "event", EVENT_FIELDS
+        elif isinstance(entry, Adjustment):
+            kind, field_names = "adjustment", ADJUSTMENT_FIELDS
+        else:
+            raise TypeError(
+                f"Cannot stringify {type(entry).__name__}; "
+                "expected Event or Adjustment",
+            )
+        fields = {
+            name: EntryStringifier._to_json_value(getattr(entry, name))
+            for name in field_names
+        }
+        fields["kind"] = kind
+        fields["v"] = FORMAT_VERSION
+        return json.dumps(fields, sort_keys=True, separators=(",", ":"))
 
-def _to_json_value(value: object) -> object:
-    """Return ``value`` in its one fixed JSON spelling.
+    @staticmethod
+    def _to_json_value(value: object) -> object:
+        """Return a single field value in its one fixed JSON spelling.
 
-    Timestamps are converted to UTC because the database hands them back in
-    UTC; without this, hashing before saving and after reading would differ.
-    """
-    if isinstance(value, datetime):
-        if value.tzinfo is None:
-            raise ValueError("Cannot stringify a timestamp without a time zone")
-        return value.astimezone(UTC).isoformat()
-    if isinstance(value, UUID):
-        return str(value)
-    if isinstance(value, StrEnum):
-        return value.value
-    return value
+        Timestamps are converted to UTC because the database hands them back
+        in UTC; without this, hashing before saving and after reading would
+        differ.
+        """
+        if isinstance(value, datetime):
+            if value.tzinfo is None:
+                raise ValueError("Cannot stringify a timestamp without a time zone")
+            return value.astimezone(UTC).isoformat()
+        if isinstance(value, UUID):
+            return str(value)
+        if isinstance(value, StrEnum):
+            return value.value
+        return value

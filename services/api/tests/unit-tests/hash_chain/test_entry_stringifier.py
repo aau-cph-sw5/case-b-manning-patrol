@@ -11,7 +11,7 @@ from src.services.hash_chain.entry_stringifier import (
     ADJUSTMENT_FIELDS,
     EVENT_FIELDS,
     FORMAT_VERSION,
-    stringify_entry,
+    EntryStringifier,
 )
 from src.services.shared.event_record_mapper import EventRecordMapper
 
@@ -90,55 +90,61 @@ def test_adjustment_fields_cover_every_adjustment_column():
 
 
 def test_event_matches_the_golden_string():
-    assert stringify_entry(make_event()) == GOLDEN_EVENT
+    assert EntryStringifier.stringify_entry(make_event()) == GOLDEN_EVENT
 
 
 def test_adjustment_matches_the_golden_string():
-    assert stringify_entry(make_adjustment()) == GOLDEN_ADJUSTMENT
+    assert EntryStringifier.stringify_entry(make_adjustment()) == GOLDEN_ADJUSTMENT
 
 
 def test_same_entry_gives_the_same_string():
-    assert stringify_entry(make_event()) == stringify_entry(make_event())
+    assert EntryStringifier.stringify_entry(
+        make_event()
+    ) == EntryStringifier.stringify_entry(make_event())
 
 
 def test_same_instant_in_another_time_zone_gives_the_same_string():
     local = make_event(device_timestamp=DEVICE_AT.astimezone(COPENHAGEN_SUMMER))
 
-    assert stringify_entry(local) == stringify_entry(make_event())
+    assert EntryStringifier.stringify_entry(local) == EntryStringifier.stringify_entry(
+        make_event()
+    )
 
 
 def test_none_beacon_id_is_written_as_null():
     session_start = make_event(event_type=EventType.START_EVENT, beacon_id=None)
 
-    assert '"beacon_id":null' in stringify_entry(session_start)
+    assert '"beacon_id":null' in EntryStringifier.stringify_entry(session_start)
 
 
 def test_event_and_adjustment_are_tagged_with_their_kind():
-    assert '"kind":"event"' in stringify_entry(make_event())
-    assert '"kind":"adjustment"' in stringify_entry(make_adjustment())
+    assert '"kind":"event"' in EntryStringifier.stringify_entry(make_event())
+    assert '"kind":"adjustment"' in EntryStringifier.stringify_entry(make_adjustment())
 
 
 def test_payload_is_tagged_with_the_format_version():
-    assert f'"v":{FORMAT_VERSION}' in stringify_entry(make_event())
-    assert f'"v":{FORMAT_VERSION}' in stringify_entry(make_adjustment())
+    assert f'"v":{FORMAT_VERSION}' in EntryStringifier.stringify_entry(make_event())
+    assert f'"v":{FORMAT_VERSION}' in EntryStringifier.stringify_entry(
+        make_adjustment()
+    )
 
 
 def test_naive_timestamp_is_rejected():
     naive = make_event(device_timestamp=DEVICE_AT.replace(tzinfo=None))
 
     with pytest.raises(ValueError, match="time zone"):
-        stringify_entry(naive)
+        EntryStringifier.stringify_entry(naive)
 
 
 def test_domain_event_record_is_rejected():
     record: EventRecord = EventRecordMapper.to_record(make_event())
 
     with pytest.raises(TypeError, match="EventRecord"):
-        stringify_entry(record)  # ty: ignore[invalid-argument-type]
+        EntryStringifier.stringify_entry(record)  # ty: ignore[invalid-argument-type]
 
 
 def test_api_adjustment_schema_is_rejected():
     stored = AdjustmentEventStored.from_adjustment(make_adjustment())
 
     with pytest.raises(TypeError, match="AdjustmentEventStored"):
-        stringify_entry(stored)  # ty: ignore[invalid-argument-type]
+        EntryStringifier.stringify_entry(stored)  # ty: ignore[invalid-argument-type]
