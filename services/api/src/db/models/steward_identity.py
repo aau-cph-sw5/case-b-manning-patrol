@@ -7,7 +7,7 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
-class StewardIdentity(SQLModel, table=True):
+class StewardShiftIdentity(SQLModel, table=True):
     """One steward's identity for one shift.
 
     Events will point here through ``steward_ref`` instead of storing
