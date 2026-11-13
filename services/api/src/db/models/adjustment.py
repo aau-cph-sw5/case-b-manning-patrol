@@ -13,8 +13,6 @@ class AdjustmentBase(SQLModel):
     """Fields shared by the adjustment table and the API response."""
 
     target_event_id: UUID | None = None
-    android_id: UUID
-    reason: str
     server_timestamp: datetime
     source: str
 

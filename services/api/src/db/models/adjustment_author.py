@@ -9,7 +9,9 @@ class AdjustmentAuthor(SQLModel, table=True):
         foreign_key="adjustment.adjustment_id",
         primary_key=True
     )
-    author: str
+    android_id: UUID | None
+    reason: str | None
+    author: str | None
     server_timestamp: datetime
     source: str = "api"
     anonymized_at: datetime | None = None
