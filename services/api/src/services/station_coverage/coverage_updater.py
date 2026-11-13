@@ -57,8 +57,6 @@ class CoverageUpdater:
         async with self._lock:
             now = self._clock()
             shift = self._shift_schedule.latest_shift(now)
-            if shift.start != self._at_risk_tracker.shift_start:
-                self._at_risk_tracker.reset_for_new_shift(shift.start)
             as_of = min(now, shift.end)
             async with self._session_factory() as session:
                 reports = await self._service.compute_coverage_reports(
@@ -71,6 +69,7 @@ class CoverageUpdater:
                     reports,
                     as_of,
                     timedelta(minutes=config.at_risk_threshold_minutes),
+                    shift_start=shift.start,
                 )
             self._last_published = reports
             self._publisher.publish(reports)

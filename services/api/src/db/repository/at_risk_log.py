@@ -9,21 +9,16 @@ from src.db.models.at_risk_log import AtRiskLogEntry
 from src.domain.coverage import AtRiskDetected
 
 
-async def append_new_entries(
-    session: AsyncSession, entries: list[AtRiskDetected]
-) -> int:
-    """Insert entries not logged yet and commit. Return how many were added."""
-    if not entries:
-        return 0
+async def get_entry_ids(session: AsyncSession) -> set[str]:
+    """Return the IDs of all logged entries."""
     result = await session.exec(select(AtRiskLogEntry.entry_id))
-    in_database_ids = set(result.all())
-    new_ids = [
-        entry for entry in entries if entry.stable_entry_id not in in_database_ids
-    ]
-    if new_ids:
-        session.add_all([_to_row(entry) for entry in new_ids])
-        await session.commit()
-    return len(new_ids)
+    return set(result.all())
+
+
+async def append_entries(session: AsyncSession, entries: list[AtRiskDetected]) -> None:
+    """Insert and commit the entries."""
+    session.add_all([_to_row(entry) for entry in entries])
+    await session.commit()
 
 
 async def count_episodes(session: AsyncSession, shift_start: datetime) -> int:
