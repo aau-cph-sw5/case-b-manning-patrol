@@ -11,8 +11,8 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import StewardIdentity
-from src.db.repository.steward_identity import get_or_create_steward_ref
+from src.db.models import StewardShiftIdentity
+from src.db.repository.steward_shift_identity import get_or_create_steward_ref
 
 ANNA = uuid4()
 BO = uuid4()
@@ -61,7 +61,7 @@ async def test_same_shift_creates_only_one_row(session):
     await get_or_create_steward_ref(session, ANNA, NIGHT_1)
     await get_or_create_steward_ref(session, ANNA, NIGHT_1)
 
-    rows = (await session.exec(select(StewardIdentity))).all()
+    rows = (await session.exec(select(StewardShiftIdentity))).all()
     assert len(rows) == 1
 
 
@@ -69,7 +69,7 @@ async def test_same_shift_creates_only_one_row(session):
 async def test_new_row_stores_android_id_and_is_not_anonymised(session):
     ref = await get_or_create_steward_ref(session, ANNA, NIGHT_1)
 
-    row = await session.get(StewardIdentity, ref)
+    row = await session.get(StewardShiftIdentity, ref)
     assert row is not None
     assert row.android_id == ANNA
     assert row.shift_start == NIGHT_1

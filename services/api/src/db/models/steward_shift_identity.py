@@ -7,7 +7,7 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
-class StewardIdentity(SQLModel, table=True):
+class StewardShiftIdentity(SQLModel, table=True):
     """One steward's identity for one shift.
 
     Events will point here through ``steward_ref`` instead of storing
@@ -18,7 +18,7 @@ class StewardIdentity(SQLModel, table=True):
     Rows are never deleted.
     """
 
-    __tablename__ = "steward_identity"
+    __tablename__ = "steward_shift_identity"
     __table_args__ = (UniqueConstraint("android_id", "shift_start"),)
 
     steward_ref: UUID = Field(default_factory=uuid4, primary_key=True)

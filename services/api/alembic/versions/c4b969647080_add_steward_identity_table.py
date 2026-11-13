@@ -22,7 +22,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
-        "steward_identity",
+        "steward_shift_identity",
         sa.Column("steward_ref", sa.Uuid(), nullable=False),
         sa.Column("android_id", sa.Uuid(), nullable=True),
         sa.Column("shift_start", sqlmodel.sql.sqltypes.UTCDateTime(), nullable=False),
@@ -34,4 +34,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_table("steward_identity")
+    op.drop_table("steward_shift_identity")

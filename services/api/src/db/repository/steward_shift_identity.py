@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import StewardIdentity
+from src.db.models import StewardShiftIdentity
 
 
 async def get_or_create_steward_ref(
@@ -19,14 +19,14 @@ async def get_or_create_steward_ref(
     inserts and commits a new row.
     """
     result = await session.exec(
-        select(StewardIdentity).where(
-            StewardIdentity.android_id == android_id,
-            StewardIdentity.shift_start == shift_start,
+        select(StewardShiftIdentity).where(
+            StewardShiftIdentity.android_id == android_id,
+            StewardShiftIdentity.shift_start == shift_start,
         )
     )
     identity = result.first()
     if identity is None:
-        identity = StewardIdentity(android_id=android_id, shift_start=shift_start)
+        identity = StewardShiftIdentity(android_id=android_id, shift_start=shift_start)
         session.add(identity)
         await session.commit()
         await session.refresh(identity)
