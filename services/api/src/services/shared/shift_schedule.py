@@ -48,6 +48,15 @@ class ShiftSchedule:
             shift = self._shift_starting_on(today - timedelta(days=1))
         return shift
 
+    def shift_on(self, day: date) -> Shift:
+        """Return the shift that starts on ``day`` in the schedule's local time.
+
+        A shift that runs past midnight ends on the following day. The
+        returned start and end are in UTC, so daylight saving changes are
+        already accounted for.
+        """
+        return self._shift_starting_on(day)
+
     def _shift_starting_on(self, day: date) -> Shift:
         end_day = day if self._end > self._start else day + timedelta(days=1)
         start = datetime.combine(day, self._start, tzinfo=self._timezone)
