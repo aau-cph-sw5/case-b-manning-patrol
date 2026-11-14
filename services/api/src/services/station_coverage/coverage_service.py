@@ -32,6 +32,7 @@ class CoverageService:
         session: AsyncSession,
         now: datetime,
         shift_start_time: datetime | None = None,
+        known_at: datetime | None = None,
     ) -> list[StationCoverageReport]:
         """Return the coverage of all stations as of ``now``.
 
@@ -47,10 +48,15 @@ class CoverageService:
         are moved up to the shift start, and intervals ending after ``now``
         are treated as still open. When ``None``, no clipping is done.
 
+        ``known_at`` limits the calculation to events the backend had
+        received by then (by ``server_timestamp``), so coverage can be
+        reproduced as it was known at that moment. When ``None``, every
+        stored event is used, including ones that arrived late.
+
         Areas without a beacon get no intervals, areas without a station are
         left out, and stations and their areas are sorted by ID.
         """
-        events = await get_events(session)
+        events = await get_events(session, known_at=known_at)
         areas = await get_patrol_areas(session)
 
         records = [EventRecordMapper.to_record(event) for event in events]

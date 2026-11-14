@@ -24,8 +24,20 @@ class TrainManningService:
         session: AsyncSession,
         now: datetime,
         shift_start_time: datetime | None = None,
+        known_at: datetime | None = None,
     ) -> list[TrainManningReport]:
-        events = await get_events(session)
+        """Return the manning of every train as of ``now``, sorted by slug.
+
+        ``shift_start_time`` is the scheduled shift start; when given,
+        intervals are clipped to ``[shift_start_time, now]`` and running time
+        is counted from it. When ``None``, running time starts at ``now``.
+
+        ``known_at`` limits the calculation to events the backend had
+        received by then (by ``server_timestamp``), so manning can be
+        reproduced as it was known at that moment. When ``None``, every
+        stored event is used, including ones that arrived late.
+        """
+        events = await get_events(session, known_at=known_at)
         trains = await get_trains(session)
         train_lines = await get_train_lines(session)
 
