@@ -12,6 +12,13 @@ from src.db.repository.adjustment import insert_adjustment
 from src.db.repository.event import get_event, get_open_connections, insert_event
 from src.domain.event import EventType
 
+from .exceptions import (
+    AndroidIdNotFoundError,
+    BeaconNotFoundError,
+    EventValidationError,
+    TargetEventNotFoundError,
+)
+
 
 class EventProducer:
     """Append events and adjustments, stamping server time and source."""
@@ -41,7 +48,7 @@ class EventProducer:
             android_id=android_id,
             beacon_id=beacon_id,
             device_timestamp=device_timestamp,
-            server_timestamp=_now_utc(),
+            server_timestamp=EventProducer._now_utc(),
             source=self._source,
         )
 
@@ -109,7 +116,7 @@ class EventProducer:
             android_id=android_id,
             reason=reason,
             author=author,
-            server_timestamp=_now_utc(),
+            server_timestamp=EventProducer._now_utc(),
             source=self._source,
             corrected_fact_type=corrected_fact.fact_type,
             corrected_beacon_id=corrected_fact.beacon_id,
@@ -141,38 +148,6 @@ class EventProducer:
         """
         return "Beacon_1"
 
-
-def _now_utc() -> datetime:
-    return datetime.now(UTC)
-
-
-class EventValidationError(Exception):
-    """An event or adjustment is invalid; the API answers 400."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
-
-
-class TargetEventNotFoundError(Exception):
-    """An adjustment targets an event that does not exist; the API answers 404."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
-
-
-class AndroidIdNotFoundError(Exception):
-    """The device that sent an event is not known."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
-
-
-class BeaconNotFoundError(Exception):
-    """An event refers to a beacon that is not known."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+    @staticmethod
+    def _now_utc() -> datetime:
+        return datetime.now(UTC)
