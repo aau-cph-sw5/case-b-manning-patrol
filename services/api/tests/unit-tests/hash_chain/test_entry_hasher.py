@@ -1,6 +1,6 @@
 import pytest
 
-from src.services.hash_chain.entry_hasher import GENESIS_HASH, EntryHasher, HashedEntry
+from src.services.hash_chain.entry_hasher import EntryHasher, HashedEntry
 
 TEXT = (
     '{"android_id":"660e8400-e29b-41d4-a716-446655440001",'
@@ -26,7 +26,7 @@ GOLDEN_HEAD_HASH_AFTER_F = (
 
 
 def test_content_hash_matches_the_golden_content_hash():
-    hashed = EntryHasher.hash_text(TEXT, GENESIS_HASH)
+    hashed = EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH)
 
     assert hashed.content_hash == GOLDEN_CONTENT_HASH
 
@@ -39,26 +39,31 @@ def test_relinked_text_matches_the_golden_head_hash():
 
 
 def test_first_entry_matches_the_golden_head_hash():
-    assert EntryHasher.hash_text(TEXT, GENESIS_HASH).head_hash == GOLDEN_HEAD_HASH
+    assert (
+        EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH).head_hash
+        == GOLDEN_HEAD_HASH
+    )
 
 
 def test_same_input_gives_the_same_hashes():
-    first = EntryHasher.hash_text(TEXT, GENESIS_HASH)
-    second = EntryHasher.hash_text(TEXT, GENESIS_HASH)
+    first = EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH)
+    second = EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH)
 
     assert first == second
 
 
 def test_changing_the_text_changes_content_and_head_hash():
-    original = EntryHasher.hash_text(TEXT, GENESIS_HASH)
-    tampered = EntryHasher.hash_text(TEXT.replace("test", "tampered"), GENESIS_HASH)
+    original = EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH)
+    tampered = EntryHasher.hash_text(
+        TEXT.replace("test", "tampered"), EntryHasher.GENESIS_HASH
+    )
 
     assert tampered.content_hash != original.content_hash
     assert tampered.head_hash != original.head_hash
 
 
 def test_changing_prev_hash_changes_only_the_head_hash():
-    original = EntryHasher.hash_text(TEXT, GENESIS_HASH)
+    original = EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH)
     relinked = EntryHasher.hash_text(TEXT, OTHER_PREV_HASH)
 
     assert relinked.content_hash == original.content_hash
@@ -66,7 +71,7 @@ def test_changing_prev_hash_changes_only_the_head_hash():
 
 
 def test_hashes_are_64_lowercase_hex_characters():
-    hashed: HashedEntry = EntryHasher.hash_text(TEXT, GENESIS_HASH)
+    hashed: HashedEntry = EntryHasher.hash_text(TEXT, EntryHasher.GENESIS_HASH)
 
     for value in (hashed.content_hash, hashed.prev_hash, hashed.head_hash):
         assert len(value) == 64

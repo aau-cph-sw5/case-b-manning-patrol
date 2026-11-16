@@ -24,7 +24,7 @@ from src.db.repository.adjustment import get_adjustments
 from src.db.repository.event import get_event, get_events
 from src.main import app
 from src.services.hash_chain.chain_linker import ChainLinker
-from src.services.hash_chain.entry_hasher import GENESIS_HASH
+from src.services.hash_chain.entry_hasher import EntryHasher
 from src.services.hash_chain.entry_stringifier import (
     ADJUSTMENT_FIELDS,
     EVENT_FIELDS,
@@ -149,7 +149,7 @@ async def test_posted_disconnect_response_row_and_hash_agree(
         payload["server_timestamp"]
     ) == datetime.fromisoformat(stored["server_timestamp"])
 
-    hashed = ChainLinker.link(row, GENESIS_HASH)
-    assert hashed.prev_hash == GENESIS_HASH
+    hashed = ChainLinker.link(row, EntryHasher.GENESIS_HASH)
+    assert hashed.prev_hash == EntryHasher.GENESIS_HASH
     assert len(hashed.content_hash) == 64
     assert len(hashed.head_hash) == 64
