@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
 from src.db.models.adjustment import Adjustment
+from src.db.models.adjustment_author import AdjustmentAuthor
 from src.db.models.event import Event
 from src.db.repository.adjustment import insert_adjustment
 from src.db.repository.event import get_event, get_open_connections, insert_event
@@ -113,9 +114,6 @@ class EventProducer:
         adjustment = Adjustment(
             adjustment_id=uuid4(),
             target_event_id=target_event_id,
-            android_id=android_id,
-            reason=reason,
-            author=author,
             server_timestamp=EventProducer._now_utc(),
             source=self._source,
             corrected_fact_type=corrected_fact.fact_type,
@@ -124,7 +122,20 @@ class EventProducer:
         )
 
         await insert_adjustment(self._session, adjustment)
-        return AdjustmentEventStored.from_adjustment(adjustment)
+
+        adjustment_author = AdjustmentAuthor(
+            adjustment_id=adjustment.adjustment_id,
+            android_id=android_id,
+            reason=reason,
+            author=author,
+            server_timestamp=EventProducer._now_utc(),
+            source=self._source,
+        )
+        self._session.add(adjustment_author)
+        await self._session.commit()
+        await self._session.refresh(adjustment_author)
+
+        return await AdjustmentEventStored.from_adjustment(adjustment, self._session)
 
     async def _validate_event(self, android_id: UUID, beacon_id: UUID | None) -> None:
         if await self._find_android_id(android_id) is None:
