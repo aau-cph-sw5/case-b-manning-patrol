@@ -21,5 +21,7 @@ class ConfigService:
 
     async def set_at_risk_threshold_minutes(self, minutes: int) -> int:
         """Store the at-risk threshold in minutes and return the stored value."""
+        if minutes < 0 or minutes > 60:
+            raise ValueError("at-risk threshold must be non-negative")
         config = await set_at_risk_threshold_minutes(self._session, minutes=minutes)
         return config.at_risk_threshold_minutes
