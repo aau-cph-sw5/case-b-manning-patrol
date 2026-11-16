@@ -12,7 +12,7 @@ async def anonymize_old_records(session: AsyncSession):
 
     statement = (
         update(AdjustmentAuthor)
-        .where(AdjustmentAuthor.server_timestamp < cutoff_date)
+        .where(AdjustmentAuthor.server_timestamp <= cutoff_date)
         .where(AdjustmentAuthor.anonymized_at.is_(None))
         .values(
             android_id=None,
