@@ -15,12 +15,15 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import engine, upgrade_db
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
+from src.db.models.steward_shift_identity import StewardShiftIdentity
 from src.domain.event import EventType
 from src.services.positioning_service import load_fixture
+from src.services.shared.shift_schedule import ShiftSchedule
 
 FIXTURE = "fixture-events-v1.json"
 SOURCE = "seed"
 SEED_NAMESPACE = uuid5(NAMESPACE_URL, "manning-patrol/seed")
+SHIFT_SCHEDULE = ShiftSchedule.from_file()
 
 FIXTURE_EVENT_TYPES = {
     "CONNECTED": EventType.CONNECT_EVENT,
@@ -32,6 +35,7 @@ FIXTURE_EVENT_TYPES = {
 class SeedResult:
     """How many rows a seed run inserted."""
 
+    identities_inserted: int
     events_inserted: int
     adjustments_inserted: int
 
@@ -44,6 +48,36 @@ def _parse_timestamp(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+def _shift_start(timestamp: datetime) -> datetime:
+    return SHIFT_SCHEDULE.latest_shift(timestamp).start
+
+
+def _steward_ref(android_id: str, timestamp: datetime) -> UUID:
+    shift_start = _shift_start(timestamp).isoformat()
+    return _seed_id(f"{FIXTURE}/steward/{android_id}/{shift_start}")
+
+
+def build_steward_identities(fixture: list[dict]) -> list[StewardShiftIdentity]:
+    """Return one steward identity per device and scheduled shift in the fixture.
+
+    Shifts are assigned with the same schedule the event producer uses, and
+    each ``steward_ref`` is derived from the device and shift so reruns reuse
+    it.
+    """
+    shifts = {
+        (entry["android_id"], _shift_start(_parse_timestamp(entry["timestamp"])))
+        for entry in fixture
+    }
+    return [
+        StewardShiftIdentity(
+            steward_ref=_steward_ref(android_id, shift_start),
+            android_id=UUID(android_id),
+            shift_start=shift_start,
+        )
+        for android_id, shift_start in sorted(shifts)
+    ]
+
+
 def load_events(filename: str) -> list[Event]:
     """Load the fixture as events, failing loudly instead of seeding nothing."""
     fixture = load_fixture(filename)
@@ -53,12 +87,20 @@ def load_events(filename: str) -> list[Event]:
 
 
 def build_events(fixture: list[dict]) -> list[Event]:
-    """Turn the fixture timeline into events, wrapped in a patrol session."""
+    """Turn the fixture timeline into events, wrapped in a patrol session.
+
+    Events reference their device through the steward reference that
+    ``build_steward_identities`` creates for its shift. The added session
+    start and stop events share the reference of the event they wrap.
+    """
     events = [
         Event(
             event_id=_seed_id(f"{FIXTURE}/{entry['debugging_number']}"),
             event_type=FIXTURE_EVENT_TYPES[entry["event"]],
-            android_id=entry["android_id"],
+            steward_ref=_steward_ref(
+                entry["android_id"],
+                _parse_timestamp(entry["timestamp"]),
+            ),
             beacon_id=entry["beacon_id"],
             device_timestamp=_parse_timestamp(entry["timestamp"]),
             server_timestamp=_parse_timestamp(entry["timestamp"]),
@@ -80,7 +122,7 @@ def build_events(fixture: list[dict]) -> list[Event]:
             Event(
                 event_id=_seed_id(f"{FIXTURE}/{name}"),
                 event_type=event_type,
-                android_id=anchor.android_id,
+                steward_ref=anchor.steward_ref,
                 beacon_id=None,
                 device_timestamp=timestamp,
                 server_timestamp=timestamp,
@@ -102,7 +144,6 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
         Adjustment(
             adjustment_id=_seed_id(f"{FIXTURE}/adjustment/10"),
             target_event_id=blip.event_id,
-            android_id=blip.android_id,
             reason="Signal blip, steward did not leave the platform",
             author="seed-supervisor",
             server_timestamp=blip.server_timestamp + timedelta(hours=2),
@@ -115,9 +156,22 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
 
 
 async def seed(session: AsyncSession) -> SeedResult:
-    """Insert the fixture events and adjustment that are not stored yet."""
+    """Insert the fixture identities, events and adjustment not stored yet."""
+    identities = build_steward_identities(load_fixture(FIXTURE))
     events = load_events(FIXTURE)
     adjustments = build_adjustments(events)
+
+    existing_identities = set(
+        (
+            await session.exec(
+                select(StewardShiftIdentity.steward_ref).where(
+                    col(StewardShiftIdentity.steward_ref).in_(
+                        [i.steward_ref for i in identities],
+                    ),
+                ),
+            )
+        ).all(),
+    )
 
     existing_events = set(
         (
@@ -140,15 +194,19 @@ async def seed(session: AsyncSession) -> SeedResult:
         ).all(),
     )
 
+    new_identities = [i for i in identities if i.steward_ref not in existing_identities]
     new_events = [e for e in events if e.event_id not in existing_events]
     new_adjustments = [
         a for a in adjustments if a.adjustment_id not in existing_adjustments
     ]
+    session.add_all(new_identities)
+    await session.flush()
     session.add_all(new_events)
     session.add_all(new_adjustments)
     await session.commit()
 
     return SeedResult(
+        identities_inserted=len(new_identities),
         events_inserted=len(new_events),
         adjustments_inserted=len(new_adjustments),
     )
@@ -167,7 +225,8 @@ def main():
     upgrade_db()
     result = asyncio.run(_run())
     print(
-        f"Inserted {result.events_inserted} events and "
+        f"Inserted {result.identities_inserted} steward identities, "
+        f"{result.events_inserted} events and "
         f"{result.adjustments_inserted} adjustments.",
     )
 

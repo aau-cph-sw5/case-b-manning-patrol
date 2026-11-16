@@ -5,9 +5,27 @@ from uuid import UUID
 
 from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel.sql.expression import SelectOfScalar
 
 from src.db.models.event import Event
+from src.db.models.steward_shift_identity import StewardShiftIdentity
 from src.domain.event import EventType
+
+
+def _events_of_steward(android_id: UUID) -> SelectOfScalar[Event]:
+    """Select the events of every shift the steward has worked.
+
+    Events only store ``steward_ref``, so the device is matched through the
+    steward identity table.
+    """
+    return (
+        select(Event)
+        .join(
+            StewardShiftIdentity,
+            col(Event.steward_ref) == col(StewardShiftIdentity.steward_ref),
+        )
+        .where(StewardShiftIdentity.android_id == android_id)
+    )
 
 
 async def get_event(session: AsyncSession, event_id: UUID) -> Event:
@@ -29,11 +47,8 @@ async def get_latest_start_event(
 ) -> Event | None:
     """Return the steward's most recent shift start event, or None if never started."""
     result = await session.exec(
-        select(Event)
-        .where(
-            Event.android_id == android_id,
-            Event.event_type == EventType.START_EVENT,
-        )
+        _events_of_steward(android_id)
+        .where(Event.event_type == EventType.START_EVENT)
         .order_by(col(Event.device_timestamp).desc())
     )
 
@@ -45,9 +60,8 @@ async def get_connection_events_by_android_id(
 ) -> list[Event]:
     """Return the steward's connect/disconnect events from `since` on, oldest first."""
     result = await session.exec(
-        select(Event)
+        _events_of_steward(android_id)
         .where(
-            Event.android_id == android_id,
             col(Event.event_type).in_(
                 [EventType.CONNECT_EVENT, EventType.DISCONNECT_EVENT],
             ),
@@ -66,14 +80,12 @@ async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[
     DISCONNECT for that beacon, by device timestamp.
     """
     connects = await session.exec(
-        select(Event).where(
-            Event.android_id == android_id,
+        _events_of_steward(android_id).where(
             Event.event_type == EventType.CONNECT_EVENT,
         )
     )
     disconnects = await session.exec(
-        select(Event).where(
-            Event.android_id == android_id,
+        _events_of_steward(android_id).where(
             Event.event_type == EventType.DISCONNECT_EVENT,
         )
     )
