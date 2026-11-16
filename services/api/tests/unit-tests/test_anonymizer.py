@@ -23,6 +23,7 @@ async def session() -> AsyncGenerator[AsyncSession]:
         yield session
     await engine.dispose()
 
+
 @pytest.mark.asyncio
 async def test_anonymize_author_after_five_years(session):
     old_timestamp = datetime(2020, 1, 1, tzinfo=UTC)
@@ -33,14 +34,14 @@ async def test_anonymize_author_after_five_years(session):
         author="Test",
         server_timestamp=old_timestamp,
         source="test",
-        anonymized_at=None
+        anonymized_at=None,
     )
     session.add(author)
     await session.commit()
 
     fake_now = datetime(2026, 1, 1, tzinfo=UTC)
 
-    with patch('src.services.anonymizer.datetime') as mock_dt:
+    with patch("src.services.anonymizer.datetime") as mock_dt:
         mock_dt.now.return_value = fake_now
         mock_dt.UTC = UTC
         await anonymize_old_records(session)

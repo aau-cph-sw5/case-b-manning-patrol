@@ -135,11 +135,7 @@ async def lifespan(app: FastAPI):
             await anonymize_old_records(session)
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        run_anonymize,
-        'cron',
-        hour=2, minute=0
-    )
+    scheduler.add_job(run_anonymize, "cron", hour=2, minute=0)
     scheduler.start()
 
     yield

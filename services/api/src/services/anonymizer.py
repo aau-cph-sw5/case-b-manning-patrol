@@ -1,12 +1,13 @@
 # src/services/anonymizer.py
 from datetime import UTC, datetime, timedelta
 
-from sqlmodel import update
+from sqlmodel import col, update
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.adjustment_author import AdjustmentAuthor
 
-RETENTION_PERIOD = timedelta(days=5*365)
+RETENTION_PERIOD = timedelta(days=5 * 365)
+
 
 async def anonymize_old_records(session: AsyncSession):
     """anonymize authors of adjustments older than retention period"""
@@ -14,13 +15,10 @@ async def anonymize_old_records(session: AsyncSession):
 
     statement = (
         update(AdjustmentAuthor)
-        .where(AdjustmentAuthor.server_timestamp <= cutoff_date)
-        .where(AdjustmentAuthor.anonymized_at.is_(None))
+        .where(col(AdjustmentAuthor.server_timestamp) <= cutoff_date)
+        .where(col(AdjustmentAuthor.anonymized_at).is_(None))
         .values(
-            android_id=None,
-            reason=None,
-            author=None,
-            anonymized_at=datetime.now(UTC)
+            android_id=None, reason=None, author=None, anonymized_at=datetime.now(UTC)
         )
     )
     await session.exec(statement)

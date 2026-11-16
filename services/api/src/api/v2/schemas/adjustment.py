@@ -33,9 +33,16 @@ class AdjustmentEventCreate(BaseModel):
 
 
 class AdjustmentEventStored(AdjustmentBase):
-    """A stored correction as returned by the API."""
+    """A stored correction as returned by the API.
+
+    `android_id`, `reason` and `author` come from the adjustment's author row
+    and are None once it has been anonymised.
+    """
 
     adjustment_id: UUID
+    android_id: UUID | None
+    reason: str | None
+    author: str | None
     corrected_fact: CorrectedFact
 
     @classmethod
