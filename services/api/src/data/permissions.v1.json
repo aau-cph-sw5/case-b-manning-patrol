@@ -20,7 +20,8 @@
         { "data": "coverage", "subject": "all", "lines": "own", "shift_scope": "current" }
       ],
       "permissions": [
-        "connection_event_send", "steward_patrol_view"
+        "connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view", 
+        "patrol_session_start", "patrol_session_stop"
       ]
     },
     {
@@ -37,7 +38,8 @@
       "grants": [
         { "data": "presence", "subject": "all", "lines": "all", "shift_scope": "current" },
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
-      ]
+      ],
+      "permissions":["dashboard_view", "adjustment_event_send"]
     },
     {
       "role": "operations_administrator",

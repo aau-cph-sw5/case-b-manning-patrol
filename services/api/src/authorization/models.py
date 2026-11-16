@@ -4,18 +4,20 @@ from pydantic import BaseModel
 class RoleConfig(BaseModel):
     role: str
     label: str
-    permissions: list[str]
+    permissions: list[str] = []
 
 
 class PermissionConfig(BaseModel):
     description: str
 
+class AuditConfig(BaseModel):
+    log_every_individual_presence_access: bool
 
 class AuthorizationConfig(BaseModel):
     version: str
     source: str
     default: str
-    audit: dict
+    audit: AuditConfig
     permissions: dict[str, PermissionConfig]
     roles: list[RoleConfig]
     

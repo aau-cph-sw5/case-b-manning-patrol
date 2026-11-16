@@ -1,10 +1,12 @@
 """Endpoints for the start and end of a steward's patrol session."""
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
 from src.api.v2.schemas.ingestion import PatrolSessionEvent
+from src.authorization.dependencies import require_permission
 from src.domain.event import EventType
+from src.security.current_user import User
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
 
@@ -16,6 +18,7 @@ async def patrol_session_start_event(
     patrol_session_event: PatrolSessionEvent,
     producer: EventProducerDep,
     request: Request,
+    user: User = Depends(require_permission("patrol_session_start"))
 ):
     """Record that a steward started a patrol session.
 
@@ -40,6 +43,8 @@ async def patrol_session_stop_event(
     patrol_session_event: PatrolSessionEvent,
     producer: EventProducerDep,
     request: Request,
+    user: User = Depends(require_permission("patrol_session_stop"))
+    
 ):
     """Record that a steward ended a patrol session.
 

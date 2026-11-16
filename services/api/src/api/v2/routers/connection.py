@@ -15,7 +15,8 @@ router = APIRouter(tags=["connection"])
 
 @router.post("/connection/connect", status_code=status.HTTP_201_CREATED)
 async def connection_event(
-    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request, user: User = Depends(require_permission("steward_patrol_view"))
+    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request,
+    user: User = Depends(require_permission("connection_event_send"))
 ):
     """Record that a steward's phone connected to a beacon.
 
@@ -37,7 +38,8 @@ async def connection_event(
 
 @router.post("/connection/disconnect", status_code=status.HTTP_201_CREATED)
 async def disconnection_event(
-    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request
+    connection_event: ConnectionEvent, producer: EventProducerDep, request: Request,
+    user: User = Depends(require_permission("disconnection_event_send"))
 ):
     """Record that a steward's phone lost its connection to a beacon.
 

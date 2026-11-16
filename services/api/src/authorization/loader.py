@@ -3,7 +3,7 @@ from pathlib import Path
 from .models import AuthorizationConfig
 
 
-CONFIG_PATH = Path(__file__).parent / "data" / "permissions.v1.json"
+CONFIG_PATH = Path(__file__).parent.parent / "data" / "permissions.v1.json"
 
 
 def load_authorization_config() -> AuthorizationConfig:
