@@ -1,5 +1,7 @@
 """Endpoint for supervisor corrections to recorded events."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
@@ -16,7 +18,8 @@ async def adjustment_event(
     adjustment_event: AdjustmentEventCreate,
     producer: EventProducerDep,
     request: Request,
-    user: User = Depends(require_permission("adjustment_event_send"))
+    user: Annotated[User,
+                    Depends(require_permission("adjustment_event_send"))]
 ) -> AdjustmentEventStored:
     """Record a correction to a steward event.
 

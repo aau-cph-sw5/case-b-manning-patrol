@@ -3,22 +3,27 @@
 import asyncio
 from collections.abc import AsyncIterable
 from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from src.authorization.dependencies import require_permission
 from src.domain.coverage import StationCoverageReport
+from src.security.current_user import User
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
-from src.security.current_user import User
 
 router = APIRouter(tags=["positioning-interface"])
 
 
 @router.get("/dashboard/stream", response_class=EventSourceResponse)
-async def stream(request: Request, user: User = Depends(require_permission("station_manning_coverage_view"))) -> AsyncIterable[ServerSentEvent]:
+async def stream(
+    request: Request,
+    user: Annotated[User,
+                    Depends(require_permission("station_manning_coverage_view"))],
+) -> AsyncIterable[ServerSentEvent]:
     """Stream the dashboard as server-sent `dashboard` events.
 
     The latest known coverage is sent as soon as the client connects. After

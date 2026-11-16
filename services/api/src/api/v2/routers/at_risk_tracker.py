@@ -28,8 +28,9 @@ class AtRiskCount(BaseModel):
 async def get_at_risk_count(
     request: Request,
     session: AsyncDbSessionDep,
+    user: Annotated[User,
+                    Depends(require_permission("at_risk_count_view"))],
     shift_start: ShiftStartQuery = None,
-    user: User = Depends(require_permission("at_risk_count_view"))
 ) -> AtRiskCount:
     """Count at-risk episodes for the latest shift, or the given shift start."""
     schedule: ShiftSchedule = request.app.state.shift_schedule

@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import Depends, HTTPException
 
 from src.authorization.loader import load_authorization_config
@@ -10,7 +12,7 @@ config = load_authorization_config()
 def require_permission(permission: str):
 
     def permission_checker(
-        user: User = Depends(get_current_user)
+        user: Annotated[User, Depends(get_current_user)],
     ) -> User:
 
         if not has_permission(user, permission, config):

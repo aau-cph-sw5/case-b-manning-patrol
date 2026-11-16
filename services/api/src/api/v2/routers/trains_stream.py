@@ -3,6 +3,7 @@
 import asyncio
 from collections.abc import AsyncIterable
 from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
@@ -20,7 +21,11 @@ router = APIRouter(tags=["positioning-interface"])
 
 
 @router.get("/trains/stream", response_class=EventSourceResponse)
-async def stream(request: Request, user: User = Depends(require_permission("train_manning_coverage_view"))) -> AsyncIterable[ServerSentEvent]:
+async def stream(
+    request: Request,
+    user: Annotated[User,
+                    Depends(require_permission("train_manning_coverage_view"))],
+) -> AsyncIterable[ServerSentEvent]:
     """Stream train manning as server-sent `trains` events.
 
     The latest known train manning is sent as soon as the client connects.

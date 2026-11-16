@@ -2,6 +2,7 @@
 
 import logging
 from datetime import UTC, datetime
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -44,7 +45,8 @@ class RecordBuildError(Exception):
 async def get_records(
     android_id: UUID,
     session: AsyncDbSessionDep,
-    user: User = Depends(require_permission("steward_own_patrol_record_view")),
+    user: Annotated[User,
+                    Depends(require_permission("steward_own_patrol_record_view"))],
 ) -> RecordList:
     """Return the steward's patrol records for the current shift, most recent first.
 

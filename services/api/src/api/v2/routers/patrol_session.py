@@ -1,5 +1,7 @@
 """Endpoints for the start and end of a steward's patrol session."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
@@ -18,7 +20,8 @@ async def patrol_session_start_event(
     patrol_session_event: PatrolSessionEvent,
     producer: EventProducerDep,
     request: Request,
-    user: User = Depends(require_permission("patrol_session_start"))
+    user: Annotated[User,
+                    Depends(require_permission("patrol_session_start"))]
 ):
     """Record that a steward started a patrol session.
 
@@ -43,8 +46,9 @@ async def patrol_session_stop_event(
     patrol_session_event: PatrolSessionEvent,
     producer: EventProducerDep,
     request: Request,
-    user: User = Depends(require_permission("patrol_session_stop"))
-    
+    user: Annotated[User,
+                    Depends(require_permission("patrol_session_stop"))]
+
 ):
     """Record that a steward ended a patrol session.
 
