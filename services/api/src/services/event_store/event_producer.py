@@ -8,9 +8,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
+from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
 from src.db.repository.adjustment import insert_adjustment
 from src.db.repository.event import get_event, get_open_connections, insert_event
+from src.db.repository.integrity_chain_link import get_head_hash
 from src.domain.event import EventType
+from src.services.hash_chain.entry_hasher import EntryHasher
+from src.services.hash_chain.entry_stringifier import ChainEntry, EntryStringifier
 
 from .exceptions import (
     AndroidIdNotFoundError,
@@ -26,6 +30,38 @@ class EventProducer:
     def __init__(self, session: AsyncSession, source: str) -> None:
         self._session = session
         self._source = source
+
+    async def _get_chain_link(self, chain_entry: ChainEntry) -> IntegrityChainLink:
+        chain_name = (
+            ChainName.EVENTS
+            if (isinstance((chain_entry), Event))
+            else ChainName.ADJUSTMENTS
+        )
+
+        record_id = (
+            chain_entry.adjustment_id
+            if isinstance(chain_entry, Adjustment)
+            else chain_entry.event_id
+        )
+
+        event_string = EntryStringifier.stringify_entry(chain_entry)
+
+        prev_hash = await get_head_hash(self._session, chain=chain_name)
+        if prev_hash is None:
+            prev_hash = EntryHasher.GENESIS_HASH
+        hashed_entry = EntryHasher.hash_text(text=event_string, prev_hash=prev_hash)
+
+        chain_link = IntegrityChainLink(
+            chain=chain_name,
+            record_id=record_id,
+            source=self._source,
+            prev_hash=hashed_entry.prev_hash,
+            content_hash=hashed_entry.content_hash,
+            head_hash=hashed_entry.head_hash,
+            server_timestamp=EventProducer._now_utc(),
+        )
+
+        return chain_link
 
     async def append_event(
         self,
@@ -52,8 +88,13 @@ class EventProducer:
             source=self._source,
         )
 
-        await insert_event(self._session, event)
-        return event
+        returned_event = await insert_event(
+            session=self._session,
+            event=event,
+            chain_link=await self._get_chain_link(event),
+        )
+
+        return returned_event
 
     async def close_open_connections(
         self,
@@ -123,7 +164,9 @@ class EventProducer:
             corrected_occured_at=corrected_fact.occurred_at,
         )
 
-        await insert_adjustment(self._session, adjustment)
+        await insert_adjustment(
+            self._session, adjustment, chain_link=await self._get_chain_link(adjustment)
+        )
         return AdjustmentEventStored.from_adjustment(adjustment)
 
     async def _validate_event(self, android_id: UUID, beacon_id: UUID | None) -> None:

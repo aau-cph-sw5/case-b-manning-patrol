@@ -10,7 +10,7 @@ from src.services.hash_chain.chain_verifier import (
     ChainVerifier,
     LinkedEntry,
 )
-from src.services.hash_chain.entry_hasher import GENESIS_HASH
+from src.services.hash_chain.entry_hasher import EntryHasher
 
 STEWARD = UUID("660e8400-e29b-41d4-a716-446655440001")
 BEACON = UUID("550e8400-e29b-41d4-a716-000000000002")
@@ -33,12 +33,11 @@ def make_event() -> Event:
 def make_chain(length: int) -> list[LinkedEntry]:
     """Build a valid chain of ``length`` entries with seq 1..length."""
     chain: list[LinkedEntry] = []
-    prev_hash = GENESIS_HASH
+    prev_hash = EntryHasher.GENESIS_HASH
     for seq in range(1, length + 1):
         event = make_event()
         hashed = ChainLinker.link(event, prev_hash)
         link = IntegrityChainLink(
-            entry_id=uuid4(),
             chain=ChainName.EVENTS,
             seq=seq,
             record_id=event.event_id,

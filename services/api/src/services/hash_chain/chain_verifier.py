@@ -11,7 +11,7 @@ from enum import StrEnum
 
 from src.db.models.integrity_chain_link import IntegrityChainLink
 from src.services.hash_chain.chain_linker import ChainLinker
-from src.services.hash_chain.entry_hasher import GENESIS_HASH
+from src.services.hash_chain.entry_hasher import EntryHasher
 from src.services.hash_chain.entry_stringifier import ChainEntry
 
 
@@ -63,12 +63,12 @@ class ChainVerifier:
         ``linked_entries`` must be one chain's links ordered oldest first, starting
         at the beginning of the chain. Each link is checked in this order:
         the entry exists, its previous hash is the head hash of the link
-        before (``GENESIS_HASH`` for the first), and the entry linked again
+        before (``EntryHasher.GENESIS_HASH`` for the first), and the entry linked again
         gives the stored content hash and head hash. Stops at the first
         failing check, so later links are not examined. An empty list has no
         break.
         """
-        expected_prev = GENESIS_HASH
+        expected_prev = EntryHasher.GENESIS_HASH
         for linked_entry in linked_entries:
             link = linked_entry.link
             if linked_entry.entry is None:

@@ -7,7 +7,7 @@ from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.domain.event import EventRecord, EventType
 from src.services.hash_chain.chain_linker import ChainLinker
-from src.services.hash_chain.entry_hasher import GENESIS_HASH, EntryHasher
+from src.services.hash_chain.entry_hasher import EntryHasher
 from src.services.hash_chain.entry_stringifier import EntryStringifier
 from src.services.shared.event_record_mapper import EventRecordMapper
 
@@ -22,7 +22,7 @@ CORRECTED_AT = datetime(2026, 5, 30, 3, 10, tzinfo=UTC)
 GOLDEN_CONTENT_HASH = "c6fabbf488b9a9bc5826dab2b88c7083bd2aab7accbefa34cbb3702071621ee6"
 """Content hash of make_event(); same as in test_entry_hasher.py."""
 GOLDEN_HEAD_HASH = "23d96ff06016161032a1777d37ef10893849f45aadc451364df21cad7c34f44e"
-"""Head hash of make_event() linked onto GENESIS_HASH."""
+"""Head hash of make_event() linked onto EntryHasher.GENESIS_HASH."""
 
 
 def make_event(source: str = "test") -> Event:
@@ -53,7 +53,7 @@ def make_adjustment() -> Adjustment:
 
 
 def test_event_matches_the_golden_hashes():
-    linked = ChainLinker.link(make_event(), GENESIS_HASH)
+    linked = ChainLinker.link(make_event(), EntryHasher.GENESIS_HASH)
 
     assert linked.content_hash == GOLDEN_CONTENT_HASH
     assert linked.head_hash == GOLDEN_HEAD_HASH
@@ -63,20 +63,20 @@ def test_link_hashes_the_stringified_entry():
     adjustment = make_adjustment()
     text = EntryStringifier.stringify_entry(adjustment)
 
-    linked = ChainLinker.link(adjustment, GENESIS_HASH)
+    linked = ChainLinker.link(adjustment, EntryHasher.GENESIS_HASH)
 
-    assert linked == EntryHasher.hash_text(text, GENESIS_HASH)
+    assert linked == EntryHasher.hash_text(text, EntryHasher.GENESIS_HASH)
 
 
 def test_same_input_gives_the_same_link():
-    assert ChainLinker.link(make_event(), GENESIS_HASH) == ChainLinker.link(
-        make_event(), GENESIS_HASH
+    assert ChainLinker.link(make_event(), EntryHasher.GENESIS_HASH) == ChainLinker.link(
+        make_event(), EntryHasher.GENESIS_HASH
     )
 
 
 def test_changing_a_field_changes_the_hashes():
-    original = ChainLinker.link(make_event(), GENESIS_HASH)
-    tampered = ChainLinker.link(make_event(source="tampered"), GENESIS_HASH)
+    original = ChainLinker.link(make_event(), EntryHasher.GENESIS_HASH)
+    tampered = ChainLinker.link(make_event(source="tampered"), EntryHasher.GENESIS_HASH)
 
     assert tampered.content_hash != original.content_hash
     assert tampered.head_hash != original.head_hash
@@ -86,7 +86,7 @@ def test_domain_event_record_is_rejected():
     record: EventRecord = EventRecordMapper.to_record(make_event())
 
     with pytest.raises(TypeError, match="EventRecord"):
-        ChainLinker.link(record, GENESIS_HASH)  # ty: ignore[invalid-argument-type]
+        ChainLinker.link(record, EntryHasher.GENESIS_HASH)  # ty: ignore[invalid-argument-type]
 
 
 def test_malformed_prev_hash_is_rejected():

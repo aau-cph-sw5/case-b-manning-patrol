@@ -11,11 +11,6 @@ import hashlib
 import re
 from dataclasses import dataclass
 
-GENESIS_HASH = "0" * 64
-"""The previous hash of the first entry in a chain, which has no predecessor."""
-
-_SHA256_HEX = re.compile(r"[0-9a-f]{64}")
-
 
 @dataclass(frozen=True)
 class HashedEntry:
@@ -34,6 +29,9 @@ class HashedEntry:
 
 
 class EntryHasher:
+    GENESIS_HASH = "0" * 64
+    """The previous hash of the first entry in a chain, which has no predecessor."""
+    _SHA256_HEX = re.compile(r"[0-9a-f]{64}")
     """Hash entry text and link it onto the previous head hash.
 
     Works on text only and knows nothing about events or adjustments;
@@ -48,7 +46,7 @@ class EntryHasher:
         ``prev_hash`` is not 64 lowercase hex characters, since the head hash
         is only unambiguous when both parts have that fixed length.
         """
-        if not _SHA256_HEX.fullmatch(prev_hash):
+        if not EntryHasher._SHA256_HEX.fullmatch(prev_hash):
             raise ValueError("prev_hash must be 64 lowercase hex characters")
         content_hash = EntryHasher._sha256(text)
         head_hash = EntryHasher._sha256(prev_hash + content_hash)
