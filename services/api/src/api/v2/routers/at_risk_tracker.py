@@ -2,11 +2,13 @@
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 
 from src.api.v2.dependencies import AsyncDbSessionDep
+from src.authorization.dependencies import require_permission
 from src.db.repository.at_risk_log import count_episodes
+from src.security.current_user import User
 from src.services.shared.shift_schedule import ShiftSchedule
 
 router = APIRouter(tags=["at-risk"])
@@ -27,6 +29,7 @@ async def get_at_risk_count(
     request: Request,
     session: AsyncDbSessionDep,
     shift_start: ShiftStartQuery = None,
+    user: User = Depends(require_permission("at_risk_count_view"))
 ) -> AtRiskCount:
     """Count at-risk episodes for the latest shift, or the given shift start."""
     schedule: ShiftSchedule = request.app.state.shift_schedule

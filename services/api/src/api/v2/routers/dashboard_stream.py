@@ -18,7 +18,7 @@ router = APIRouter(tags=["positioning-interface"])
 
 
 @router.get("/dashboard/stream", response_class=EventSourceResponse)
-async def stream(request: Request, user: User = Depends(require_permission("dashboard_view"))) -> AsyncIterable[ServerSentEvent]:
+async def stream(request: Request, user: User = Depends(require_permission("station_manning_coverage_view"))) -> AsyncIterable[ServerSentEvent]:
     """Stream the dashboard as server-sent `dashboard` events.
 
     The latest known coverage is sent as soon as the client connects. After

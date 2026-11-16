@@ -9,11 +9,7 @@ def has_permission(
 ) -> bool:
 
     role = config.get_role(user.role)
-
-    if role is None:
-        return False
-
-    if permission not in config.permissions:
-        return False
-
-    return permission in role.permissions
+    
+    if role is not None and permission in role.permissions:
+        return True
+    return config.default == "allow"

@@ -20,7 +20,7 @@ router = APIRouter(tags=["positioning-interface"])
 
 
 @router.get("/trains/stream", response_class=EventSourceResponse)
-async def stream(request: Request, user: User = Depends(require_permission("patrol_session_start"))) -> AsyncIterable[ServerSentEvent]:
+async def stream(request: Request, user: User = Depends(require_permission("train_manning_coverage_view"))) -> AsyncIterable[ServerSentEvent]:
     """Stream train manning as server-sent `trains` events.
 
     The latest known train manning is sent as soon as the client connects.
