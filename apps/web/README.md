@@ -41,7 +41,7 @@ Start the Vite development server:
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173/dashboard` (or next available port).
+The app will be available at `http://localhost:5173` (or next available port).
 
 **Note:** The development server automatically proxies `/api` requests to `http://localhost:8000`. Make sure the [API service](../services/api) is running on port 8000 before starting the dashboard.
 
