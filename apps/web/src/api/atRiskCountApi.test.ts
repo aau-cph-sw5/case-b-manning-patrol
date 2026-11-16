@@ -18,7 +18,7 @@ describe('getAtRiskCount', () => {
     const fetchMock = stubFetch(new Response(JSON.stringify(body), { status: 200 }))
 
     await expect(getAtRiskCount()).resolves.toEqual(body)
-    expect(fetchMock).toHaveBeenCalledWith('/api/v2/coverage/at-risk-count')
+    expect(fetchMock).toHaveBeenCalledWith('/api/v2/coverage/at-risk-count', expect.anything())
   })
 
   it("throws the backend's error message", async () => {
