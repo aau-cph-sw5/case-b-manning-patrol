@@ -65,6 +65,23 @@ from .db.repository.station import get_station_lines, get_stations
 API_PREFIX_V2 = "/api/v2"
 
 
+async def run_anonymizer() -> None:
+    """Anonymize personal records past their retention period in a new session."""
+    async with AsyncSession(engine) as session:
+        await anonymize_old_records(session)
+
+
+def start_anonymizer_scheduler() -> AsyncIOScheduler:
+    """Start a scheduler that runs the anonymizer every night at 02:00.
+
+    The caller must call ``shutdown()`` on the returned scheduler on exit.
+    """
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(run_anonymizer, "cron", hour=2, minute=0)
+    scheduler.start()
+    return scheduler
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Set up the database, coverage and train manning pipelines; stop them on exit.
@@ -129,14 +146,7 @@ async def lifespan(app: FastAPI):
     app.state.dashboard_presenter = dashboard_presenter
     app.state.trains_update_presenter = trains_update_presenter
     app.state.shift_schedule = shift_schedule
-
-    async def run_anonymize():
-        async with AsyncSession(engine) as session:
-            await anonymize_old_records(session)
-
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(run_anonymize, "cron", hour=2, minute=0)
-    scheduler.start()
+    scheduler = start_anonymizer_scheduler()
 
     yield
     scheduler.shutdown()
