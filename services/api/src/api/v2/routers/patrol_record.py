@@ -4,7 +4,7 @@ import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -16,7 +16,9 @@ from src.api.v2.schemas.patrol_record import (
     RecordList,
     Status,
 )
+from src.authorization.dependencies import config as auth_config
 from src.authorization.dependencies import require_permission
+from src.authorization.service import has_permission
 from src.db.models.event import Event
 from src.db.repository.event import (
     get_connection_events_by_android_id,
@@ -45,6 +47,9 @@ async def get_records(android_id: UUID, session: AsyncDbSessionDep,
 
     Raises RecordBuildError if the database cannot be read.
     """
+    if android_id != user.android_id and not has_permission(user, "patrol_record_view_all", auth_config):
+        raise HTTPException(403, "Insufficient permissions")
+    
     try:
         return await build_records(session, android_id)
     except SQLAlchemyError as error:
