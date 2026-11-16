@@ -35,6 +35,11 @@ class ShiftSchedule:
             timezone=ZoneInfo(data["timezone"]),
         )
 
+    @property
+    def timezone(self) -> ZoneInfo:
+        """Return the local timezone the shift times are defined in."""
+        return self._timezone
+
     def latest_shift(self, now: datetime) -> Shift:
         """Return the most recent shift that started at or before ``now``.
 
