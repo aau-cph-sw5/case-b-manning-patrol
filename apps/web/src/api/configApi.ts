@@ -5,6 +5,8 @@
  * Uses a relative URL, so it relies on the Vite dev server proxying `/api` to
  * the backend; unlike the dashboard stream it ignores `VITE_API_URL`.
  */
+import { authFetch } from '@/api/authFetch'
+
 const URL = '/api/v2/config/at-risk-threshold'
 
 /** The contract's AtRiskThreshold schema. */
@@ -34,7 +36,7 @@ async function toError(res: Response): Promise<Error> {
  *   failure rejects with fetch's own error.
  */
 export async function getAtRiskThreshold(): Promise<AtRiskThreshold> {
-  const res = await fetch(URL)
+  const res = await authFetch(URL)
   if (!res.ok) throw await toError(res)
   return (await res.json()) as AtRiskThreshold
 }
@@ -48,7 +50,7 @@ export async function getAtRiskThreshold(): Promise<AtRiskThreshold> {
  *   failure rejects with fetch's own error.
  */
 export async function setAtRiskThreshold(minutes: number): Promise<AtRiskThreshold> {
-  const res = await fetch(URL, {
+  const res = await authFetch(URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ at_risk_threshold_minutes: minutes }),
