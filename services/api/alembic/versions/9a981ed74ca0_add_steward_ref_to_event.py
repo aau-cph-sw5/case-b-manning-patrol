@@ -5,10 +5,10 @@ Revises: bd3f2068fdcd
 Create Date: 2026-11-14 10:30:14.611911
 
 """
-import sqlalchemy as sa
-
-from alembic import op
 from collections.abc import Sequence
+
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "9a981ed74ca0"
@@ -19,7 +19,8 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade():
     op.add_column('event', sa.Column('steward_ref', sa.Uuid(), nullable=True))
-    op.create_foreign_key('event_steward_ref_fkey', 'event', 'steward_shift_identity', ['steward_ref'], ['steward_ref'])
+    op.create_foreign_key('event_steward_ref_fkey', 'event', 'steward_shift_identity',
+                          ['steward_ref'], ['steward_ref'])
 
 def downgrade():
     op.drop_constraint('event_steward_ref_fkey', 'event', type_='foreignkey')

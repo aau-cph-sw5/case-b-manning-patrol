@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -8,10 +9,10 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from unittest.mock import patch
 
-from src.db.models import AdjustmentAuthor, StewardShiftIdentity
+from src.db.models import AdjustmentAuthor
 from src.services.anonymizer import anonymize_old_records
+
 
 @pytest_asyncio.fixture
 async def session() -> AsyncGenerator[AsyncSession]:

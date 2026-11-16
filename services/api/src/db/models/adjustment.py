@@ -6,7 +6,6 @@ from uuid import UUID
 from sqlmodel import Field, SQLModel
 
 from src.domain.event import EventType
-from src.db.models.adjustment_author import AdjustmentAuthor
 
 
 class AdjustmentBase(SQLModel):

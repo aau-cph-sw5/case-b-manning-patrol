@@ -1,7 +1,9 @@
 # src/services/anonymizer.py
-from datetime import datetime, timedelta, UTC
-from sqlmodel import select, update
+from datetime import UTC, datetime, timedelta
+
+from sqlmodel import update
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.models.adjustment_author import AdjustmentAuthor
 
 RETENTION_PERIOD = timedelta(days=5*365)

@@ -5,10 +5,10 @@ Main FastAPI application.
 """
 
 import asyncio
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +17,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
-from src.services.event_store.event_producer import EventValidationError, TargetEventNotFoundError
+from src.services.event_store.event_producer import (
+    EventValidationError,
+    TargetEventNotFoundError,
+)
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.at_risk_tracker import AtRiskTracker
