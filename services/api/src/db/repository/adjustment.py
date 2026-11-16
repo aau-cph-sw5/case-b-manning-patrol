@@ -31,6 +31,8 @@ async def insert_adjustment(
 ) -> Adjustment:
     """Insert and commit the adjustment, then reload it from the database."""
     session.add(adjustment)
+    session.add(chain_link)
     await session.commit()
     await session.refresh(adjustment)
+    await session.refresh(chain_link)
     return adjustment
