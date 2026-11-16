@@ -36,7 +36,7 @@ class AdjustmentEventStored(AdjustmentBase):
     """A stored correction as returned by the API.
 
     `android_id`, `reason` and `author` come from the adjustment's author row
-    and are None once it has been anonymised.
+    and are None once it has been anonymized.
     """
 
     adjustment_id: UUID

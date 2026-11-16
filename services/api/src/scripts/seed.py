@@ -14,6 +14,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import engine, upgrade_db
 from src.db.models.adjustment import Adjustment
+from src.db.models.adjustment_author import AdjustmentAuthor
 from src.db.models.event import Event
 from src.db.models.steward_shift_identity import StewardShiftIdentity
 from src.domain.event import EventType
@@ -144,8 +145,6 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
         Adjustment(
             adjustment_id=_seed_id(f"{FIXTURE}/adjustment/10"),
             target_event_id=blip.event_id,
-            reason="Signal blip, steward did not leave the platform",
-            author="seed-supervisor",
             server_timestamp=blip.server_timestamp + timedelta(hours=2),
             corrected_fact_type=EventType.CONNECT_EVENT,
             corrected_beacon_id=blip.beacon_id,
@@ -155,8 +154,33 @@ def build_adjustments(events: list[Event]) -> list[Adjustment]:
     ]
 
 
+def build_adjustment_authors(
+    fixture: list[dict], adjustments: list[Adjustment]
+) -> list[AdjustmentAuthor]:
+    """Record the seed supervisor as author of each seed adjustment.
+
+    The device is taken from fixture event 10, the blip the adjustments
+    correct, since stored events no longer hold the device ID.
+    """
+    blip = next(entry for entry in fixture if entry["debugging_number"] == 10)
+    return [
+        AdjustmentAuthor(
+            adjustment_id=adjustment.adjustment_id,
+            android_id=UUID(blip["android_id"]),
+            reason="Signal blip, steward did not leave the platform",
+            author="seed-supervisor",
+            server_timestamp=adjustment.server_timestamp,
+            source=SOURCE,
+        )
+        for adjustment in adjustments
+    ]
+
+
 async def seed(session: AsyncSession) -> SeedResult:
-    """Insert the fixture identities, events and adjustment not stored yet."""
+    """Insert the fixture identities, events and adjustment not stored yet.
+
+    An adjustment's author row is inserted together with the adjustment.
+    """
     identities = build_steward_identities(load_fixture(FIXTURE))
     events = load_events(FIXTURE)
     adjustments = build_adjustments(events)
@@ -203,6 +227,8 @@ async def seed(session: AsyncSession) -> SeedResult:
     await session.flush()
     session.add_all(new_events)
     session.add_all(new_adjustments)
+    await session.flush()
+    session.add_all(build_adjustment_authors(load_fixture(FIXTURE), new_adjustments))
     await session.commit()
 
     return SeedResult(
