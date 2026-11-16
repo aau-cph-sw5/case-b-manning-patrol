@@ -1,3 +1,5 @@
+import { authFetch } from '@/api/authFetch'
+
 const URL = '/api/v2/coverage/at-risk-count'
 
 export interface AtRiskCount {
@@ -7,7 +9,7 @@ export interface AtRiskCount {
 }
 
 export async function getAtRiskCount(): Promise<AtRiskCount> {
-  const res = await fetch(URL)
+  const res = await authFetch(URL)
   if (!res.ok) {
     const body = await res.json().catch(() => null)
     throw new Error(body?.message ?? `Request failed: ${res.status}`)
