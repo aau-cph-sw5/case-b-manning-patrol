@@ -108,6 +108,8 @@ async def insert_event(
 ) -> Event:
     """Insert and commit the event, then reload it from the database."""
     session.add(event)
+    session.add(chain_link)
     await session.commit()
     await session.refresh(event)
+    await session.refresh(chain_link)
     return event

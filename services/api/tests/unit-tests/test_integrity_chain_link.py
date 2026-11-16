@@ -31,18 +31,16 @@ async def session() -> AsyncGenerator[AsyncSession]:
 
 def make_link(
     chain: ChainName = ChainName.EVENTS,
-    seq: int = 1,
     **overrides: Any,
 ) -> IntegrityChainLink:
     """Build one chain link; hashes are fixed so heads descend from prev."""
     fields: dict[str, Any] = {
         "entry_id": uuid4(),
         "chain": chain,
-        "seq": seq,
         "record_id": uuid4(),
-        "prev_hash": f"prev-{chain.value}-{seq}",
-        "content_hash": f"content-{chain.value}-{seq}",
-        "head_hash": f"head-{chain.value}-{seq}",
+        "prev_hash": f"prev-{chain.value}-{1}",
+        "content_hash": f"content-{chain.value}-{1}",
+        "head_hash": f"head-{chain.value}-{1}",
         "server_timestamp": TIMESTAMP,
     }
     return IntegrityChainLink(**(fields | overrides))
@@ -76,7 +74,7 @@ async def test_head_hash_is_per_chain(session: AsyncSession) -> None:
     """Appending to one chain never moves the head of another."""
     await integrity_chain_link.insert_link(session, make_link())
     await integrity_chain_link.insert_link(
-        session, make_link(ChainName.ADJUSTMENTS, 1, head_hash="head-adjustments-1")
+        session, make_link(ChainName.ADJUSTMENTS, head_hash="head-adjustments-1")
     )
     await integrity_chain_link.insert_link(session, make_link(seq=2))
 

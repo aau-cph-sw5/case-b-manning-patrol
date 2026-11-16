@@ -52,9 +52,7 @@ class EventProducer:
         hashed_entry = EntryHasher.hash_text(text=event_string, prev_hash=prev_hash)
 
         chain_link = IntegrityChainLink(
-            entry_id=uuid4(),
             chain=chain_name,
-            seq=0,
             record_id=record_id,
             source=self._source,
             prev_hash=hashed_entry.prev_hash,
