@@ -41,15 +41,20 @@ class RecordBuildError(Exception):
 
 
 @router.get("/record")
-async def get_records(android_id: UUID, session: AsyncDbSessionDep,
-                      user: User = Depends(require_permission("steward_own_patrol_record_view"))) -> RecordList:
+async def get_records(
+    android_id: UUID,
+    session: AsyncDbSessionDep,
+    user: User = Depends(require_permission("steward_own_patrol_record_view")),
+) -> RecordList:
     """Return the steward's patrol records for the current shift, most recent first.
 
     Raises RecordBuildError if the database cannot be read.
     """
-    if android_id != user.android_id and not has_permission(user, "patrol_record_view_all", auth_config):
+    if android_id != user.android_id and not has_permission(
+        user, "patrol_record_view_all", auth_config
+    ):
         raise HTTPException(403, "Insufficient permissions")
-    
+
     try:
         return await build_records(session, android_id)
     except SQLAlchemyError as error:

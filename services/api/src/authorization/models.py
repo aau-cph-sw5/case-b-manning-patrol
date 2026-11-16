@@ -22,7 +22,7 @@ class AuthorizationConfig(BaseModel):
     audit: AuditConfig
     permissions: dict[str, PermissionConfig]
     roles: list[RoleConfig]
-    
+
     def get_role(self, role_name: str) -> RoleConfig | None:
         return next(
             (role for role in self.roles if role.role == role_name),

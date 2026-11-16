@@ -33,6 +33,12 @@
     },
     "patrol_record_view_all": {
       "description": "Allows viewing any steward's patrol records, not just the caller's own."
+    },
+    "at_risk_threshold_view": {
+      "description": "Allows reading the at-risk threshold setting."
+    },
+    "at_risk_threshold_set": {
+      "description": "Allows changing the at-risk threshold setting."
     }
   },
   "roles": [
@@ -68,7 +74,8 @@
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view",
-        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all"]
+        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all",
+        "at_risk_threshold_view", "at_risk_threshold_set"]
     },
     {
       "role": "operations_administrator",
@@ -78,7 +85,8 @@
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view",
-        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all"]
+        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all",
+        "at_risk_threshold_view", "at_risk_threshold_set"]
     },
     {
       "role": "it_administrator",

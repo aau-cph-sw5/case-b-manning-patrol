@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException
+
 from src.authorization.loader import load_authorization_config
 from src.authorization.service import has_permission
 from src.security.current_user import User, get_current_user

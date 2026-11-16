@@ -26,5 +26,7 @@ def get_current_user(request: Request) -> User:
         try:
             android_id = UUID(android_id)
         except ValueError:
-            raise HTTPException(status_code=401, detail="Invalid X-Android-Id header")
+            raise HTTPException(
+                status_code=401, detail="Invalid X-Android-Id header"
+            ) from None
     return User(user_id=token, role=token, android_id=android_id)
