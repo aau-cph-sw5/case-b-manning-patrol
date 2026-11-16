@@ -12,6 +12,24 @@
     },
     "disconnection_event_send": {
       "description": "Allows sending disconnection events."
+    },
+    "patrol_session_start": {
+      "description": "Allows sending a patrol session start event."
+    },
+    "patrol_session_stop": {
+      "description": "Allows sending a patrol session stop event."
+    },
+    "station_manning_coverage_view": {
+      "description": "Allows viewing the shared station coverage dashboard stream."
+    },
+    "train_manning_coverage_view": {
+      "description": "Allows viewing the train manning stream."
+    },
+    "adjustment_event_send": {
+      "description": "Allows sending corrections to recorded steward events."
+    },
+    "at_risk_count_view": {
+      "description": "Allows viewing the at-risk episode count."
     }
   },
   "roles": [
@@ -47,7 +65,7 @@
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view", 
-        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send"]
+        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view"]
     },
     {
       "role": "operations_administrator",
@@ -57,7 +75,7 @@
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view", 
-        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send"]
+        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view"]
     },
     {
       "role": "it_administrator",

@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -16,7 +18,7 @@ class AuditConfig(BaseModel):
 class AuthorizationConfig(BaseModel):
     version: str
     source: str
-    default: str
+    default: Literal["deny"]
     audit: AuditConfig
     permissions: dict[str, PermissionConfig]
     roles: list[RoleConfig]
