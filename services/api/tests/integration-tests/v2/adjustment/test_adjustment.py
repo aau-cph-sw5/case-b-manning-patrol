@@ -1,13 +1,19 @@
 """Tests for POST /api/v2/adjustment (AdjustmentEventCreate)."""
 
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+import pytest_asyncio
+
+from src.api.v2.dependencies import get_async_db_session
+from src.db.ingest import load_reference_data
 from src.domain.event import EventType
+from src.main import app
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
-BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
+BEACON_ID = "660e8400-e29b-41d4-a716-446655440002"  # STN-002 platform
 OCCURRED_AT = "2026-09-21T10:05:00+00:00"
 AUTHOR_ID = "880e8400-e29b-41d4-a716-446655440003"
 REASON = "Beacon never fired on arrival; steward confirms platform patrol."
@@ -23,6 +29,13 @@ VALID_ADJUSTMENT: dict[str, Any] = {
     "reason": REASON,
     "author": AUTHOR_ID,
 }
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reference_data():
+    get_test_session = app.dependency_overrides[get_async_db_session]
+    async with asynccontextmanager(get_test_session)() as session:
+        await load_reference_data(session)
 
 
 def test_adjustment_returns_stored_adjustment(client):

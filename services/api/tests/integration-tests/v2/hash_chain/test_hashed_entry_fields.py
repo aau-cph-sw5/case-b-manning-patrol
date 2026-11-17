@@ -13,11 +13,13 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from uuid import UUID
 
+import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from src.api.v2.dependencies import get_async_db_session
+from src.db.ingest import load_reference_data
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.repository.adjustment import get_adjustments
@@ -39,9 +41,16 @@ API_BASE = f"/api/{API_VERSION}"
 """Base path every call below goes through."""
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
-BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
+BEACON_ID = "660e8400-e29b-41d4-a716-446655440002"  # STN-002 platform
 AUTHOR_ID = "880e8400-e29b-41d4-a716-446655440003"
 DEVICE_AT = "2026-10-09T10:00:00+00:00"
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reference_data():
+    get_test_session = app.dependency_overrides[get_async_db_session]
+    async with asynccontextmanager(get_test_session)() as session:
+        await load_reference_data(session)
 
 
 async def _live_columns(db_engine: AsyncEngine, table: str) -> set[str]:

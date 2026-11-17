@@ -1,11 +1,25 @@
 """Tests for POST /api/v2/connection/connect (connection-event)."""
 
+from contextlib import asynccontextmanager
 from datetime import datetime
 from uuid import UUID
 
+import pytest_asyncio
+
+from src.api.v2.dependencies import get_async_db_session
+from src.db.ingest import load_reference_data
+from src.main import app
+
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
-BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
+BEACON_ID = "660e8400-e29b-41d4-a716-446655440002"  # STN-002 platform
 TIMESTAMP = "2026-09-21T10:00:00+00:00"
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reference_data():
+    get_test_session = app.dependency_overrides[get_async_db_session]
+    async with asynccontextmanager(get_test_session)() as session:
+        await load_reference_data(session)
 
 
 def test_connect_returns_201_for_valid_connection_event(client):

@@ -5,9 +5,11 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 
 from src.api.v2.dependencies import get_async_db_session
+from src.db.ingest import load_reference_data
 from src.db.repository import event
 from src.domain.event import EventType
 from src.main import app
@@ -16,9 +18,16 @@ from src.services.event_store.event_producer import EventProducer
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 TIMESTAMP = "2026-09-21T10:00:00+00:00"
 STEWART_ANDROID_ID = UUID(ANDROID_ID)
-BEACON_1_ID = UUID("550e8400-e29b-41d4-a716-446655440000")
-BEACON_2_ID = UUID("550e8400-e29b-41d4-a716-446655440002")
-BEACON_3_ID = UUID("550e8400-e29b-41d4-a716-446655440003")
+BEACON_1_ID = UUID("660e8400-e29b-41d4-a716-446655440001")  # STN-001 platform
+BEACON_2_ID = UUID("660e8400-e29b-41d4-a716-446655440002")  # STN-002 platform
+BEACON_3_ID = UUID("660e8400-e29b-41d4-a716-446655440003")  # STN-003 platform
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reference_data():
+    get_test_session = app.dependency_overrides[get_async_db_session]
+    async with asynccontextmanager(get_test_session)() as session:
+        await load_reference_data(session)
 
 
 def test_patrol_session_stop_returns_201_for_valid_event(client):

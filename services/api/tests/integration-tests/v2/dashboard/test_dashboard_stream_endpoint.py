@@ -1,12 +1,30 @@
 """Tests for GET /api/v2/dashboard/stream (dashboard SSE endpoint)."""
 
 import json
+from contextlib import asynccontextmanager
 
 import httpx2
+import pytest_asyncio
+
+from src.api.v2.dependencies import get_async_db_session
+from src.db.ingest import load_reference_data
+from src.db.repository.station import get_station_lines, get_stations
+from src.main import app
+from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
-BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
+BEACON_ID = "660e8400-e29b-41d4-a716-446655440002"  # STN-002 platform
 TIMESTAMP = "2026-10-08T10:00:00+00:00"
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reference_data():
+    get_test_session = app.dependency_overrides[get_async_db_session]
+    async with asynccontextmanager(get_test_session)() as session:
+        await load_reference_data(session)
+        app.state.dashboard_presenter = DashboardPresenter(
+            await get_stations(session), await get_station_lines(session)
+        )
 
 
 def read_sse_event(lines) -> tuple[str | None, dict]:

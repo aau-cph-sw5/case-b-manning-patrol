@@ -10,6 +10,8 @@ from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.repository.adjustment import insert_adjustment
 from src.db.repository.event import get_event, get_open_connections, insert_event
+from src.db.repository.patrol_area import get_patrol_areas
+from src.db.repository.train import get_trains
 from src.domain.event import EventType
 
 from .exceptions import (
@@ -129,9 +131,8 @@ class EventProducer:
     async def _validate_event(self, android_id: UUID, beacon_id: UUID | None) -> None:
         if await self._find_android_id(android_id) is None:
             raise AndroidIdNotFoundError(f"Android_id '{android_id}' was not found")
-
-        if beacon_id is not None and await self._find_beacon(beacon_id) is None:
-            raise BeaconNotFoundError(f"Beacon '{beacon_id}' was not found")
+        if beacon_id is not None:
+            await self._check_if_beacon_exists(beacon_id)
 
     async def _find_android_id(self, android_id: UUID) -> str | None:
         """Look up a device.
@@ -140,13 +141,25 @@ class EventProducer:
         """
         return "Android_1"
 
-    async def _find_beacon(self, beacon_id: UUID) -> str | None:
+    async def _check_if_beacon_exists(self, beacon_id: UUID) -> bool:
         """Look up a beacon.
 
         Placeholder that accepts every ID until beacons are checked against
-        patrol areas.
+        patrol areas and stations.
         """
-        return "Beacon_1"
+        patrol_areas = await get_patrol_areas(session=self._session)
+
+        for area in patrol_areas:
+            if area.beacon_id == beacon_id:
+                return True
+
+        trains = await get_trains(self._session)
+
+        for train in trains:
+            if train.beacon_id == beacon_id:
+                return True
+
+        raise BeaconNotFoundError(f"Beacon '{beacon_id}' was not found")
 
     @staticmethod
     def _now_utc() -> datetime:

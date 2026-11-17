@@ -7,12 +7,13 @@ import httpx2
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import Line, Train, TrainLine
+from src.db.models import Line, PatrolArea, Station, Train, TrainLine
+from src.domain.patrol_area import AreaKind
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 TRAIN_ID = "770e8400-e29b-41d4-a716-446655440001"
 BEACON_ID = "550e8400-e29b-41d4-a716-446655440000"
-OTHER_BEACON_ID = "550e8400-e29b-41d4-a716-446655440099"
+OTHER_BEACON_ID = "660e8400-e29b-41d4-a716-446655440002"  # STN-002 platform
 TIMESTAMP = "2026-10-08T10:00:00+00:00"
 LATER_TIMESTAMP = "2026-10-08T11:00:00+00:00"
 
@@ -43,6 +44,16 @@ async def insert_train(db_engine: AsyncEngine) -> None:
                 train_id=UUID(TRAIN_ID),
                 slug="a29",
                 beacon_id=UUID(BEACON_ID),
+            )
+        )
+        session.add(Station(id="STN-002", name="Station 02"))
+        await session.flush()
+        session.add(
+            PatrolArea(
+                beacon_id=UUID(OTHER_BEACON_ID),
+                station_id="STN-002",
+                area_id="PA-002-P",
+                area_kind=AreaKind.PLATFORM,
             )
         )
         for line_id in ("M1", "M2"):
