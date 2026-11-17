@@ -11,12 +11,7 @@ from pydantic import BaseModel, Field
 
 from src.api.v2.dependencies import AsyncDbSessionDep, ConfigServiceDep
 from src.authorization.dependencies import require_permission
-from src.db.repository.config import (
-    get_or_create_config,
-    set_at_risk_threshold_minutes,
-)
 from src.security.current_user import User
-
 
 router = APIRouter(tags=["config"])
 
