@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
-from src.api.v2.schemas.ingestion import ConnectionEvent
+from src.api.v2.schemas.ingestion import ConnectionEvent, StoredEvent
 from src.authorization.dependencies import require_permission
 from src.domain.event import EventType
 from src.security.current_user import User
@@ -37,7 +37,7 @@ async def connection_event(
     await coverage_updater.refresh()
     train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
     await train_manning_updater.refresh()
-    return event
+    return StoredEvent.from_event(event, connection_event.android_id)
 
 
 @router.post("/connection/disconnect", status_code=status.HTTP_201_CREATED)
@@ -62,4 +62,4 @@ async def disconnection_event(
     await coverage_updater.refresh()
     train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
     await train_manning_updater.refresh()
-    return event
+    return StoredEvent.from_event(event, connection_event.android_id)

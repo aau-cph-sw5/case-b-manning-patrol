@@ -57,7 +57,7 @@ async def add_event(
         Event(
             event_id=uuid4(),
             event_type=event_type,
-            android_id=STEWARD,
+            steward_ref=STEWARD,
             beacon_id=beacon_id,
             device_timestamp=timestamp,
             server_timestamp=timestamp,

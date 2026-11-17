@@ -3,7 +3,7 @@
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pytest
 import pytest_asyncio
@@ -14,9 +14,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.routers.patrol_record import build_records
 from src.api.v2.schemas.patrol_record import AreaType, Status
-from src.db.models import Event, Line, PatrolArea, Station, StationLine
+from src.db.models import Line, PatrolArea, Station, StationLine
 from src.domain.event import EventType
 from src.domain.patrol_area import AreaKind
+from src.services.event_store.event_producer import EventProducer
 
 SHIFT_START = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
 STEWARD_ANDROID_ID = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")
@@ -63,18 +64,18 @@ async def session() -> AsyncGenerator[AsyncSession]:
 
 
 async def add_event(session: AsyncSession, **overrides: Any) -> None:
-    """Store a steward CONNECT event at shift start, with `overrides` applied."""
+    """Store a steward CONNECT event at shift start, with `overrides` applied.
+
+    Goes through the event producer so the event gets the steward reference
+    of its shift, as it would through the API.
+    """
     fields: dict[str, Any] = {
-        "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
         "android_id": STEWARD_ANDROID_ID,
         "beacon_id": PLATFORM_BEACON_ID,
         "device_timestamp": SHIFT_START,
-        "server_timestamp": SHIFT_START,
-        "source": "test",
     }
-    session.add(Event(**(fields | overrides)))
-    await session.commit()
+    await EventProducer(session, source="test").append_event(**(fields | overrides))
 
 
 async def start_shift(session: AsyncSession, at: datetime = SHIFT_START) -> None:
