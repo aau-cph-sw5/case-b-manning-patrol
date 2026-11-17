@@ -1,4 +1,8 @@
-# Included in main.py under /api/v2. Counts at-risk episodes per shift.
+"""Count at-risk coverage episodes per shift.
+
+Mounted in main.py under /api/v2; the endpoint is specified by the
+positioning-interface contract."""
+
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -20,6 +24,8 @@ ShiftStartQuery = Annotated[
 
 
 class AtRiskCount(BaseModel):
+    """At-risk episodes counted for one shift."""
+
     shift_start: datetime
     episodes: int
 
