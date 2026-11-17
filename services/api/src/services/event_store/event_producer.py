@@ -132,7 +132,7 @@ class EventProducer:
         if await self._find_android_id(android_id) is None:
             raise AndroidIdNotFoundError(f"Android_id '{android_id}' was not found")
         if beacon_id is not None:
-            await self._check_if_beacon_exists(beacon_id)
+            await self._find_beacon(beacon_id)
 
     async def _find_android_id(self, android_id: UUID) -> str | None:
         """Look up a device.
@@ -141,7 +141,7 @@ class EventProducer:
         """
         return "Android_1"
 
-    async def _check_if_beacon_exists(self, beacon_id: UUID) -> bool:
+    async def _find_beacon(self, beacon_id: UUID) -> bool:
         """Look up a beacon.
 
         Placeholder that accepts every ID until beacons are checked against
