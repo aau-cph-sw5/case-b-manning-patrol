@@ -4,13 +4,13 @@ from uuid import UUID, uuid4
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
 from src.domain.event import EventType
-from src.services.hash_chain.chain_linker import ChainLinker
 from src.services.hash_chain.chain_verifier import (
     ChainBreakReason,
     ChainVerifier,
     LinkedEntry,
 )
 from src.services.hash_chain.entry_hasher import EntryHasher
+from src.services.hash_chain.entry_stringifier import EntryStringifier
 
 STEWARD = UUID("660e8400-e29b-41d4-a716-446655440001")
 BEACON = UUID("550e8400-e29b-41d4-a716-000000000002")
@@ -36,7 +36,8 @@ def make_chain(length: int) -> list[LinkedEntry]:
     prev_hash = EntryHasher.GENESIS_HASH
     for seq in range(1, length + 1):
         event = make_event()
-        hashed = ChainLinker.link(event, prev_hash)
+        entry_text = EntryStringifier.stringify_entry(event)
+        hashed = EntryHasher.hash_text(entry_text, prev_hash)
         link = IntegrityChainLink(
             chain=ChainName.EVENTS,
             seq=seq,

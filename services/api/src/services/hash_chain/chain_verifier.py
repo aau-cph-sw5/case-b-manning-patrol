@@ -1,18 +1,18 @@
 """Check stored chain links against the entries they were made from.
 
 Walks the links of one chain oldest first, links each entry again with
-``ChainLinker`` and compares the result with what is stored. The first link
-that does not match is reported. Nothing here reads or writes the database;
-``ChainLoader`` supplies the links and their entries.
+``EntryStringifier`` and ``EntryHasher`` — the same steps ``ChainLinker``
+uses when appending — and compares the result with what is stored. The first
+link that does not match is reported. Nothing here reads or writes the
+database; ``ChainLoader`` supplies the links and their entries.
 """
 
 from dataclasses import dataclass
 from enum import StrEnum
 
 from src.db.models.integrity_chain_link import IntegrityChainLink
-from src.services.hash_chain.chain_linker import ChainLinker
 from src.services.hash_chain.entry_hasher import EntryHasher
-from src.services.hash_chain.entry_stringifier import ChainEntry
+from src.services.hash_chain.entry_stringifier import ChainEntry, EntryStringifier
 
 
 @dataclass(frozen=True)
@@ -76,7 +76,8 @@ class ChainVerifier:
             if link.prev_hash != expected_prev:
                 return ChainBreak(link, ChainBreakReason.PREV_MISMATCH)
 
-            hashed = ChainLinker.link(linked_entry.entry, expected_prev)
+            entry_text = EntryStringifier.stringify_entry(linked_entry.entry)
+            hashed = EntryHasher.hash_text(entry_text, expected_prev)
             if hashed.content_hash != link.content_hash:
                 return ChainBreak(link, ChainBreakReason.CONTENT_MISMATCH)
             if hashed.head_hash != link.head_hash:
