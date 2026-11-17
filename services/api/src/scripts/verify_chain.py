@@ -50,11 +50,13 @@ class VerifyChainCommand:
     async def _check_all_chains() -> bool:
         """Check each chain and return True if all of them are intact."""
         all_intact = True
-        for chain in ChainName:
-            chain_intact = await VerifyChainCommand._check_chain(chain)
-            if not chain_intact:
-                all_intact = False
-        await engine.dispose()
+        try:
+            for chain in ChainName:
+                chain_intact = await VerifyChainCommand._check_chain(chain)
+                if not chain_intact:
+                    all_intact = False
+        finally:
+            await engine.dispose()
         return all_intact
 
     @staticmethod

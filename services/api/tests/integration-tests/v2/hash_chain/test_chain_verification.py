@@ -14,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel import col
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.api.v2.schemas.adjustment import CorrectedFact
+from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName
 from src.domain.event import EventType
@@ -42,10 +44,31 @@ async def save_chain(db_engine: AsyncEngine, length: int = 3) -> list[UUID]:
     return event_ids
 
 
-async def verify_stored_chain(db_engine: AsyncEngine):
-    """Load the events chain in a fresh session and verify it."""
+async def save_adjustments(db_engine: AsyncEngine) -> list[UUID]:
+    """Append two adjustments through ``EventProducer`` and return their ids.
+
+    The first corrects a saved event; the second has no target event and no
+    beacon, so the nullable columns are stored and hashed too.
+    """
+    [target_event_id] = await save_chain(db_engine, length=1)
+    fact = CorrectedFact(fact_type=EventType.STOP_EVENT, occurred_at=DEVICE_AT)
+    async with AsyncSession(db_engine, expire_on_commit=False) as session:
+        producer = EventProducer(session, source="test")
+        targeted = await producer.append_adjustment(
+            STEWARD, fact, "missed stop", "supervisor", target_event_id
+        )
+        untargeted = await producer.append_adjustment(
+            STEWARD, fact, "late stop", "supervisor"
+        )
+    return [targeted.adjustment_id, untargeted.adjustment_id]
+
+
+async def verify_stored_chain(
+    db_engine: AsyncEngine, chain: ChainName = ChainName.EVENTS
+):
+    """Load one chain in a fresh session and verify it."""
     async with AsyncSession(db_engine) as session:
-        linked_entries = await ChainLoader.load(session, ChainName.EVENTS)
+        linked_entries = await ChainLoader.load(session, chain)
     return ChainVerifier.verify(linked_entries)
 
 
@@ -87,3 +110,30 @@ async def test_event_deleted_from_the_database_breaks_the_chain_at_its_link(
     assert result is not None
     assert result.link.seq == 2
     assert result.reason == ChainBreakReason.ENTRY_MISSING
+
+
+async def test_untouched_adjustments_chain_has_no_break(
+    db_engine: AsyncEngine,
+) -> None:
+    await save_adjustments(db_engine)
+
+    assert await verify_stored_chain(db_engine, ChainName.ADJUSTMENTS) is None
+
+
+async def test_adjustment_edited_in_the_database_breaks_the_adjustments_chain(
+    db_engine: AsyncEngine,
+) -> None:
+    adjustment_ids = await save_adjustments(db_engine)
+
+    async with db_engine.begin() as conn:
+        await conn.execute(
+            update(Adjustment)
+            .where(col(Adjustment.adjustment_id) == adjustment_ids[1])
+            .values(reason="tampered")
+        )
+
+    result = await verify_stored_chain(db_engine, ChainName.ADJUSTMENTS)
+
+    assert result is not None
+    assert result.link.record_id == adjustment_ids[1]
+    assert result.reason == ChainBreakReason.CONTENT_MISMATCH
