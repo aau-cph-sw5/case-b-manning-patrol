@@ -2,11 +2,7 @@ from src.authorization.models import AuthorizationConfig
 from src.security.current_user import User
 
 
-def has_permission(
-    user: User,
-    permission: str,
-    config: AuthorizationConfig
-) -> bool:
+def has_permission(user: User, permission: str, config: AuthorizationConfig) -> bool:
 
     role = config.get_role(user.role)
 

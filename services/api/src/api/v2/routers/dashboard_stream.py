@@ -21,8 +21,7 @@ router = APIRouter(tags=["positioning-interface"])
 @router.get("/dashboard/stream", response_class=EventSourceResponse)
 async def stream(
     request: Request,
-    user: Annotated[User,
-                    Depends(require_permission("station_manning_coverage_view"))],
+    user: Annotated[User, Depends(require_permission("station_manning_coverage_view"))],
 ) -> AsyncIterable[ServerSentEvent]:
     """Stream the dashboard as server-sent `dashboard` events.
 

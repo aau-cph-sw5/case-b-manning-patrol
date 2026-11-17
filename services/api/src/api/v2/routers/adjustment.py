@@ -18,8 +18,7 @@ async def adjustment_event(
     adjustment_event: AdjustmentEventCreate,
     producer: EventProducerDep,
     request: Request,
-    user: Annotated[User,
-                    Depends(require_permission("adjustment_event_send"))]
+    user: Annotated[User, Depends(require_permission("adjustment_event_send"))],
 ) -> AdjustmentEventStored:
     """Record a correction to a steward event.
 

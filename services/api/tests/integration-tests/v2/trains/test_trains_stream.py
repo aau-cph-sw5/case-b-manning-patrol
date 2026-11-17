@@ -123,10 +123,10 @@ async def test_trains_stream_reemits_unmanned_train_after_disconnect(
         headers={"Authorization": "Bearer controlRoomOperator"},
     ) as http:
         with httpx2.Client(
-        base_url=live_base_url,
-        timeout=5.0,
-        headers={"Authorization": "Bearer controlRoomOperator"},
-    ) as poster:
+            base_url=live_base_url,
+            timeout=5.0,
+            headers={"Authorization": "Bearer controlRoomOperator"},
+        ) as poster:
             post_event(poster, "/api/v2/connection/connect", BEACON_ID, TIMESTAMP)
 
             with http.stream("GET", "/api/v2/trains/stream") as response:

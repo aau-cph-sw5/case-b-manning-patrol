@@ -21,6 +21,5 @@ def validate_permissions(config: AuthorizationConfig) -> None:
         for permission in role.permissions:
             if permission not in defined_permissions:
                 raise ValueError(
-                    f"Role '{role.role}' references undefined "
-                    f"permission '{permission}'"
+                    f"Role '{role.role}' references undefined permission '{permission}'"
                 )

@@ -16,10 +16,7 @@ def require_permission(permission: str):
     ) -> User:
 
         if not has_permission(user, permission, config):
-            raise HTTPException(
-                status_code=403,
-                detail="Insufficient permissions"
-            )
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
 
         return user
 

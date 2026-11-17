@@ -64,10 +64,10 @@ def test_dashboard_stream_reemits_when_coverage_is_recomputed(live_base_url):
         headers={"Authorization": "Bearer controlRoomOperator"},
     ) as http:
         with httpx2.Client(
-        base_url=live_base_url,
-        timeout=5.0,
-        headers={"Authorization": "Bearer controlRoomOperator"},
-    ) as poster:
+            base_url=live_base_url,
+            timeout=5.0,
+            headers={"Authorization": "Bearer controlRoomOperator"},
+        ) as poster:
             with http.stream("GET", "/api/v2/dashboard/stream") as response:
                 lines = response.iter_lines()
                 read_sse_event(lines)

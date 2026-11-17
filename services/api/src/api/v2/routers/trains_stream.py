@@ -23,8 +23,7 @@ router = APIRouter(tags=["positioning-interface"])
 @router.get("/trains/stream", response_class=EventSourceResponse)
 async def stream(
     request: Request,
-    user: Annotated[User,
-                    Depends(require_permission("train_manning_coverage_view"))],
+    user: Annotated[User, Depends(require_permission("train_manning_coverage_view"))],
 ) -> AsyncIterable[ServerSentEvent]:
     """Stream train manning as server-sent `trains` events.
 

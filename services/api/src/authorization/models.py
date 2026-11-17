@@ -12,8 +12,10 @@ class RoleConfig(BaseModel):
 class PermissionConfig(BaseModel):
     description: str
 
+
 class AuditConfig(BaseModel):
     log_every_individual_presence_access: bool
+
 
 class AuthorizationConfig(BaseModel):
     version: str
@@ -24,7 +26,4 @@ class AuthorizationConfig(BaseModel):
     roles: list[RoleConfig]
 
     def get_role(self, role_name: str) -> RoleConfig | None:
-        return next(
-            (role for role in self.roles if role.role == role_name),
-            None
-        )
+        return next((role for role in self.roles if role.role == role_name), None)

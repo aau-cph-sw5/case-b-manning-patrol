@@ -82,9 +82,7 @@ def test_steward_reads_only_own_record(client):
     )
     assert other.status_code == 403
 
-    no_device = client.get(
-        f"/api/v2/record?android_id={ANDROID_ID}", headers=STEWARD
-    )
+    no_device = client.get(f"/api/v2/record?android_id={ANDROID_ID}", headers=STEWARD)
     assert no_device.status_code == 403
 
 
