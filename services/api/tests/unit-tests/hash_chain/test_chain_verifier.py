@@ -1,5 +1,8 @@
+from collections.abc import Callable
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
+
+import pytest
 
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
@@ -58,6 +61,32 @@ def tamper_with_entry(linked: LinkedEntry) -> None:
     linked.entry.source = "tampered"
 
 
+def change_entry(chain: list[LinkedEntry]) -> None:
+    """Change the second entry after its hashes were recorded."""
+    tamper_with_entry(chain[1])
+
+
+def remove_link(chain: list[LinkedEntry]) -> None:
+    """Drop the second link, so the third no longer points at its predecessor."""
+    del chain[1]
+
+
+def edit_head_hash(chain: list[LinkedEntry]) -> None:
+    """Overwrite the stored head hash of the second link."""
+    chain[1].link.head_hash = "f" * 64
+
+
+def drop_entry(chain: list[LinkedEntry]) -> None:
+    """Keep the second link but lose the entry it points to."""
+    chain[1] = LinkedEntry(link=chain[1].link, entry=None)
+
+
+def change_two_entries(chain: list[LinkedEntry]) -> None:
+    """Change the second and third entries after their hashes were recorded."""
+    tamper_with_entry(chain[1])
+    tamper_with_entry(chain[2])
+
+
 def test_intact_chain_has_no_break():
     chain = make_chain(3)
 
@@ -68,57 +97,35 @@ def test_empty_chain_has_no_break():
     assert ChainVerifier.verify([]) is None
 
 
-def test_changed_entry_breaks_at_its_link_with_content_mismatch():
+@pytest.mark.parametrize(
+    ("damage", "seq", "reason"),
+    [
+        pytest.param(
+            change_entry, 2, ChainBreakReason.CONTENT_MISMATCH, id="entry-changed"
+        ),
+        pytest.param(remove_link, 3, ChainBreakReason.PREV_MISMATCH, id="link-removed"),
+        pytest.param(
+            edit_head_hash, 2, ChainBreakReason.HEAD_MISMATCH, id="head-hash-edited"
+        ),
+        pytest.param(drop_entry, 2, ChainBreakReason.ENTRY_MISSING, id="entry-missing"),
+        pytest.param(
+            change_two_entries,
+            2,
+            ChainBreakReason.CONTENT_MISMATCH,
+            id="two-entries-changed-reports-first",
+        ),
+    ],
+)
+def test_damaged_chain_reports_its_first_break(
+    damage: Callable[[list[LinkedEntry]], None],
+    seq: int,
+    reason: ChainBreakReason,
+):
     chain = make_chain(3)
-    tamper_with_entry(chain[1])
+    damage(chain)
 
     result = ChainVerifier.verify(chain)
 
     assert result is not None
-    assert result.link.seq == 2
-    assert result.reason == ChainBreakReason.CONTENT_MISMATCH
-
-
-def test_removed_link_breaks_at_the_next_link_with_prev_mismatch():
-    chain = make_chain(3)
-    del chain[1]
-
-    result = ChainVerifier.verify(chain)
-
-    assert result is not None
-    assert result.link.seq == 3
-    assert result.reason == ChainBreakReason.PREV_MISMATCH
-
-
-def test_edited_head_hash_breaks_at_its_link_with_head_mismatch():
-    chain = make_chain(3)
-    chain[1].link.head_hash = "f" * 64
-
-    result = ChainVerifier.verify(chain)
-
-    assert result is not None
-    assert result.link.seq == 2
-    assert result.reason == ChainBreakReason.HEAD_MISMATCH
-
-
-def test_missing_entry_breaks_at_its_link_with_entry_missing():
-    chain = make_chain(3)
-    chain[1] = LinkedEntry(link=chain[1].link, entry=None)
-
-    result = ChainVerifier.verify(chain)
-
-    assert result is not None
-    assert result.link.seq == 2
-    assert result.reason == ChainBreakReason.ENTRY_MISSING
-
-
-def test_two_changed_entries_report_only_the_first_break():
-    chain = make_chain(3)
-    tamper_with_entry(chain[1])
-    tamper_with_entry(chain[2])
-
-    result = ChainVerifier.verify(chain)
-
-    assert result is not None
-    assert result.link.seq == 2
-    assert result.reason == ChainBreakReason.CONTENT_MISMATCH
+    assert result.link.seq == seq
+    assert result.reason == reason
