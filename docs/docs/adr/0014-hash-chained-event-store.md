@@ -52,6 +52,13 @@ Verification walks the chain in sequence order and recomputes every link.
 Events are chained on the events chain and adjustments on the adjustments
 chain, each in the order the entries are stored.
 
+Verification (`ChainLoader` and `ChainVerifier`, MET-B-021-TASK-004) walks the
+stored links of a chain in sequence order and recomputes every link: the
+entry it commits still exists, each link's `prev_hash` is the `head_hash` of
+the link before, and stringifying and hashing the entry again gives the stored
+`content_hash` and `head_hash`. Verification therefore checks what was
+chained, and only what was chained — see the Limits section.
+
 When the chain is first turned on, the events and adjustments already in the
 database are linked in one one-time backfill, in insertion order, starting from
 `GENESIS_HASH`. The backfill hashes the state of the database as it is at that
@@ -76,7 +83,8 @@ Potential drawbacks
   be verified against the new code without a migration.
 - The chain is wired into the code paths that store events and adjustments
   through an `EventProducer` (MET-B-021-TASK-003, PR #265); a path that
-  bypasses the producer stores an unchained row.
+  bypasses the producer stores an unchained row, which walking the chain
+  alone does not find (see Limits).
 
 ## Limits — what the chain does not protect against
 
@@ -103,6 +111,16 @@ The scheme must not be described as more than it is. An honest list:
 5. **`overdue_log` and `at_risk_log` are not chained.** They are derived from
    events and stored unchained, so their rows can be edited without detection;
    at best they can be recomputed from the events they derive from.
+6. **Entries added outside the chain are not detected by chain verification
+   itself.** A row inserted without a link — a direct SQL insert that bypasses
+   the `EventProducer` — is simply not on the chain, and verification, which
+   walks the stored links, finds nothing missing. Detecting such rows needs a
+   completeness check: every stored event and adjustment must also appear
+   exactly once as a link. The verifier does not include that check at the
+   time of writing, so until it does the chain is tamper evidence for what
+   was chained, not proof that every stored row was chained. A privileged
+   adversary can additionally forge a link for the inserted row, which limit
+   1 already covers.
 
 ## Alternatives considered
 
