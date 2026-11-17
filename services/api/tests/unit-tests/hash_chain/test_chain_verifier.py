@@ -25,7 +25,7 @@ def make_event() -> Event:
     return Event(
         event_id=uuid4(),
         event_type=EventType.CONNECT_EVENT,
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=BEACON,
         device_timestamp=DEVICE_AT,
         server_timestamp=SERVER_AT,

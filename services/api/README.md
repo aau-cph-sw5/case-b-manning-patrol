@@ -29,7 +29,7 @@ Backend service for the Manning Patrol positioning system.
 - Run `uv run ruff check src/` — lint only.
 - Run `uv run ty check src/` — type check only.
 - Run `uv run ruff format .` — fix formatting before `check` complains.
-- Run `uv run verify-chain` — checks every hash chain in the database from `DATABASE_URL` and prints the first broken link and its reason per chain; exits with code 1 if any chain is broken.
+- Run `uv run verify-chain` — checks every hash chain in the database from `DATABASE_URL` and prints the first broken link and its reason per chain; exits with code 1 if any chain is broken. Only entries with a chain link are checked, so seeded rows count as OK. On a dev database migrated from before the hash chain format changed, run `uv run reset-db` first, or old links are reported as broken.
 
 CI also runs `alembic upgrade head` and `alembic check` against a PostgreSQL
 service container, so a model change without a matching migration fails the
