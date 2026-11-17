@@ -3,6 +3,7 @@ from .adjustment_author import AdjustmentAuthor
 from .at_risk_log import AtRiskLogEntry
 from .config import Config
 from .event import Event
+from .expired_record import ExpiredRecord, ExpiredTarget
 from .integrity_chain_link import ChainName, IntegrityChainLink
 from .line import Line
 from .overdue_log import OverdueLogEntry
@@ -21,6 +22,8 @@ __all__ = [
     "ChainName",
     "Config",
     "Event",
+    "ExpiredRecord",
+    "ExpiredTarget",
     "IntegrityChainLink",
     "Line",
     "OverdueLogEntry",
