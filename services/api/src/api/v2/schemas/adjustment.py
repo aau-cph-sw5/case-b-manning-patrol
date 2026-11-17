@@ -3,8 +3,11 @@
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.adjustment import Adjustment, AdjustmentBase
+from src.db.models.adjustment_author import AdjustmentAuthor
 from src.domain.event import EventType
 
 
@@ -30,20 +33,36 @@ class AdjustmentEventCreate(BaseModel):
 
 
 class AdjustmentEventStored(AdjustmentBase):
-    """A stored correction as returned by the API."""
+    """A stored correction as returned by the API.
+
+    `android_id`, `reason` and `author` come from the adjustment's author row
+    and are None once it has been anonymized.
+    """
 
     adjustment_id: UUID
+    android_id: UUID | None
+    reason: str | None
+    author: str | None
     corrected_fact: CorrectedFact
 
     @classmethod
-    def from_adjustment(cls, adjustment: Adjustment) -> "AdjustmentEventStored":
+    async def from_adjustment(
+        cls, adjustment: Adjustment, session: AsyncSession
+    ) -> "AdjustmentEventStored":
         """Build the API response from an adjustment table row."""
+        author_result = await session.exec(
+            select(AdjustmentAuthor).where(
+                AdjustmentAuthor.adjustment_id == adjustment.adjustment_id
+            )
+        )
+        author_info = author_result.first()
+
         return cls(
             adjustment_id=adjustment.adjustment_id,
             target_event_id=adjustment.target_event_id,
-            android_id=adjustment.android_id,
-            reason=adjustment.reason,
-            author=adjustment.author,
+            android_id=author_info.android_id if author_info else None,
+            reason=author_info.reason if author_info else None,
+            author=author_info.author if author_info else None,
             server_timestamp=adjustment.server_timestamp,
             source=adjustment.source,
             corrected_fact=CorrectedFact(

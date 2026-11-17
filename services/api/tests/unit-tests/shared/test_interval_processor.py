@@ -23,7 +23,7 @@ def make_interval(
     beacon_id: UUID = BEACON_A,
 ) -> StewardPatrolInterval:
     return StewardPatrolInterval(
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=beacon_id,
         started_at=started_at,
         ended_at=ended_at,

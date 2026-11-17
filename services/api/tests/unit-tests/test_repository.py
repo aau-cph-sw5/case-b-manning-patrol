@@ -11,7 +11,14 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import Line, OverdueLogEntry, PatrolArea, Station, StationLine
+from src.db.models import (
+    Line,
+    OverdueLogEntry,
+    PatrolArea,
+    Station,
+    StationLine,
+    StewardShiftIdentity,
+)
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
@@ -32,6 +39,8 @@ TIMESTAMP = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
 STEWARD_ANDROID_ID = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")
 OTHER_ANDROID_ID = UUID("c1d0e2f3-4a5b-4c6d-8e9f-0a1b2c3d4e5f")
 OPEN_BEACON_ID = UUID("d2e1f0a1-3b4c-4d5e-9f0a-1b2c3d4e5f6a")
+STEWARD_REF = UUID("0f6f2c3a-8d1e-4b7a-9c2d-3e4f5a6b7c8d")
+OTHER_REF = UUID("1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d")
 
 
 @pytest_asyncio.fixture
@@ -41,6 +50,18 @@ async def session() -> AsyncGenerator[AsyncSession]:
         await conn.run_sync(SQLModel.metadata.create_all)
 
     async with AsyncSession(engine) as session:
+        for steward_ref, android_id in (
+            (STEWARD_REF, STEWARD_ANDROID_ID),
+            (OTHER_REF, OTHER_ANDROID_ID),
+        ):
+            session.add(
+                StewardShiftIdentity(
+                    steward_ref=steward_ref,
+                    android_id=android_id,
+                    shift_start=TIMESTAMP,
+                )
+            )
+        await session.commit()
         yield session
 
     await engine.dispose()
@@ -50,7 +71,7 @@ def make_event(**overrides: Any) -> Event:
     fields: dict[str, Any] = {
         "event_id": uuid4(),
         "event_type": EventType.CONNECT_EVENT,
-        "android_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
+        "steward_ref": STEWARD_REF,
         "beacon_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
         "device_timestamp": TIMESTAMP,
         "server_timestamp": TIMESTAMP,
@@ -63,9 +84,6 @@ def make_adjustment(**overrides: Any) -> Adjustment:
     fields: dict[str, Any] = {
         "adjustment_id": uuid4(),
         "target_event_id": uuid4(),
-        "android_id": UUID("b80fdb46-0666-41e8-883c-0d0bda93f835"),
-        "reason": "Forgot to check in",
-        "author": "supervisor-1",
         "server_timestamp": TIMESTAMP,
         "source": "test",
         "corrected_fact_type": EventType.START_EVENT,
@@ -200,7 +218,7 @@ async def test_insert_event_can_be_read_back(session):
     result = await event.get_event(session, event_id)
 
     assert result.event_type == EventType.START_EVENT
-    assert result.android_id == event_row.android_id
+    assert result.steward_ref == event_row.steward_ref
     assert result.beacon_id is None
     assert result.source == "test"
 
@@ -245,8 +263,8 @@ async def test_reconnect_to_same_beacon_is_stored_as_new_event(session):
         EventType.DISCONNECT_EVENT,
         EventType.CONNECT_EVENT,
     ]
-    assert {(e.android_id, e.beacon_id) for e in result} == {
-        (connect.android_id, connect.beacon_id),
+    assert {(e.steward_ref, e.beacon_id) for e in result} == {
+        (connect.steward_ref, connect.beacon_id),
     }
     assert result[0].event_id != result[2].event_id
     assert result[2].device_timestamp == TIMESTAMP + timedelta(minutes=5)
@@ -285,7 +303,6 @@ async def test_insert_adjustment_can_be_read_back(session):
     result = await adjustment.get_adjustment(session, adjustment_id)
 
     assert result.target_event_id == target_event_id
-    assert result.reason == "Forgot to check in"
     assert result.corrected_fact_type == EventType.START_EVENT
     assert result.source == "test"
 
@@ -371,9 +388,8 @@ async def test_get_open_connections_returns_reopened_connects(session):
 
 @pytest.mark.asyncio
 async def test_get_open_connections_only_returns_events_of_android_id(session):
-    await event.insert_event(
-        session, make_event(android_id=OTHER_ANDROID_ID), make_chain_link()
-    )
+
+    await event.insert_event(session, make_event(steward_ref=OTHER_REF))
 
     assert await event.get_open_connections(session, STEWARD_ANDROID_ID) == []
 

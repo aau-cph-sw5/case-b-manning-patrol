@@ -98,7 +98,7 @@ class CoverageWindow:
             for interval in intervals
         )
         current_steward_ids = frozenset(
-            interval.android_id for interval in intervals if interval.is_patrolling()
+            interval.steward_ref for interval in intervals if interval.is_patrolling()
         )
 
         return AreaCoverageReport(

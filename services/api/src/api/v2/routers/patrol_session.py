@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Request, status
 
 from src.api.v2.dependencies import EventProducerDep
-from src.api.v2.schemas.ingestion import PatrolSessionEvent
+from src.api.v2.schemas.ingestion import PatrolSessionEvent, StoredEvent
 from src.domain.event import EventType
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
@@ -32,7 +32,7 @@ async def patrol_session_start_event(
     await coverage_updater.refresh()
     train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
     await train_manning_updater.refresh()
-    return event
+    return StoredEvent.from_event(event, patrol_session_event.android_id)
 
 
 @router.post("/patrol-session/stop", status_code=status.HTTP_201_CREATED)
@@ -60,4 +60,4 @@ async def patrol_session_stop_event(
     await coverage_updater.refresh()
     train_manning_updater: TrainManningUpdater = request.app.state.train_manning_updater
     await train_manning_updater.refresh()
-    return event
+    return StoredEvent.from_event(event, patrol_session_event.android_id)

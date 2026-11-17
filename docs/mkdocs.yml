@@ -76,5 +76,7 @@ nav:
     - "ADR-0010: Patrol completion": adr/0010-patrol-completion.md
     - "ADR-0011: Server-sent events": adr/00011-server-sent-events.md
     - "ADR-0012: Train manning stream": adr/0012-train-manning-stream.md
+    - "ADR-0013: Presence and shared coverage access": adr/0013-presence-and-shared-coverage-access.md
+    - "ADR-0014: Hash-chained event store": adr/0014-hash-chained-event-store.md
 
 copyright: MIT License
