@@ -11,6 +11,7 @@ from uuid import UUID
 
 from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.sql import Executable
 from sqlmodel import col
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -21,7 +22,11 @@ from src.db.models.integrity_chain_link import ChainName
 from src.domain.event import EventType
 from src.services.event_store.event_producer import EventProducer
 from src.services.hash_chain.chain_loader import ChainLoader
-from src.services.hash_chain.chain_verifier import ChainBreakReason, ChainVerifier
+from src.services.hash_chain.chain_verifier import (
+    ChainBreak,
+    ChainBreakReason,
+    ChainVerifier,
+)
 
 STEWARD = UUID("660e8400-e29b-41d4-a716-446655440001")
 BEACON = UUID("550e8400-e29b-41d4-a716-000000000002")
@@ -65,11 +70,26 @@ async def save_adjustments(db_engine: AsyncEngine) -> list[UUID]:
 
 async def verify_stored_chain(
     db_engine: AsyncEngine, chain: ChainName = ChainName.EVENTS
-):
+) -> ChainBreak | None:
     """Load one chain in a fresh session and verify it."""
     async with AsyncSession(db_engine) as session:
         linked_entries = await ChainLoader.load(session, chain)
     return ChainVerifier.verify(linked_entries)
+
+
+async def tamper(db_engine: AsyncEngine, statement: Executable) -> None:
+    """Run ``statement`` straight against the database, bypassing the chain."""
+    async with db_engine.begin() as conn:
+        await conn.execute(statement)
+
+
+def assert_breaks_at(
+    result: ChainBreak | None, record_id: UUID, reason: ChainBreakReason
+) -> None:
+    """Assert verification stopped at ``record_id``'s link for ``reason``."""
+    assert result is not None
+    assert result.link.record_id == record_id
+    assert result.reason == reason
 
 
 async def test_untouched_chain_has_no_break(db_engine: AsyncEngine) -> None:
@@ -83,18 +103,18 @@ async def test_event_edited_in_the_database_breaks_the_chain_at_its_link(
 ) -> None:
     event_ids = await save_chain(db_engine)
 
-    async with db_engine.begin() as conn:
-        await conn.execute(
-            update(Event)
-            .where(col(Event.event_id) == event_ids[1])
-            .values(source="tampered")
-        )
+    await tamper(
+        db_engine,
+        update(Event)
+        .where(col(Event.event_id) == event_ids[1])
+        .values(source="tampered"),
+    )
 
-    result = await verify_stored_chain(db_engine)
-
-    assert result is not None
-    assert result.link.seq == 2
-    assert result.reason == ChainBreakReason.CONTENT_MISMATCH
+    assert_breaks_at(
+        await verify_stored_chain(db_engine),
+        event_ids[1],
+        ChainBreakReason.CONTENT_MISMATCH,
+    )
 
 
 async def test_event_deleted_from_the_database_breaks_the_chain_at_its_link(
@@ -102,14 +122,13 @@ async def test_event_deleted_from_the_database_breaks_the_chain_at_its_link(
 ) -> None:
     event_ids = await save_chain(db_engine)
 
-    async with db_engine.begin() as conn:
-        await conn.execute(delete(Event).where(col(Event.event_id) == event_ids[1]))
+    await tamper(db_engine, delete(Event).where(col(Event.event_id) == event_ids[1]))
 
-    result = await verify_stored_chain(db_engine)
-
-    assert result is not None
-    assert result.link.seq == 2
-    assert result.reason == ChainBreakReason.ENTRY_MISSING
+    assert_breaks_at(
+        await verify_stored_chain(db_engine),
+        event_ids[1],
+        ChainBreakReason.ENTRY_MISSING,
+    )
 
 
 async def test_untouched_adjustments_chain_has_no_break(
@@ -125,15 +144,15 @@ async def test_adjustment_edited_in_the_database_breaks_the_adjustments_chain(
 ) -> None:
     adjustment_ids = await save_adjustments(db_engine)
 
-    async with db_engine.begin() as conn:
-        await conn.execute(
-            update(Adjustment)
-            .where(col(Adjustment.adjustment_id) == adjustment_ids[1])
-            .values(reason="tampered")
-        )
+    await tamper(
+        db_engine,
+        update(Adjustment)
+        .where(col(Adjustment.adjustment_id) == adjustment_ids[1])
+        .values(reason="tampered"),
+    )
 
-    result = await verify_stored_chain(db_engine, ChainName.ADJUSTMENTS)
-
-    assert result is not None
-    assert result.link.record_id == adjustment_ids[1]
-    assert result.reason == ChainBreakReason.CONTENT_MISMATCH
+    assert_breaks_at(
+        await verify_stored_chain(db_engine, ChainName.ADJUSTMENTS),
+        adjustment_ids[1],
+        ChainBreakReason.CONTENT_MISMATCH,
+    )
