@@ -4,9 +4,8 @@
  * The wire schema validates the snake_case payload from the
  * positioning-interface contract (contracts/api/v2/positioning-interface) at
  * the SSE boundary and maps it to the camelCase types the rest of the app
- * uses. Payload fields the app does not consume (station_id, trains, time) are
- * dropped by the parse. Line groups are a UI-only concept, so they live here
- * too.
+ * uses. Payload fields the app does not consume (trains, time) are dropped by
+ * the parse. Line groups are a UI-only concept, so they live here too.
  */
 import * as z from "zod";
 
@@ -36,11 +35,16 @@ export const AreaSchema = WireAreaSchema.transform((area) => ({
   overdueAt: area.overdue_at,
 }));
 
-/** Validate one station; its station_id is dropped. */
+/** Validate one station and retain its stable backend identity. */
 export const StationSchema = z.object({
+  station_id: z.string(),
   name: z.string(),
   areas: AreaSchema.array(),
-});
+}).transform((station) => ({
+  stationId: station.station_id,
+  name: station.name,
+  areas: station.areas,
+}));
 
 /** Validate the data of one `dashboard` event; trains and time are dropped. */
 export const StationOverviewSchema = z.object({

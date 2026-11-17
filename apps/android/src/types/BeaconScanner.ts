@@ -14,4 +14,11 @@ export type BeaconScanner = {
   start: (listener: (event: BeaconConnectionEvent) => void) => void;
   /** Stop scanning. No further events are reported after stop returns. */
   stop: () => void;
+  /**
+   * Whether emitted events have already passed beacon confirmation.
+   *
+   * Fixture replay uses this to send its deterministic timeline without
+   * applying the random scanner's real-time confirmation delays.
+   */
+  eventsAreConfirmed?: boolean;
 };
