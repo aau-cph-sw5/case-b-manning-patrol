@@ -3,24 +3,24 @@ import pytest
 from src.services.hash_chain.entry_hasher import EntryHasher, HashedEntry
 
 TEXT = (
-    '{"android_id":"660e8400-e29b-41d4-a716-446655440001",'
-    '"beacon_id":"550e8400-e29b-41d4-a716-000000000002",'
+    '{"beacon_id":"550e8400-e29b-41d4-a716-000000000002",'
     '"device_timestamp":"2026-05-30T03:00:00+00:00",'
     '"event_id":"10000000-0000-0000-0000-000000000001",'
     '"event_type":"connect",'
     '"kind":"event",'
     '"server_timestamp":"2026-05-30T03:00:05+00:00",'
-    '"source":"test","v":1}'
+    '"source":"test",'
+    '"steward_ref":"660e8400-e29b-41d4-a716-446655440001","v":1}'
 )
 """Same as GOLDEN_EVENT in test_entry_stringifier.py."""
 OTHER_PREV_HASH = "f" * 64
 
-GOLDEN_CONTENT_HASH = "c6fabbf488b9a9bc5826dab2b88c7083bd2aab7accbefa34cbb3702071621ee6"
+GOLDEN_CONTENT_HASH = "6eeedb567186bf91e8314ee4592e05ea77c0ca2b95f2655ef8d49c81e8d7aa8e"
 """sha256 of TEXT."""
-GOLDEN_HEAD_HASH = "23d96ff06016161032a1777d37ef10893849f45aadc451364df21cad7c34f44e"
+GOLDEN_HEAD_HASH = "063fcaa1d6b74b09291bd223b2df9753573da4a398c91752a5afe7a05291d401"
 """sha256 of GENESIS_HASH followed by GOLDEN_CONTENT_HASH."""
 GOLDEN_HEAD_HASH_AFTER_F = (
-    "96c40c6591f7f0960244ca958580a93e8a24c291f1d377aea929c312a4667b2b"
+    "d232f9f888cc2111c0101bff218d495de02e3836fff86c9998fc13b0e9b7df69"
 )
 """sha256 of OTHER_PREV_HASH ("f" * 64) followed by GOLDEN_CONTENT_HASH."""
 

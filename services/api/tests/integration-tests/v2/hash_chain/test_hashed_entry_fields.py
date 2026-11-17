@@ -18,6 +18,7 @@ from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from src.api.v2.dependencies import get_async_db_session
+from src.api.v2.schemas.ingestion import StoredEvent
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName
@@ -131,7 +132,7 @@ async def test_posted_disconnect_response_row_and_hash_agree(
     )
     assert response.status_code == 201
     stored = response.json()
-    assert set(stored) == set(EVENT_FIELDS)
+    assert set(stored) == set(StoredEvent.model_fields)
 
     get_test_session = app.dependency_overrides[get_async_db_session]
     async with asynccontextmanager(get_test_session)() as session:
@@ -143,7 +144,8 @@ async def test_posted_disconnect_response_row_and_hash_agree(
     assert set(payload) == set(EVENT_FIELDS) | {"kind", "v"}
     assert payload["event_id"] == stored["event_id"]
     assert payload["event_type"] == stored["event_type"]
-    assert payload["android_id"] == stored["android_id"]
+    assert payload["steward_ref"] == str(row.steward_ref)
+    assert stored["android_id"] == ANDROID_ID
     assert payload["beacon_id"] == stored["beacon_id"]
     assert payload["source"] == stored["source"]
     assert datetime.fromisoformat(

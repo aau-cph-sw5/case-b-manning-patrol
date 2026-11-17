@@ -22,7 +22,7 @@ class TrainManningEvaluator:
         )
         running_time = now - shift_start_time
         current_steward_ids = frozenset(
-            interval.android_id for interval in intervals if interval.is_patrolling()
+            interval.steward_ref for interval in intervals if interval.is_patrolling()
         )
 
         return TrainManningReport(
