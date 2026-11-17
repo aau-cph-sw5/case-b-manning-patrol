@@ -389,7 +389,9 @@ async def test_get_open_connections_returns_reopened_connects(session):
 @pytest.mark.asyncio
 async def test_get_open_connections_only_returns_events_of_android_id(session):
 
-    await event.insert_event(session, make_event(steward_ref=OTHER_REF))
+    await event.insert_event(
+        session, make_event(steward_ref=OTHER_REF), make_chain_link()
+    )
 
     assert await event.get_open_connections(session, STEWARD_ANDROID_ID) == []
 

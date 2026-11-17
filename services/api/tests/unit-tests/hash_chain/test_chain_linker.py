@@ -35,12 +35,12 @@ SERVER_AT = datetime(2026, 5, 30, 3, 0, 5, tzinfo=UTC)
 CORRECTED_AT = datetime(2026, 5, 30, 3, 10, tzinfo=UTC)
 OTHER_HEAD_HASH = "f" * 64
 
-GOLDEN_CONTENT_HASH = "c6fabbf488b9a9bc5826dab2b88c7083bd2aab7accbefa34cbb3702071621ee6"
+GOLDEN_CONTENT_HASH = "6eeedb567186bf91e8314ee4592e05ea77c0ca2b95f2655ef8d49c81e8d7aa8e"
 """Content hash of make_event(); same as in test_entry_hasher.py."""
-GOLDEN_HEAD_HASH = "23d96ff06016161032a1777d37ef10893849f45aadc451364df21cad7c34f44e"
+GOLDEN_HEAD_HASH = "063fcaa1d6b74b09291bd223b2df9753573da4a398c91752a5afe7a05291d401"
 """Head hash of make_event() linked onto EntryHasher.GENESIS_HASH."""
 GOLDEN_HEAD_HASH_AFTER_F = (
-    "96c40c6591f7f0960244ca958580a93e8a24c291f1d377aea929c312a4667b2b"
+    "d232f9f888cc2111c0101bff218d495de02e3836fff86c9998fc13b0e9b7df69"
 )
 """Head hash of make_event() linked onto OTHER_HEAD_HASH, as in test_entry_hasher.py."""
 
@@ -61,7 +61,7 @@ def make_event(source: str = "test") -> Event:
     return Event(
         event_id=EVENT_ID,
         event_type=EventType.CONNECT_EVENT,
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=BEACON,
         device_timestamp=DEVICE_AT,
         server_timestamp=SERVER_AT,
@@ -73,9 +73,6 @@ def make_adjustment() -> Adjustment:
     return Adjustment(
         adjustment_id=ADJUSTMENT_ID,
         target_event_id=EVENT_ID,
-        android_id=STEWARD,
-        reason="missed stop",
-        author="supervisor",
         server_timestamp=SERVER_AT,
         source="test",
         corrected_fact_type=EventType.STOP_EVENT,

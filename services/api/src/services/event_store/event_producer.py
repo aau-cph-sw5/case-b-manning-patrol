@@ -64,14 +64,6 @@ class EventProducer:
             event_type, steward_ref, device_timestamp, beacon_id
         )
 
-        returned_event = await insert_event(
-            session=self._session,
-            event=event,
-            chain_link=await self._get_chain_link(event),
-        )
-
-        return returned_event
-
     async def close_open_connections(
         self,
         android_id: UUID,
@@ -137,8 +129,9 @@ class EventProducer:
             corrected_occured_at=corrected_fact.occurred_at,
         )
 
-
-        await insert_adjustment(self._session, adjustment)
+        await insert_adjustment(
+            self._session, adjustment, chain_link=await self._get_chain_link(adjustment)
+        )
 
         adjustment_author = AdjustmentAuthor(
             adjustment_id=adjustment.adjustment_id,
@@ -170,7 +163,9 @@ class EventProducer:
             server_timestamp=EventProducer._now_utc(),
             source=self._source,
         )
-        return await insert_event(self._session, event)
+        return await insert_event(
+            self._session, event, chain_link=await self._get_chain_link(event)
+        )
 
     async def _validate_event(self, android_id: UUID, beacon_id: UUID | None) -> None:
         if await self._find_android_id(android_id) is None:
