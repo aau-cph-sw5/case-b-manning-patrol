@@ -36,6 +36,10 @@ Every stored `Event` and `Adjustment` row is linked onto a hash chain.
   the stringified entry alone, a `prev_hash` equal to the previous entry's
   `head_hash` (a fixed `GENESIS_HASH` of 64 zeroes for the first entry), and a
   new `head_hash` over `prev_hash` followed by `content_hash`.
+- `ChainLinker` combines the two: given the database session and a stored
+  entry, it reads the chain's current head hash (falling back to
+  `GENESIS_HASH` when the chain is empty), links the entry onto it and
+  returns the row to store.
 - The digests are stored per entry in the `integritychainlink` table together
   with the chain name, a per-chain sequence number that is unique together with
   the chain name, and the id of the committed row.
@@ -45,9 +49,8 @@ stored entry changes every `head_hash` after it, and the stored `content_hash`
 of the edited entry no longer matches a digest recomputed from the row.
 Verification walks the chain in sequence order and recomputes every link.
 
-Events and adjustments are committed to the same chain, in the order they are
-stored. The chain column in the storage table allows named chains if we later
-need to split them.
+Events are chained on the events chain and adjustments on the adjustments
+chain, each in the order the entries are stored.
 
 When the chain is first turned on, the events and adjustments already in the
 database are linked in one one-time backfill, in insertion order, starting from
@@ -71,8 +74,9 @@ Potential drawbacks
   chain is an append in the same transaction as the entry it commits.
 - A format change to the stringifier means links made before it can no longer
   be verified against the new code without a migration.
-- The chain has to be wired into the code paths that store events and
-  adjustments; a path that forgets it stores unchained rows (MET-B-021-TASK-003).
+- The chain is wired into the code paths that store events and adjustments
+  through an `EventProducer` (MET-B-021-TASK-003, PR #265); a path that
+  bypasses the producer stores an unchained row.
 
 ## Limits — what the chain does not protect against
 
