@@ -7,6 +7,7 @@ from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import engine
+from src.services.config.config_service import ConfigService
 from src.services.event_store.event_producer import EventProducer
 
 
@@ -28,3 +29,11 @@ def get_event_producer(session: AsyncDbSessionDep) -> EventProducer:
 
 
 EventProducerDep = Annotated[EventProducer, Depends(get_event_producer)]
+
+
+def get_config_service(session: AsyncDbSessionDep) -> ConfigService:
+    """Return the config service bound to the request's database session."""
+    return ConfigService(session)
+
+
+ConfigServiceDep = Annotated[ConfigService, Depends(get_config_service)]
