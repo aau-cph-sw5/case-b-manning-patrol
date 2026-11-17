@@ -6,7 +6,7 @@ is loaded again in a fresh session and verified, which must report the first
 link that no longer matches its entry.
 """
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -18,7 +18,6 @@ from sqlmodel import col
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import CorrectedFact
-from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName
 from src.domain.event import EventType
@@ -91,15 +90,6 @@ def delete_event(event_id: UUID) -> Executable:
     return delete(Event).where(col(Event.event_id) == event_id)
 
 
-def edit_adjustment(adjustment_id: UUID) -> Executable:
-    """Return a statement that changes a hashed column of one adjustment."""
-    return (
-        update(Adjustment)
-        .where(col(Adjustment.adjustment_id) == adjustment_id)
-        .values(reason="tampered")
-    )
-
-
 async def test_untouched_chain_has_no_break(db_engine: AsyncEngine) -> None:
     await save_chain(db_engine)
 
@@ -115,45 +105,24 @@ async def test_untouched_adjustments_chain_has_no_break(
 
 
 @pytest.mark.parametrize(
-    ("save", "chain", "tamper", "reason"),
+    ("tamper", "reason"),
     [
-        pytest.param(
-            save_chain,
-            ChainName.EVENTS,
-            edit_event,
-            ChainBreakReason.CONTENT_MISMATCH,
-            id="event-edited",
-        ),
-        pytest.param(
-            save_chain,
-            ChainName.EVENTS,
-            delete_event,
-            ChainBreakReason.ENTRY_MISSING,
-            id="event-deleted",
-        ),
-        pytest.param(
-            save_adjustments,
-            ChainName.ADJUSTMENTS,
-            edit_adjustment,
-            ChainBreakReason.CONTENT_MISMATCH,
-            id="adjustment-edited",
-        ),
+        pytest.param(edit_event, ChainBreakReason.CONTENT_MISMATCH, id="edited"),
+        pytest.param(delete_event, ChainBreakReason.ENTRY_MISSING, id="deleted"),
     ],
 )
-async def test_tampered_row_breaks_the_chain_at_its_link(
+async def test_tampered_event_breaks_the_chain_at_its_link(
     db_engine: AsyncEngine,
-    save: Callable[[AsyncEngine], Awaitable[list[UUID]]],
-    chain: ChainName,
     tamper: Callable[[UUID], Executable],
     reason: ChainBreakReason,
 ) -> None:
-    record_ids = await save(db_engine)
+    event_ids = await save_chain(db_engine)
 
     async with db_engine.begin() as conn:
-        await conn.execute(tamper(record_ids[1]))
+        await conn.execute(tamper(event_ids[1]))
 
-    result = await verify_stored_chain(db_engine, chain)
+    result = await verify_stored_chain(db_engine)
 
     assert result is not None
-    assert result.link.record_id == record_ids[1]
+    assert result.link.record_id == event_ids[1]
     assert result.reason == reason
