@@ -13,8 +13,8 @@ class StewardShiftIdentity(SQLModel, table=True):
     Events will point here through ``steward_ref`` instead of storing
     ``android_id``, so the person is only stored in this table. Each steward
     gets a new random ``steward_ref`` every shift, so old and new records
-    cannot be linked to each other. Anonymisation after 5 years
-    sets ``android_id`` to None and sets ``anonymised_at``.
+    cannot be linked to each other. Anonymization after 5 years
+    sets ``android_id`` to None and sets ``anonymized_at``.
     Rows are never deleted.
     """
 
@@ -24,4 +24,4 @@ class StewardShiftIdentity(SQLModel, table=True):
     steward_ref: UUID = Field(default_factory=uuid4, primary_key=True)
     android_id: UUID | None
     shift_start: datetime
-    anonymised_at: datetime | None = None
+    anonymized_at: datetime | None = None

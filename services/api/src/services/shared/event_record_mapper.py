@@ -17,7 +17,7 @@ class EventRecordMapper:
         return EventRecord(
             event_id=event.event_id,
             event_type=event.event_type,
-            android_id=event.android_id,
+            steward_ref=event.steward_ref,
             beacon_id=event.beacon_id,
             device_timestamp=event.device_timestamp,
             server_timestamp=event.server_timestamp,

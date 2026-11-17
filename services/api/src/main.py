@@ -8,6 +8,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,8 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.train import get_train_lines, get_trains
-from src.services.event_store.exceptions import (
+from src.services.anonymizer import anonymize_old_records
+from src.services.event_store.event_producer import (
     EventValidationError,
     TargetEventNotFoundError,
 )
@@ -61,6 +63,23 @@ from .db.main import engine, init_db
 from .db.repository.station import get_station_lines, get_stations
 
 API_PREFIX_V2 = "/api/v2"
+
+
+async def run_anonymizer() -> None:
+    """Anonymize personal records past their retention period in a new session."""
+    async with AsyncSession(engine) as session:
+        await anonymize_old_records(session)
+
+
+def start_anonymizer_scheduler() -> AsyncIOScheduler:
+    """Start a scheduler that runs the anonymizer every night at 02:00.
+
+    The caller must call ``shutdown()`` on the returned scheduler on exit.
+    """
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(run_anonymizer, "cron", hour=2, minute=0)
+    scheduler.start()
+    return scheduler
 
 
 @asynccontextmanager
@@ -127,8 +146,10 @@ async def lifespan(app: FastAPI):
     app.state.dashboard_presenter = dashboard_presenter
     app.state.trains_update_presenter = trains_update_presenter
     app.state.shift_schedule = shift_schedule
+    scheduler = start_anonymizer_scheduler()
 
     yield
+    scheduler.shutdown()
     coverage_tick.cancel()
     train_manning_tick.cancel()
     await engine.dispose()

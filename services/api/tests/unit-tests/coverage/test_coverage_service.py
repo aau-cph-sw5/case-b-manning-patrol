@@ -84,7 +84,7 @@ def event(event_type: EventType, beacon_id: UUID, at: datetime) -> Event:
     return Event(
         event_id=uuid4(),
         event_type=event_type,
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=beacon_id,
         device_timestamp=at,
         server_timestamp=at,

@@ -11,7 +11,7 @@ def open_interval():
     now = datetime.datetime.now()
     started_at = now - datetime.timedelta(minutes=5)
     return StewardPatrolInterval(
-        android_id=uuid4(), beacon_id=uuid4(), started_at=started_at, ended_at=None
+        steward_ref=uuid4(), beacon_id=uuid4(), started_at=started_at, ended_at=None
     )
 
 
@@ -21,7 +21,7 @@ def closed_interval():
     started_at = now - datetime.timedelta(minutes=5)
     ended_at = now - datetime.timedelta(minutes=1)
     return StewardPatrolInterval(
-        android_id=uuid4(), beacon_id=uuid4(), started_at=started_at, ended_at=ended_at
+        steward_ref=uuid4(), beacon_id=uuid4(), started_at=started_at, ended_at=ended_at
     )
 
 
