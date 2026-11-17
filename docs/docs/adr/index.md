@@ -23,6 +23,8 @@ numbering scheme.
 | [0010](0010-patrol-completion.md) | Patrol completion | Proposed | 2026-10-16 | MET-B-007, 008, 009, 012–015, 024 |
 | [0011](00011-server-sent-events.md) | Server-sent events for live updates | Superseded by [0012](0012-train-manning-stream.md) | 2026-10-19 | MET-B-007–009, 012–015, 024 |
 | [0012](0012-train-manning-stream.md) | Train manning on its own SSE stream | Proposed | 2026-11-05 | MET-B-011, 012 |
+| [0013](0013-presence-and-shared-coverage-access.md) | Separate individual presence access from shared patrol coverage | Accepted | 2026-11-10 | MET-B-020, 022, 023 |
+| [0014](0014-hash-chained-event-store.md) | Hash-chained event store | Proposed | 2026-11-17 | MET-B-021, 022 |
 
 ## Status Legend
 

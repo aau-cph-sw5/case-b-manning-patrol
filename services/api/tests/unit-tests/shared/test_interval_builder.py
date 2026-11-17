@@ -23,13 +23,13 @@ def at(seconds: int) -> datetime:
 def make_event(
     event_type: EventType,
     seconds: int,
-    android_id: UUID = STEWARD_1,
+    steward_ref: UUID = STEWARD_1,
     beacon_id: UUID | None = STATION_2,
 ) -> EventRecord:
     return EventRecord(
         event_id=uuid4(),
         event_type=event_type,
-        android_id=android_id,
+        steward_ref=steward_ref,
         beacon_id=beacon_id,
         device_timestamp=at(seconds),
         server_timestamp=at(seconds),
@@ -44,16 +44,16 @@ def disconnect(seconds: int, **kwargs) -> EventRecord:
     return make_event(EventType.DISCONNECT_EVENT, seconds, **kwargs)
 
 
-def start(seconds: int, android_id: UUID = STEWARD_1) -> EventRecord:
-    return make_event(EventType.START_EVENT, seconds, android_id, beacon_id=None)
+def start(seconds: int, steward_ref: UUID = STEWARD_1) -> EventRecord:
+    return make_event(EventType.START_EVENT, seconds, steward_ref, beacon_id=None)
 
 
-def stop(seconds: int, android_id: UUID = STEWARD_1) -> EventRecord:
-    return make_event(EventType.STOP_EVENT, seconds, android_id, beacon_id=None)
+def stop(seconds: int, steward_ref: UUID = STEWARD_1) -> EventRecord:
+    return make_event(EventType.STOP_EVENT, seconds, steward_ref, beacon_id=None)
 
 
 def spans(intervals) -> set[tuple[UUID, UUID, datetime, datetime | None]]:
-    return {(i.android_id, i.beacon_id, i.started_at, i.ended_at) for i in intervals}
+    return {(i.steward_ref, i.beacon_id, i.started_at, i.ended_at) for i in intervals}
 
 
 @pytest.fixture
@@ -140,9 +140,9 @@ def test_stop_closes_all_open_visits_of_that_steward(builder):
 def test_stop_leaves_other_stewards_open(builder):
     intervals = builder.build(
         [
-            connect(0, android_id=STEWARD_1),
-            connect(5, android_id=STEWARD_2),
-            stop(100, android_id=STEWARD_1),
+            connect(0, steward_ref=STEWARD_1),
+            connect(5, steward_ref=STEWARD_2),
+            stop(100, steward_ref=STEWARD_1),
         ],
     )
 
@@ -165,10 +165,10 @@ def test_start_alone_gives_no_intervals(builder):
 def test_two_stewards_at_the_same_beacon_at_once(builder):
     intervals = builder.build(
         [
-            connect(0, android_id=STEWARD_1),
-            connect(10, android_id=STEWARD_2),
-            disconnect(20, android_id=STEWARD_1),
-            disconnect(40, android_id=STEWARD_2),
+            connect(0, steward_ref=STEWARD_1),
+            connect(10, steward_ref=STEWARD_2),
+            disconnect(20, steward_ref=STEWARD_1),
+            disconnect(40, steward_ref=STEWARD_2),
         ],
     )
 
