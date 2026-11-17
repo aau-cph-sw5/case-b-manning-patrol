@@ -9,23 +9,9 @@ persist.
 
 import hashlib
 import re
-from dataclasses import dataclass
+from datetime import UTC, datetime
 
-
-@dataclass(frozen=True)
-class HashedEntry:
-    """The hashes of one entry and its link to the previous entry.
-
-    All three are SHA-256 digests as 64 lowercase hex characters.
-    ``content_hash`` covers the entry alone, so its content can be checked
-    without the rest of the chain. ``prev_hash`` is the ``head_hash`` of the
-    entry before it, or ``GENESIS_HASH`` for the first entry. ``head_hash``
-    covers ``prev_hash`` followed by ``content_hash``.
-    """
-
-    content_hash: str
-    prev_hash: str
-    head_hash: str
+from src.services.hash_chain.hashed_entry import HashedEntry
 
 
 class EntryHasher:
@@ -59,3 +45,7 @@ class EntryHasher:
     @staticmethod
     def _sha256(text: str) -> str:
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _now_utc() -> datetime:
+        return datetime.now(UTC)
