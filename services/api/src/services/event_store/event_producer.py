@@ -3,16 +3,20 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+from sqlalchemy.exc import NoResultFound
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
 from src.db.models.adjustment import Adjustment
 from src.db.models.adjustment_author import AdjustmentAuthor
 from src.db.models.event import Event
+from src.db.models.integrity_chain_link import IntegrityChainLink
 from src.db.repository.adjustment import insert_adjustment
 from src.db.repository.event import get_event, get_open_connections, insert_event
 from src.db.repository.steward_shift_identity import get_or_create_steward_ref
 from src.domain.event import EventType
+from src.services.hash_chain.chain_linker import ChainLinker
+from src.services.hash_chain.entry_stringifier import ChainEntry
 from src.services.shared.shift_schedule import ShiftSchedule
 
 from .exceptions import (
@@ -30,6 +34,10 @@ class EventProducer:
         self._session = session
         self._source = source
         self._shift_schedule = ShiftSchedule.from_file()
+
+    async def _get_chain_link(self, chain_entry: ChainEntry) -> IntegrityChainLink:
+        linker = ChainLinker(self._session, chain_entry)
+        return await linker.link(source=self._source)
 
     async def append_event(
         self,
@@ -107,11 +115,10 @@ class EventProducer:
         if target_event_id is not None:
             try:
                 await get_event(self._session, target_event_id)
-            except Exception:
+            except NoResultFound:
                 raise TargetEventNotFoundError(
                     "target event id does not exist"
                 ) from None
-
         adjustment = Adjustment(
             adjustment_id=uuid4(),
             target_event_id=target_event_id,
@@ -122,7 +129,9 @@ class EventProducer:
             corrected_occured_at=corrected_fact.occurred_at,
         )
 
-        await insert_adjustment(self._session, adjustment)
+        await insert_adjustment(
+            self._session, adjustment, chain_link=await self._get_chain_link(adjustment)
+        )
 
         adjustment_author = AdjustmentAuthor(
             adjustment_id=adjustment.adjustment_id,
@@ -154,7 +163,9 @@ class EventProducer:
             server_timestamp=EventProducer._now_utc(),
             source=self._source,
         )
-        return await insert_event(self._session, event)
+        return await insert_event(
+            self._session, event, chain_link=await self._get_chain_link(event)
+        )
 
     async def _validate_event(self, android_id: UUID, beacon_id: UUID | None) -> None:
         if await self._find_android_id(android_id) is None:

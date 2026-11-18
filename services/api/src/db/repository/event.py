@@ -8,6 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.sql.expression import SelectOfScalar
 
 from src.db.models.event import Event
+from src.db.models.integrity_chain_link import IntegrityChainLink
 from src.db.models.steward_shift_identity import StewardShiftIdentity
 from src.domain.event import EventType
 
@@ -114,9 +115,13 @@ async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[
     return list(open_connections.values())
 
 
-async def insert_event(session: AsyncSession, event: Event) -> Event:
+async def insert_event(
+    session: AsyncSession, event: Event, chain_link: IntegrityChainLink
+) -> Event:
     """Insert and commit the event, then reload it from the database."""
     session.add(event)
+    session.add(chain_link)
     await session.commit()
     await session.refresh(event)
+    await session.refresh(chain_link)
     return event
