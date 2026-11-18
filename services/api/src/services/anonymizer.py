@@ -1,5 +1,5 @@
 # src/services/anonymizer.py
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from sqlalchemy import and_, or_
 from sqlmodel import col, select
@@ -11,21 +11,35 @@ from src.db.models.event import Event
 from src.db.models.expired_record import ExpiredRecord, ExpiredTarget
 from src.db.models.steward_shift_identity import StewardShiftIdentity
 
-RETENTION_PERIOD = timedelta(days=5 * 365)
+RETENTION_YEARS = 5
+
+
+def years_ago(now: datetime, years: int) -> datetime:
+    """Return the datetime exactly `years` calendar years before `now`.
+
+    This keeps month, day, time and timezone, so leap days inside the span
+    are accounted for. If `now`is February 29 and the target year is not
+    a leap year, the result falls back to February 28 of the target year.
+    """
+
+    try:
+        return now.replace(year=now.year - years)
+    except ValueError:
+        return now.replace(year=now.year - years, day=28)
 
 
 async def anonymize_old_records(session: AsyncSession):
     """Anonymize personal records past their retention period.
 
-    An adjustment author row is anonymized when any of the following are true: 
+    An adjustment author row is anonymized when any of the following are true:
     * When adjustment targets are older than retention period
-    * When the adjustment has no target event and the corrected fact is older than the retention period
-    * When the author row itself is older than the retention period. 
-    
-    Every anonymized row is an expiry action and gets one ExpiredRecord.
+    * When the adjustment has no target event and the corrected fact is
+    older than the retention period
+    * When the author row itself is older than the retention period.
+    Every anonymized row is an expiry action and gets oneExpiredRecord.
     """
     now = datetime.now(UTC)
-    cutoff_date = now - RETENTION_PERIOD
+    cutoff_date = years_ago(now, RETENTION_YEARS)
 
     identities = (
         await session.exec(
