@@ -3,7 +3,7 @@ from uuid import UUID
 
 import pytest
 
-from src.api.v2.schemas.adjustment import AdjustmentEventStored
+from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.domain.event import EventRecord, EventType
@@ -25,25 +25,22 @@ CORRECTED_AT = datetime(2026, 5, 30, 3, 10, tzinfo=UTC)
 COPENHAGEN_SUMMER = timezone(timedelta(hours=2))
 
 GOLDEN_EVENT = (
-    '{"android_id":"660e8400-e29b-41d4-a716-446655440001",'
-    '"beacon_id":"550e8400-e29b-41d4-a716-000000000002",'
+    '{"beacon_id":"550e8400-e29b-41d4-a716-000000000002",'
     '"device_timestamp":"2026-05-30T03:00:00+00:00",'
     '"event_id":"10000000-0000-0000-0000-000000000001",'
     '"event_type":"connect",'
     '"kind":"event",'
     '"server_timestamp":"2026-05-30T03:00:05+00:00",'
-    '"source":"test","v":1}'
+    '"source":"test",'
+    '"steward_ref":"660e8400-e29b-41d4-a716-446655440001","v":1}'
 )
 
 GOLDEN_ADJUSTMENT = (
     '{"adjustment_id":"20000000-0000-0000-0000-000000000001",'
-    '"android_id":"660e8400-e29b-41d4-a716-446655440001",'
-    '"author":"supervisor",'
     '"corrected_beacon_id":null,'
     '"corrected_fact_type":"shift_stop",'
     '"corrected_occured_at":"2026-05-30T03:10:00+00:00",'
     '"kind":"adjustment",'
-    '"reason":"missed stop",'
     '"server_timestamp":"2026-05-30T03:00:05+00:00",'
     '"source":"test",'
     '"target_event_id":"10000000-0000-0000-0000-000000000001","v":1}'
@@ -58,7 +55,7 @@ def make_event(
     return Event(
         event_id=EVENT_ID,
         event_type=event_type,
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=beacon_id,
         device_timestamp=device_timestamp,
         server_timestamp=SERVER_AT,
@@ -70,9 +67,6 @@ def make_adjustment() -> Adjustment:
     return Adjustment(
         adjustment_id=ADJUSTMENT_ID,
         target_event_id=EVENT_ID,
-        android_id=STEWARD,
-        reason="missed stop",
-        author="supervisor",
         server_timestamp=SERVER_AT,
         source="test",
         corrected_fact_type=EventType.STOP_EVENT,
@@ -144,7 +138,20 @@ def test_domain_event_record_is_rejected():
 
 
 def test_api_adjustment_schema_is_rejected():
-    stored = AdjustmentEventStored.from_adjustment(make_adjustment())
+    stored = AdjustmentEventStored(
+        adjustment_id=ADJUSTMENT_ID,
+        target_event_id=EVENT_ID,
+        android_id=STEWARD,
+        reason="missed stop",
+        author="supervisor",
+        server_timestamp=SERVER_AT,
+        source="test",
+        corrected_fact=CorrectedFact(
+            fact_type=EventType.STOP_EVENT,
+            beacon_id=None,
+            occurred_at=CORRECTED_AT,
+        ),
+    )
 
     with pytest.raises(TypeError, match="AdjustmentEventStored"):
         EntryStringifier.stringify_entry(stored)  # ty: ignore[invalid-argument-type]
