@@ -11,6 +11,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 import sqlmodel.sql.sqltypes
 from alembic import op
+from sqlalchemy import Identity
 
 # revision identifiers, used by Alembic.
 revision: str = "c7d2a91b4e30"
@@ -23,13 +24,17 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "integritychainlink",
-        sa.Column("entry_id", sa.Uuid(), nullable=False),
         sa.Column(
             "chain",
             sa.Enum("EVENTS", "ADJUSTMENTS", name="chainname"),
             nullable=False,
         ),
-        sa.Column("seq", sa.Integer(), nullable=False),
+        sa.Column(
+            "seq",
+            sa.Integer(),
+            Identity(always=True),
+            nullable=False,
+        ),
         sa.Column("record_id", sa.Uuid(), nullable=False),
         sa.Column("prev_hash", sa.String(length=64), nullable=False),
         sa.Column("content_hash", sa.String(length=64), nullable=False),
@@ -39,8 +44,7 @@ def upgrade() -> None:
             sqlmodel.sql.sqltypes.UTCDateTime(),
             nullable=False,
         ),
-        sa.PrimaryKeyConstraint("entry_id"),
-        sa.UniqueConstraint("chain", "seq"),
+        sa.PrimaryKeyConstraint("seq"),
     )
     op.create_index(
         op.f("ix_integritychainlink_chain"),

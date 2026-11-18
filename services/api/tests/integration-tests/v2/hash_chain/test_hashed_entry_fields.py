@@ -18,13 +18,16 @@ from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from src.api.v2.dependencies import get_async_db_session
+from src.api.v2.schemas.ingestion import StoredEvent
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
+from src.db.models.integrity_chain_link import ChainName
 from src.db.repository.adjustment import get_adjustments
 from src.db.repository.event import get_event, get_events
+from src.db.repository.integrity_chain_link import get_chain
 from src.main import app
 from src.services.hash_chain.chain_linker import ChainLinker
-from src.services.hash_chain.entry_hasher import GENESIS_HASH
+from src.services.hash_chain.entry_hasher import EntryHasher
 from src.services.hash_chain.entry_stringifier import (
     ADJUSTMENT_FIELDS,
     EVENT_FIELDS,
@@ -118,7 +121,7 @@ async def test_stringified_adjustment_covers_exactly_the_live_columns(
 async def test_posted_disconnect_response_row_and_hash_agree(
     client: TestClient,
 ) -> None:
-    """The 201 response, the stored row and its hash carry the same fields."""
+    """The 201 response, the stored row and its chain link carry the same fields."""
     response = client.post(
         f"{API_BASE}/connection/disconnect",
         json={
@@ -129,17 +132,20 @@ async def test_posted_disconnect_response_row_and_hash_agree(
     )
     assert response.status_code == 201
     stored = response.json()
-    assert set(stored) == set(EVENT_FIELDS)
+    assert set(stored) == set(StoredEvent.model_fields)
 
     get_test_session = app.dependency_overrides[get_async_db_session]
     async with asynccontextmanager(get_test_session)() as session:
         row = await get_event(session, UUID(stored["event_id"]))
+        stored_links = await get_chain(session, ChainName.EVENTS)
+        relinked = await ChainLinker(session, row).link(source=stored["source"])
 
     payload = json.loads(EntryStringifier.stringify_entry(row))
     assert set(payload) == set(EVENT_FIELDS) | {"kind", "v"}
     assert payload["event_id"] == stored["event_id"]
     assert payload["event_type"] == stored["event_type"]
-    assert payload["android_id"] == stored["android_id"]
+    assert payload["steward_ref"] == str(row.steward_ref)
+    assert stored["android_id"] == ANDROID_ID
     assert payload["beacon_id"] == stored["beacon_id"]
     assert payload["source"] == stored["source"]
     assert datetime.fromisoformat(
@@ -149,7 +155,23 @@ async def test_posted_disconnect_response_row_and_hash_agree(
         payload["server_timestamp"]
     ) == datetime.fromisoformat(stored["server_timestamp"])
 
-    hashed = ChainLinker.link(row, GENESIS_HASH)
-    assert hashed.prev_hash == GENESIS_HASH
-    assert len(hashed.content_hash) == 64
-    assert len(hashed.head_hash) == 64
+    stored_link = next(link for link in stored_links if link.record_id == row.event_id)
+    assert stored_link.chain == ChainName.EVENTS
+    assert stored_link.prev_hash == EntryHasher.GENESIS_HASH
+    assert (
+        stored_link.content_hash
+        == EntryHasher.hash_text(
+            EntryStringifier.stringify_entry(row), EntryHasher.GENESIS_HASH
+        ).content_hash
+    )
+    assert len(stored_link.head_hash) == 64
+
+    assert relinked.record_id == row.event_id
+    assert relinked.prev_hash == stored_link.head_hash
+    assert relinked.content_hash == stored_link.content_hash
+    assert (
+        relinked.head_hash
+        == EntryHasher.hash_text(
+            EntryStringifier.stringify_entry(row), stored_link.head_hash
+        ).head_hash
+    )

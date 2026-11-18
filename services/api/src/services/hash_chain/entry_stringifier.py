@@ -26,7 +26,7 @@ FORMAT_VERSION = 1
 EVENT_FIELDS = (
     "event_id",
     "event_type",
-    "android_id",
+    "steward_ref",
     "beacon_id",
     "device_timestamp",
     "server_timestamp",
@@ -37,16 +37,17 @@ EVENT_FIELDS = (
 ADJUSTMENT_FIELDS = (
     "adjustment_id",
     "target_event_id",
-    "android_id",
-    "reason",
-    "author",
     "server_timestamp",
     "source",
     "corrected_fact_type",
     "corrected_beacon_id",
     "corrected_occured_at",
 )
-"""``Adjustment`` columns included in the string; must cover every column."""
+"""``Adjustment`` columns included in the string; must cover every column.
+
+The supervisor's ``android_id``, ``reason`` and ``author`` live in the
+``AdjustmentAuthor`` table and are not part of the hashed adjustment.
+"""
 
 
 class EntryStringifier:

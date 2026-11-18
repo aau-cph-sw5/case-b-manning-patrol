@@ -31,12 +31,11 @@ async def session() -> AsyncGenerator[AsyncSession]:
 
 def make_link(
     chain: ChainName = ChainName.EVENTS,
-    seq: int = 1,
+    seq: int | None = None,
     **overrides: Any,
 ) -> IntegrityChainLink:
-    """Build one chain link; hashes are fixed so heads descend from prev."""
+    """Build one chain link; seq is left to the database unless given."""
     fields: dict[str, Any] = {
-        "entry_id": uuid4(),
         "chain": chain,
         "seq": seq,
         "record_id": uuid4(),
@@ -76,17 +75,17 @@ async def test_head_hash_is_per_chain(session: AsyncSession) -> None:
     """Appending to one chain never moves the head of another."""
     await integrity_chain_link.insert_link(session, make_link())
     await integrity_chain_link.insert_link(
-        session, make_link(ChainName.ADJUSTMENTS, 1, head_hash="head-adjustments-1")
+        session, make_link(ChainName.ADJUSTMENTS, head_hash="head-adjustments-2")
     )
-    await integrity_chain_link.insert_link(session, make_link(seq=2))
+    await integrity_chain_link.insert_link(session, make_link(seq=3))
 
     events_head = await integrity_chain_link.get_head_hash(session, ChainName.EVENTS)
     adjustments_head = await integrity_chain_link.get_head_hash(
         session, ChainName.ADJUSTMENTS
     )
 
-    assert events_head == "head-events-2"
-    assert adjustments_head == "head-adjustments-1"
+    assert events_head == "head-events-3"
+    assert adjustments_head == "head-adjustments-2"
 
 
 @pytest.mark.asyncio
@@ -105,12 +104,25 @@ async def test_get_chain_returns_links_oldest_first(
 
 
 @pytest.mark.asyncio
-async def test_chain_and_seq_pair_must_be_unique(session: AsyncSession) -> None:
-    """Two links cannot claim the same position in a chain."""
-    await integrity_chain_link.insert_link(session, make_link())
+async def test_seq_is_autoassigned_when_not_given(session: AsyncSession) -> None:
+    """Links inserted without a seq get increasing database-assigned values."""
+    first = await integrity_chain_link.insert_link(session, make_link())
+    first_seq = first.seq
+    second = await integrity_chain_link.insert_link(session, make_link())
+    second_seq = second.seq
+
+    assert first_seq is not None
+    assert second_seq is not None
+    assert second_seq > first_seq
+
+
+@pytest.mark.asyncio
+async def test_seq_must_be_unique(session: AsyncSession) -> None:
+    """seq is the primary key, so two links cannot share the same value."""
+    await integrity_chain_link.insert_link(session, make_link(seq=1))
 
     with pytest.raises(IntegrityError):
-        await integrity_chain_link.insert_link(session, make_link())
+        await integrity_chain_link.insert_link(session, make_link(seq=1))
     await session.rollback()
 
     head = await integrity_chain_link.get_head_hash(session, ChainName.EVENTS)
