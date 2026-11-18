@@ -37,7 +37,8 @@ async def get_at_risk_threshold(
 async def set_at_risk_threshold(
     session: AsyncDbSessionDep,
     user: Annotated[User, Depends(require_permission("at_risk_threshold_set"))],
-    threshold: AtRiskThreshold, service: ConfigServiceDep
+    threshold: AtRiskThreshold,
+    service: ConfigServiceDep,
 ) -> AtRiskThreshold:
     """Change the at-risk threshold. It must be at least 1 minute."""
     minutes = await service.set_at_risk_threshold_minutes(
