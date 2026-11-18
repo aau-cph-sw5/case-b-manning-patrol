@@ -59,6 +59,10 @@ server: {
 
 Or set the API base URL in `src/settings.ts`.
 
+Every request and stream sends `Authorization: Bearer <role>`. Until real
+sign-in exists, the role comes from `VITE_ROLE` in `apps/web/.env` (see
+`.env.example`) and defaults to `controlRoomOperator`.
+
 ## Available Scripts
 
 | Script | Description |
@@ -140,6 +144,7 @@ This project uses the [React Compiler](https://react.dev/learn/react-compiler) (
 - `react@^19.2.8` - React library
 - `react-dom@^19.2.8` - React DOM bindings
 - `react-icons@^5.7.0` - Icon library
+- `@microsoft/fetch-event-source@^2.0.1` - SSE client that can send the Authorization header, which the browser's `EventSource` cannot
 
 ### Development
 - `vite@^8.3.0` - Build tool

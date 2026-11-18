@@ -66,6 +66,7 @@ services/api/
 │   ├── scripts/                 # `uv run lint` / `uv run check` entry points
 │   └── services/
 │       ├── event_producer.py    # Appends events/adjustments to the append-only store
+│       ├── hash_chain/          # Stringify and hash events/adjustments for the tamper-evident chain (MET-B-021)
 │       ├── positioning_service.py
 │       └── station_coverage/    # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007)
 ├── fixtures/

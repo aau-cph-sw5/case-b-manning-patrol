@@ -66,11 +66,11 @@ async def test_same_shift_creates_only_one_row(session):
 
 
 @pytest.mark.asyncio
-async def test_new_row_stores_android_id_and_is_not_anonymised(session):
+async def test_new_row_stores_android_id_and_is_not_anonymized(session):
     ref = await get_or_create_steward_ref(session, ANNA, NIGHT_1)
 
     row = await session.get(StewardShiftIdentity, ref)
     assert row is not None
     assert row.android_id == ANNA
     assert row.shift_start == NIGHT_1
-    assert row.anonymised_at is None
+    assert row.anonymized_at is None

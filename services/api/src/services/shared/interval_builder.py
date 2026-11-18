@@ -24,7 +24,7 @@ class IntervalBuilder:
                 continue
 
             if event.event_type == EventType.STOP_EVENT:
-                stopped = [key for key in open_visits if key[0] == event.android_id]
+                stopped = [key for key in open_visits if key[0] == event.steward_ref]
                 for key in stopped:
                     intervals.append(
                         self._close(key, open_visits.pop(key), event.device_timestamp),
@@ -38,7 +38,7 @@ class IntervalBuilder:
                     event.event_id,
                 )
                 continue
-            key = (event.android_id, event.beacon_id)
+            key = (event.steward_ref, event.beacon_id)
 
             if event.event_type == EventType.CONNECT_EVENT:
                 open_visits.setdefault(key, event.device_timestamp)
@@ -61,9 +61,9 @@ class IntervalBuilder:
         started_at: datetime,
         ended_at: datetime | None,
     ) -> StewardPatrolInterval:
-        android_id, beacon_id = key
+        steward_ref, beacon_id = key
         return StewardPatrolInterval(
-            android_id=android_id,
+            steward_ref=steward_ref,
             beacon_id=beacon_id,
             started_at=started_at,
             ended_at=ended_at,
