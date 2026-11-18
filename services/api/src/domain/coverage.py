@@ -57,7 +57,7 @@ class StewardPatrolInterval:
     ``ended_at`` is None while the steward is still at the beacon.
     """
 
-    android_id: UUID
+    steward_ref: UUID
     beacon_id: UUID
     started_at: datetime
     ended_at: datetime | None

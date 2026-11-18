@@ -70,10 +70,9 @@ async def session() -> AsyncGenerator[AsyncSession]:
 
 
 def fixture_events() -> list[Event]:
-    # build_events leaves the fixture's ids as strings, which SQLite rejects.
+    # build_events leaves the fixture's beacon ids as strings, which SQLite rejects.
     events = load_events(FIXTURE)
     for event in events:
-        event.android_id = UUID(str(event.android_id))
         if event.beacon_id is not None:
             event.beacon_id = UUID(str(event.beacon_id))
     return events

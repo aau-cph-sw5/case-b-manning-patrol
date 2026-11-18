@@ -6,6 +6,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.adjustment import Adjustment
+from src.db.models.integrity_chain_link import IntegrityChainLink
 
 
 async def get_adjustment(session: AsyncSession, adjustment_id: UUID) -> Adjustment:
@@ -26,9 +27,12 @@ async def get_adjustments(session: AsyncSession) -> list[Adjustment]:
 async def insert_adjustment(
     session: AsyncSession,
     adjustment: Adjustment,
+    chain_link: IntegrityChainLink,
 ) -> Adjustment:
     """Insert and commit the adjustment, then reload it from the database."""
     session.add(adjustment)
+    session.add(chain_link)
     await session.commit()
     await session.refresh(adjustment)
+    await session.refresh(chain_link)
     return adjustment

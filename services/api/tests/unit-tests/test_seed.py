@@ -1,6 +1,12 @@
 import pytest
 
-from src.scripts.seed import FIXTURE, build_adjustments, build_events, load_events
+from src.scripts.seed import (
+    FIXTURE,
+    build_adjustment_authors,
+    build_adjustments,
+    build_events,
+    load_events,
+)
 from src.services.positioning_service import load_fixture
 
 
@@ -25,3 +31,13 @@ def test_build_adjustments_targets_blip_event():
 
     assert len(adjustments) == 1
     assert adjustments[0].target_event_id in {e.event_id for e in events}
+
+
+def test_build_adjustment_authors_records_one_author_per_adjustment():
+    fixture = load_fixture(FIXTURE)
+    adjustments = build_adjustments(load_events(FIXTURE))
+
+    authors = build_adjustment_authors(fixture, adjustments)
+
+    assert [a.adjustment_id for a in authors] == [a.adjustment_id for a in adjustments]
+    assert all(a.author == "seed-supervisor" for a in authors)
