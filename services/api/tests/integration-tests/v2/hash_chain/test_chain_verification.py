@@ -8,7 +8,7 @@ link that no longer matches its entry.
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import delete, update
@@ -18,8 +18,11 @@ from sqlmodel import col
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import CorrectedFact
+from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName
+from src.db.repository.adjustment import get_adjustment
+from src.db.repository.event import get_event
 from src.domain.event import EventType
 from src.services.event_store.event_producer import EventProducer
 from src.services.hash_chain.chain_loader import ChainLoader
@@ -94,6 +97,45 @@ async def test_untouched_chain_has_no_break(db_engine: AsyncEngine) -> None:
     await save_chain(db_engine)
 
     assert await verify_stored_chain(db_engine) is None
+
+
+async def stored_unlinked_count(
+    db_engine: AsyncEngine, chain: ChainName = ChainName.EVENTS
+) -> int:
+    """Count the entries without a link in ``chain`` in a fresh session."""
+    async with AsyncSession(db_engine) as session:
+        return await ChainLoader.count_unlinked(session, chain)
+
+
+async def test_untouched_chain_has_no_unlinked_entries(db_engine: AsyncEngine) -> None:
+    await save_chain(db_engine)
+
+    assert await stored_unlinked_count(db_engine) == 0
+
+
+async def test_event_inserted_without_a_link_is_counted(
+    db_engine: AsyncEngine,
+) -> None:
+    [event_id] = await save_chain(db_engine, length=1)
+    async with AsyncSession(db_engine) as session:
+        saved = await get_event(session, event_id)
+        session.add(Event.model_validate(saved.model_dump() | {"event_id": uuid4()}))
+        await session.commit()
+
+    assert await stored_unlinked_count(db_engine) == 1
+
+
+async def test_adjustment_inserted_without_a_link_is_counted(
+    db_engine: AsyncEngine,
+) -> None:
+    [adjustment_id, _] = await save_adjustments(db_engine)
+    async with AsyncSession(db_engine) as session:
+        saved = await get_adjustment(session, adjustment_id)
+        unlinked_copy = saved.model_dump() | {"adjustment_id": uuid4()}
+        session.add(Adjustment.model_validate(unlinked_copy))
+        await session.commit()
+
+    assert await stored_unlinked_count(db_engine, ChainName.ADJUSTMENTS) == 1
 
 
 async def test_untouched_adjustments_chain_has_no_break(

@@ -46,7 +46,7 @@ uv run check    # CI parity: uv sync --locked, ruff check, ty check,
                 # ruff format --check, pytest. Run before pushing.
 uv run ruff format .   # fix formatting before check complains
 uv run dev      # dev server, localhost:8000
-uv run verify-chain    # check every hash chain, exit 1 if one is broken
+uv run verify-chain    # check every hash chain; exit 1 if broken, 2 if it can't run
 uv run positioning-simulator
 ```
 

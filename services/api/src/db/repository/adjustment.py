@@ -2,11 +2,11 @@
 
 from uuid import UUID
 
-from sqlmodel import select
+from sqlmodel import col, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.adjustment import Adjustment
-from src.db.models.integrity_chain_link import IntegrityChainLink
+from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
 
 
 async def get_adjustment(session: AsyncSession, adjustment_id: UUID) -> Adjustment:
@@ -22,6 +22,25 @@ async def get_adjustments(session: AsyncSession) -> list[Adjustment]:
     result = await session.exec(select(Adjustment))
 
     return list(result.all())
+
+
+async def count_unlinked_adjustments(session: AsyncSession) -> int:
+    """Return how many adjustments have no link in the adjustments hash chain.
+
+    ``insert_adjustment`` saves every adjustment together with its link, so
+    this is 0 unless rows were written to the database directly, for example
+    by the seed script or by someone editing the database.
+    """
+    linked_ids = select(IntegrityChainLink.record_id).where(
+        IntegrityChainLink.chain == ChainName.ADJUSTMENTS
+    )
+    result = await session.exec(
+        select(func.count())
+        .select_from(Adjustment)
+        .where(col(Adjustment.adjustment_id).not_in(linked_ids))
+    )
+
+    return result.one()
 
 
 async def insert_adjustment(
