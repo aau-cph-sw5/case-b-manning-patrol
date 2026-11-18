@@ -13,11 +13,7 @@
 ADR 0013 and `permissions.v1.json` scope several roles to the *current* shift:
 Stewards, Steward Supervisors and Control Room Operators may read presence
 records only while the shift is current, and only the Operations Administrator
-may read historical records. The schedule itself comes from
-`services/api/src/data/shifts.v1.json` (MET-B-010): one night shift per day,
-currently 00:00–06:00 in `Europe/Copenhagen`, where an end earlier than the
-start means the shift crosses midnight, and the IANA time zone handles daylight
-saving.
+may read historical records. The schedule itself comes from `services/api/src/data/shifts.v1.json` (MET-B-010), which defines one night shift per day using configurable start and end times without dates. The shift is currently configured as 00:00–06:00 in `Europe/Copenhagen`. If the configured end time is earlier than the start time (e.g., 23:00–06:00), the end time is interpreted as occurring on the following calendar day. The IANA time zone is used to account for daylight saving time.
 
 Nothing yet defines the exact instant a shift stops being current, and that
 instant is now an access-control boundary: a record readable at 05:59 must not
