@@ -145,17 +145,51 @@ async def add_correction(
     return Correction(identity, adjustment_id, author)
 
 
+async def add_untargeted_correction(
+    session: AsyncSession, corrected_at: datetime
+) -> AdjustmentAuthor:
+    """Insert a correction with no target event, and its author row.
+
+    Both rows are recent and only the corrected fact's time varies, so the
+    test that calls this isolates the rule that ages an author row by its
+    adjustment's corrected fact.
+    """
+    adjustment_id = await add_adjustment(
+        session,
+        target_event_id=None,
+        corrected_occured_at=corrected_at,
+        server_timestamp=RECENT_TIMESTAMP,
+    )
+    return await add_author(session, adjustment_id, RECENT_TIMESTAMP)
+
+
+async def assert_author_anonymized(
+    session: AsyncSession, author: AdjustmentAuthor
+) -> None:
+    """Assert the author row was fully anonymized at FAKE_NOW."""
+    await session.refresh(author)
+    assert author.android_id is None
+    assert author.reason is None
+    assert author.author is None
+    assert author.anonymized_at == FAKE_NOW
+
+
+async def assert_author_kept(session: AsyncSession, author: AdjustmentAuthor) -> None:
+    """Assert the anonymizer left the author row untouched."""
+    await session.refresh(author)
+    assert author.android_id is not None
+    assert author.reason == "Test"
+    assert author.author == "Test"
+    assert author.anonymized_at is None
+
+
 @pytest.mark.asyncio
 async def test_anonymize_author_after_five_years(session):
     author = await add_author(session, uuid4(), OLD_TIMESTAMP)
 
     await anonymize_at(session, FAKE_NOW)
 
-    await session.refresh(author)
-    assert author.android_id is None
-    assert author.reason is None
-    assert author.author is None
-    assert author.anonymized_at == FAKE_NOW
+    await assert_author_anonymized(session, author)
 
 
 @pytest.mark.asyncio
@@ -166,15 +200,10 @@ async def test_author_anonymized_when_target_event_is_old(session):
         event_at=OLD_TIMESTAMP,
         corrected_at=RECENT_TIMESTAMP,
     )
-    author = chain.author
 
     await anonymize_at(session, FAKE_NOW)
 
-    await session.refresh(author)
-    assert author.android_id is None
-    assert author.reason is None
-    assert author.author is None
-    assert author.anonymized_at == FAKE_NOW
+    await assert_author_anonymized(session, chain.author)
 
 
 @pytest.mark.asyncio
@@ -185,14 +214,10 @@ async def test_author_kept_when_target_event_is_recent(session):
         event_at=RECENT_TIMESTAMP,
         corrected_at=RECENT_TIMESTAMP,
     )
-    author = chain.author
-    android_id = author.android_id
 
     await anonymize_at(session, FAKE_NOW)
 
-    await session.refresh(author)
-    assert author.android_id == android_id
-    assert author.anonymized_at is None
+    await assert_author_kept(session, chain.author)
 
 
 @pytest.mark.asyncio
@@ -207,9 +232,8 @@ async def test_author_and_identity_expire_in_same_run(session):
     await anonymize_at(session, FAKE_NOW)
 
     await session.refresh(chain.identity)
-    await session.refresh(chain.author)
     assert chain.identity.anonymized_at == FAKE_NOW
-    assert chain.author.anonymized_at == FAKE_NOW
+    await assert_author_anonymized(session, chain.author)
 
     records = (await session.exec(select(ExpiredRecord))).all()
     assert {(r.target, r.record_id) for r in records} == {
@@ -226,36 +250,17 @@ async def test_author_and_identity_expire_in_same_run(session):
 
 @pytest.mark.asyncio
 async def test_author_anonymized_when_corrected_fact_is_old(session):
-    adjustment_id = await add_adjustment(
-        session,
-        target_event_id=None,
-        corrected_occured_at=OLD_TIMESTAMP,
-        server_timestamp=RECENT_TIMESTAMP,
-    )
-    author = await add_author(session, adjustment_id, RECENT_TIMESTAMP)
+    author = await add_untargeted_correction(session, OLD_TIMESTAMP)
 
     await anonymize_at(session, FAKE_NOW)
 
-    await session.refresh(author)
-    assert author.android_id is None
-    assert author.reason is None
-    assert author.author is None
-    assert author.anonymized_at == FAKE_NOW
+    await assert_author_anonymized(session, author)
 
 
 @pytest.mark.asyncio
 async def test_author_kept_when_corrected_fact_is_recent(session):
-    adjustment_id = await add_adjustment(
-        session,
-        target_event_id=None,
-        corrected_occured_at=RECENT_TIMESTAMP,
-        server_timestamp=RECENT_TIMESTAMP,
-    )
-    author = await add_author(session, adjustment_id, RECENT_TIMESTAMP)
-    android_id = author.android_id
+    author = await add_untargeted_correction(session, RECENT_TIMESTAMP)
 
     await anonymize_at(session, FAKE_NOW)
 
-    await session.refresh(author)
-    assert author.android_id == android_id
-    assert author.anonymized_at is None
+    await assert_author_kept(session, author)

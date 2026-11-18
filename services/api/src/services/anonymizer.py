@@ -21,7 +21,8 @@ async def anonymize_old_records(session: AsyncSession):
     targets is older than the retention period, when the adjustment has no
     target event and the corrected fact is older than the retention period,
     or, as a safety net, when the author row itself is older than the
-    retention period. Every anonymized row is an expiry action and gets one ExpiredRecord.
+    retention period. Every anonymized row is an expiry action and gets one
+    ExpiredRecord.
     """
     now = datetime.now(UTC)
     cutoff_date = now - RETENTION_PERIOD
