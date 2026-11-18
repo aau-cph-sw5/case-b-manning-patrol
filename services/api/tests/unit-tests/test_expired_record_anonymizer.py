@@ -125,5 +125,5 @@ async def test_expired_record_never_stores_android_id(session):
     records = (await session.exec(select(ExpiredRecord))).all()
     stored_values = {
         str(value) for row in records for value in row.model_dump().values()
-        }
+    }
     assert android_id not in stored_values
