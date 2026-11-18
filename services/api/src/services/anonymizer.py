@@ -17,16 +17,11 @@ RETENTION_PERIOD = timedelta(days=5 * 365)
 async def anonymize_old_records(session: AsyncSession):
     """Anonymize personal records past their retention period.
 
-    Steward identities are anonymized first, then adjustment authors.
-
     An adjustment author row is anonymized when the event its adjustment
     targets is older than the retention period, when the adjustment has no
     target event and the corrected fact is older than the retention period,
     or, as a safety net, when the author row itself is older than the
-    retention period. A correction of an old event is anonymized in full,
-    reason and author name included. Authors already anonymized are left
-    untouched, so their anonymization time never moves. Every anonymized
-    row is an expiry action and gets one ExpiredRecord.
+    retention period. Every anonymized row is an expiry action and gets one ExpiredRecord.
     """
     now = datetime.now(UTC)
     cutoff_date = now - RETENTION_PERIOD
