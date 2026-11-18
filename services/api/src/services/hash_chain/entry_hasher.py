@@ -9,31 +9,15 @@ persist.
 
 import hashlib
 import re
-from dataclasses import dataclass
+from datetime import UTC, datetime
 
-GENESIS_HASH = "0" * 64
-"""The previous hash of the first entry in a chain, which has no predecessor."""
-
-_SHA256_HEX = re.compile(r"[0-9a-f]{64}")
-
-
-@dataclass(frozen=True)
-class HashedEntry:
-    """The hashes of one entry and its link to the previous entry.
-
-    All three are SHA-256 digests as 64 lowercase hex characters.
-    ``content_hash`` covers the entry alone, so its content can be checked
-    without the rest of the chain. ``prev_hash`` is the ``head_hash`` of the
-    entry before it, or ``GENESIS_HASH`` for the first entry. ``head_hash``
-    covers ``prev_hash`` followed by ``content_hash``.
-    """
-
-    content_hash: str
-    prev_hash: str
-    head_hash: str
+from src.services.hash_chain.hashed_entry import HashedEntry
 
 
 class EntryHasher:
+    GENESIS_HASH = "0" * 64
+    """The previous hash of the first entry in a chain, which has no predecessor."""
+    _SHA256_HEX = re.compile(r"[0-9a-f]{64}")
     """Hash entry text and link it onto the previous head hash.
 
     Works on text only and knows nothing about events or adjustments;
@@ -48,7 +32,7 @@ class EntryHasher:
         ``prev_hash`` is not 64 lowercase hex characters, since the head hash
         is only unambiguous when both parts have that fixed length.
         """
-        if not _SHA256_HEX.fullmatch(prev_hash):
+        if not EntryHasher._SHA256_HEX.fullmatch(prev_hash):
             raise ValueError("prev_hash must be 64 lowercase hex characters")
         content_hash = EntryHasher._sha256(text)
         head_hash = EntryHasher._sha256(prev_hash + content_hash)
@@ -61,3 +45,7 @@ class EntryHasher:
     @staticmethod
     def _sha256(text: str) -> str:
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _now_utc() -> datetime:
+        return datetime.now(UTC)

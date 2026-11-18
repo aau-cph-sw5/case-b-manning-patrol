@@ -39,9 +39,9 @@ def rule():
     )
 
 
-def visit(started_at, ended_at, android_id=STEWARD_A):
+def visit(started_at, ended_at, steward_ref=STEWARD_A):
     return StewardPatrolInterval(
-        android_id=android_id,
+        steward_ref=steward_ref,
         beacon_id=BEACON_ID,
         started_at=started_at,
         ended_at=ended_at,
@@ -134,10 +134,10 @@ def test_a_gap_becomes_an_episode_cleared_by_the_next_visit(rule):
 
 def test_overlapping_visits_by_two_stewards_merge_into_one_span(rule):
     steward_a = visit(
-        started_at=clock(10, 0, 0), ended_at=clock(10, 10, 0), android_id=STEWARD_A
+        started_at=clock(10, 0, 0), ended_at=clock(10, 10, 0), steward_ref=STEWARD_A
     )
     steward_b = visit(
-        started_at=clock(10, 5, 0), ended_at=clock(10, 15, 0), android_id=STEWARD_B
+        started_at=clock(10, 5, 0), ended_at=clock(10, 15, 0), steward_ref=STEWARD_B
     )
 
     report = rule.evaluate(PLATFORM_AREA, [steward_a, steward_b], None, clock(11, 0, 0))
@@ -160,7 +160,9 @@ def test_spans_that_just_meet_are_merged(rule):
 
 
 def test_open_qualified_visit_covers_now(rule):
-    patrolling = visit(started_at=clock(11, 50, 0), ended_at=None, android_id=STEWARD_A)
+    patrolling = visit(
+        started_at=clock(11, 50, 0), ended_at=None, steward_ref=STEWARD_A
+    )
 
     report = rule.evaluate(PLATFORM_AREA, [patrolling], None, BASE)
 
@@ -172,9 +174,11 @@ def test_open_qualified_visit_covers_now(rule):
 
 
 def test_open_visits_count_as_present_even_when_unqualified(rule):
-    patrolling = visit(started_at=clock(11, 50, 0), ended_at=None, android_id=STEWARD_A)
+    patrolling = visit(
+        started_at=clock(11, 50, 0), ended_at=None, steward_ref=STEWARD_A
+    )
     just_arrived = visit(
-        started_at=clock(11, 59, 58), ended_at=None, android_id=STEWARD_B
+        started_at=clock(11, 59, 58), ended_at=None, steward_ref=STEWARD_B
     )
 
     report = rule.evaluate(PLATFORM_AREA, [patrolling, just_arrived], None, BASE)
