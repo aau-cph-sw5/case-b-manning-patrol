@@ -1,0 +1,87 @@
+# ADR 0015. Shift-Cope: When a shift flips from current to historical.
+
+**Status:** Proposed
+
+**Date:** 2026-11-17
+
+**Deciders:** Group 3 - Héðinn Snær Arnarson, Markus Sander Eckstrøm, Peter Rasmussen, Sebastian Juel Milo, Tue Elhegn, Victor Bielefelt Søndergaard
+
+**Related backlog items:** MET-B-023, MET-B-010, MET-B-020
+
+## Context
+
+ADR 0013 and `permissions.v1.json` scope several roles to the *current* shift:
+Stewards, Steward Supervisors and Control Room Operators may read presence
+records only while the shift is current, and only the Operations Administrator
+may read historical records. The schedule itself comes from `services/api/src/data/shifts.v1.json` (MET-B-010), which defines one night shift per day using configurable start and end times without dates. The shift is currently configured as 00:00–06:00 in `Europe/Copenhagen`. If the configured end time is earlier than the start time (e.g., 23:00–06:00), the end time is interpreted as occurring on the following calendar day. The IANA time zone is used to account for daylight saving time.
+
+Nothing yet defines the exact instant a shift stops being current, and that
+instant is now an access-control boundary: a record readable at 05:59 must not
+be readable at 06:01 by a current-shift role. Coverage already treats the shift
+as a boundary — it resets every shift, and between shifts the last shift is
+frozen (`ShiftSchedule` in `src/services/shared/shift_schedule.py`). The access
+rule needs the same boundary stated explicitly.
+
+## Decision
+
+A record belongs to the shift whose half-open window `[start, end)` contains
+the record's timestamp. A shift is **current** exactly while
+`start <= now < end`; from `end` onward, every record of that shift is
+historical. There is no grace period.
+
+Concretely, with the current schedule:
+
+- During 00:00–06:00 the night shift is current, and current-shift roles see it.
+- From 06:00 until the next shift starts at 00:00, no shift is current, so the
+  night shift is already historical: Stewards, Steward Supervisors and Control
+  Room Operators lose live presence access for the rest of the day, and only
+  the Operations Administrator can still read those records.
+- An event timestamped exactly at `end` belongs to the next shift; an event
+  straddling the boundary is never split — it belongs to the shift containing
+  its own timestamp. Late-arriving events are still recorded (the event store is
+  append-only, ADR 0008) but are immediately historical.
+- Midnight-crossing shifts (e.g. 22:00–06:00) and daylight saving follow from
+  the existing `ShiftSchedule` semantics; no special-casing here.
+- Enforcement resolves `shift_scope` per request: the caller asks
+  `ShiftSchedule` whether the record's shift is current and passes
+  `current` or `all` to `PermissionMatrix.allows`; the matrix file itself
+  stays pure data.
+
+Editing `shifts.v1.json` takes effect on restart, and because a record's shift
+is computed from the schedule, a mid-shift edit can reclassify records.
+Operational guidance: change shift times only between days.
+
+## Consequences
+
+Positive impact
+
+- One instant, testable rule: the acceptance test "a current-shift role cannot
+  reach a past shift's records by any route" maps directly to `now >= end`.
+- Matches the coverage semantics that already reset and freeze per shift, so
+  access and compliance never disagree about what "the current shift" is.
+
+Potential drawbacks
+
+- Current-shift roles lose live presence access for the 18 hours a day when no
+  shift is running (with the current schedule). That is the intended ethical
+  line, but it should be a conscious choice, not a surprise.
+- A record read at 05:59 and the same record at 06:01 differ in who may see it;
+  audit entries (MET-B-020) should record the shift scope in force at read
+  time.
+- A mid-shift schedule edit can reclassify records retroactively; mitigated by
+  the change-only-between-days guidance.
+
+## Alternatives considered
+
+**"Current" means the most recent shift, until the next one starts.** Rejected:
+with one shift per day this keeps live access for ~18 hours after the shift
+ended, blurring the current/history line the access model is built on, and it
+disagrees with coverage, which freezes at shift end.
+
+**A grace period after shift end** (e.g. 30 minutes for late reports).
+Rejected: an arbitrary window that the enforcement tests would have to encode,
+and late events are already handled by the append-only store — they can be
+recorded without being current.
+
+**Flip at the next shift's start.** Same as the first alternative; rejected for
+the same reason.
