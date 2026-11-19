@@ -29,6 +29,7 @@ Backend service for the Manning Patrol positioning system.
 - Run `uv run ruff check src/` — lint only.
 - Run `uv run ty check src/` — type check only.
 - Run `uv run ruff format .` — fix formatting before `check` complains.
+- Run `uv run verify-chain` — checks every hash chain in the database from `DATABASE_URL` and prints, per chain, `OK`, `empty` (no links, nothing verified) or the first broken link and its reason, plus how many events or adjustments have no chain link. Exit codes: 0 if every chain is intact, 1 if a chain is broken or has unlinked entries, 2 if the database could not be read. The app always saves an entry with its link, so unlinked entries mean direct database writes; seeded rows have no links and are reported. On a dev database migrated from before the hash chain format changed, run `uv run reset-db` first, or old links are reported as broken.
 
 CI also runs `alembic upgrade head` and `alembic check` against a PostgreSQL
 service container, so a model change without a matching migration fails the
@@ -63,10 +64,10 @@ services/api/
 │   │       │   ├── health.py           # Health check endpoints (contracts/health v2)
 │   │       │   └── patrol_session.py   # Patrol-session ingestion routes (contracts/positioning-ingestion v2)
 │   │       └── schemas/         # Request/response payloads (dashboard, adjustment, ingestion)
-│   ├── scripts/                 # `uv run lint` / `uv run check` entry points
+│   ├── scripts/                 # `uv run lint` / `check` / `verify-chain` entry points
 │   └── services/
 │       ├── event_producer.py    # Appends events/adjustments to the append-only store
-│       ├── hash_chain/          # Stringify and hash events/adjustments for the tamper-evident chain (MET-B-021)
+│       ├── hash_chain/          # Link, load and verify the tamper-evident hash chain (MET-B-021)
 │       ├── positioning_service.py
 │       └── station_coverage/    # Patrol coverage computation, overdue tracking and SSE publishing (MET-B-007)
 ├── fixtures/

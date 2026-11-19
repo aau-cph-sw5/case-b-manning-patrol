@@ -3,12 +3,12 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.sql.expression import SelectOfScalar
 
 from src.db.models.event import Event
-from src.db.models.integrity_chain_link import IntegrityChainLink
+from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
 from src.db.models.steward_shift_identity import StewardShiftIdentity
 from src.domain.event import EventType
 
@@ -125,6 +125,25 @@ async def get_open_connections(session: AsyncSession, android_id: UUID) -> list[
             open_connections[connect.beacon_id] = connect
 
     return list(open_connections.values())
+
+
+async def count_unlinked_events(session: AsyncSession) -> int:
+    """Return how many events have no link in the events hash chain.
+
+    ``insert_event`` saves every event together with its link, so this is 0
+    unless rows were written to the database directly, for example by the
+    seed script or by someone editing the database.
+    """
+    linked_ids = select(IntegrityChainLink.record_id).where(
+        IntegrityChainLink.chain == ChainName.EVENTS
+    )
+    result = await session.exec(
+        select(func.count())
+        .select_from(Event)
+        .where(col(Event.event_id).not_in(linked_ids))
+    )
+
+    return result.one()
 
 
 async def insert_event(
