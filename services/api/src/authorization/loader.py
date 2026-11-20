@@ -19,7 +19,7 @@ def load_authorization_config() -> AuthorizationConfig:
     json_data = CONFIG_PATH.read_text(encoding="utf-8")
     config = AuthorizationConfig.model_validate_json(json_data)
 
-    validate_permissions(config)
+    validate_permissions(config=config)
 
     return config
 
