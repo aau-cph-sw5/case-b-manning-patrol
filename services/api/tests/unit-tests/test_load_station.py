@@ -14,7 +14,7 @@ from src.db.models import Line, PatrolArea, Station, StationLine
 # Mock data shaped exactly like services/api/src/data/stations.v1.json.
 STATION = {
     "id": "STN-001",
-    "name": "Station 01",
+    "name": "Vestamager",
     "line_ids": ["M1"],
     "patrol_areas": [
         {
@@ -33,7 +33,7 @@ STATION = {
 # A second station used to simulate "someone edited the data file"
 EXTRA_STATION = {
     "id": "STN-002",
-    "name": "Station 02",
+    "name": "Bella Center",
     "line_ids": ["M3"],
     "patrol_areas": [
         {
@@ -102,7 +102,7 @@ async def test_load_stations_loads_station_and_patrol_areas(session, tmp_path):
     # The station row must exist with the values from the JSON entry.
     stations = (await session.exec(select(Station))).all()
     assert [station.id for station in stations] == ["STN-001"]
-    assert stations[0].name == "Station 01"
+    assert stations[0].name == "Vestamager"
 
     lines = (await session.exec(select(Line))).all()
     assert [line.id for line in lines] == ["M1"]
