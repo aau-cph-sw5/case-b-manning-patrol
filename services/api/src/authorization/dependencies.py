@@ -7,10 +7,8 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException
 
-
 from src.authorization.authorization_service import AuthorizationService
 from src.security.current_user import User, get_current_user
-
 
 
 def require_permission(permission: str):

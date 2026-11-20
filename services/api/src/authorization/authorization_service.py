@@ -1,10 +1,12 @@
 """Permission checks of a user's role against the loaded RBAC config."""
+
 from pathlib import Path
 
 from src.authorization.models import AuthorizationConfig
 from src.security.current_user import User
 
-class AuthorizationService():
+
+class AuthorizationService:
     CONFIG_PATH = Path(__file__).parent.parent / "data" / "permissions.v1.json"
 
     def __init__(self):
@@ -17,7 +19,6 @@ class AuthorizationService():
 
         self._validate_permissions()
 
-    
     def _validate_permissions(self) -> None:
         """Raise ValueError if any role references an undefined permission."""
         defined_permissions = set(self.config.permissions)
@@ -26,10 +27,10 @@ class AuthorizationService():
             for permission in role.permissions:
                 if permission not in defined_permissions:
                     raise ValueError(
-                        f"Role '{role.role}' references undefined permission '{permission}'"
+                        f"Role '{role.role}' references "
+                        f"undefined permission '{permission}'"
                     )
 
-            
     def has_permission(self, user: User, permission: str) -> bool:
         """Return whether the user's role grants `permission`.
 

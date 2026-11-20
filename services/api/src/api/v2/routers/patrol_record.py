@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -17,7 +17,6 @@ from src.api.v2.schemas.patrol_record import (
     RecordList,
     Status,
 )
-
 from src.authorization.dependencies import require_permission
 from src.db.models.event import Event
 from src.db.repository.event import (
@@ -52,7 +51,7 @@ async def get_records(
 
     Raises RecordBuildError if the database cannot be read.
     """
-    
+
     try:
         return await build_records(session, android_id)
     except SQLAlchemyError as error:
