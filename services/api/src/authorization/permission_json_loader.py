@@ -6,6 +6,8 @@ startup instead of on the first request.
 
 from pathlib import Path
 
+from src.authorization.permission_json_validator import validate_permissions
+
 from .models import AuthorizationConfig
 
 CONFIG_PATH = Path(__file__).parent.parent / "data" / "permissions.v1.json"
@@ -24,13 +26,3 @@ def load_authorization_config() -> AuthorizationConfig:
     return config
 
 
-def validate_permissions(config: AuthorizationConfig) -> None:
-    """Raise ValueError if any role references an undefined permission."""
-    defined_permissions = set(config.permissions)
-
-    for role in config.roles:
-        for permission in role.permissions:
-            if permission not in defined_permissions:
-                raise ValueError(
-                    f"Role '{role.role}' references undefined permission '{permission}'"
-                )
