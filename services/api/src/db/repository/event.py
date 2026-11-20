@@ -36,9 +36,21 @@ async def get_event(session: AsyncSession, event_id: UUID) -> Event:
     return result.one()
 
 
-async def get_events(session: AsyncSession) -> list[Event]:
-    """Return every event, in no particular order."""
-    result = await session.exec(select(Event))
+async def get_events(
+    session: AsyncSession,
+    *,
+    known_at: datetime | None = None,
+) -> list[Event]:
+    """Return the stored events, in no particular order.
+
+    With ``known_at``, only events the backend had received by then
+    (``server_timestamp <= known_at``) are returned, so a past picture can be
+    rebuilt without events that arrived later. ``None`` returns every event.
+    """
+    statement = select(Event)
+    if known_at is not None:
+        statement = statement.where(col(Event.server_timestamp) <= known_at)
+    result = await session.exec(statement)
 
     return list(result.all())
 

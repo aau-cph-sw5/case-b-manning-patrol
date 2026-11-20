@@ -6,8 +6,61 @@
  * scanner can be dropped in behind the same {@link BeaconScanner} interface.
  */
 import type { BeaconConnectionEvent, BeaconEventKind } from "@/types/beacon";
-import { MOCK_BEACON_IDS } from "@/fixtures/mockBeacons";
+import {
+  MOCK_BEACON_IDS,
+  MOCK_CONCOURSE_BEACON_IDS,
+} from "@/fixtures/mockBeacons";
 import type { BeaconScanner } from "@/types/BeaconScanner";
+
+/** One event in the deterministic end-to-end fixture replay. */
+export type FixtureReplayEvent = {
+  event: BeaconEventKind;
+  beacon_id: string;
+  offsetMs: number;
+};
+
+/**
+ * The first pass resets every dashboard timer together. Later passes simulate
+ * a steward moving through one station at a time.
+ *
+ * All station pairs are connected together at demo start and disconnected
+ * together after four simulated minutes. With the default speed of 10, the
+ * complete dashboard replay takes about 24 seconds.
+ */
+const ALL_STATION_BEACONS = MOCK_BEACON_IDS.map(
+  (platformBeacon, index) => ({
+    platformBeacon,
+    concourseBeacon: MOCK_CONCOURSE_BEACON_IDS[index]!,
+  }),
+);
+
+export const INITIAL_RESET_EVENTS: readonly FixtureReplayEvent[] =
+  ALL_STATION_BEACONS.flatMap(({ platformBeacon, concourseBeacon }) => [
+    { event: "CONNECTED", beacon_id: platformBeacon, offsetMs: 0 },
+    { event: "CONNECTED", beacon_id: concourseBeacon, offsetMs: 0 },
+    { event: "DISCONNECTED", beacon_id: platformBeacon, offsetMs: 240_000 },
+    { event: "DISCONNECTED", beacon_id: concourseBeacon, offsetMs: 240_000 },
+  ]);
+
+// At the documented 10x demo speed this is 24 real seconds, exceeding the
+// concourse qualification threshold of 20 seconds.
+const PATROL_VISIT_DURATION_MS = 240_000;
+const PATROL_TRAVEL_INTERVAL_MS = 300_000;
+
+export const PATROL_REPLAY_EVENTS: readonly FixtureReplayEvent[] =
+  ALL_STATION_BEACONS.flatMap(({ platformBeacon, concourseBeacon }, index) => {
+    const arrival = index * PATROL_TRAVEL_INTERVAL_MS;
+    const departure = arrival + PATROL_VISIT_DURATION_MS;
+    return [
+      { event: "CONNECTED", beacon_id: platformBeacon, offsetMs: arrival },
+      { event: "CONNECTED", beacon_id: concourseBeacon, offsetMs: arrival },
+      { event: "DISCONNECTED", beacon_id: platformBeacon, offsetMs: departure },
+      { event: "DISCONNECTED", beacon_id: concourseBeacon, offsetMs: departure },
+    ];
+  });
+
+/** Backwards-compatible name for the initial full-station reset timeline. */
+export const FIXTURE_REPLAY_EVENTS = INITIAL_RESET_EVENTS;
 
 /** Settings for {@link createMockBeaconScanner}. */
 export type MockBeaconScannerOptions = {
@@ -130,4 +183,96 @@ export function createMockBeaconScanner(options: MockBeaconScannerOptions): Beac
     }
     activeConnections.clear();
   }
+}
+
+/**
+ * Create a deterministic scanner that replays the end-to-end fixture timeline.
+ *
+ * Events are rebased to the time scanning starts and emitted as confirmed
+ * events. The initial reset runs once. If `patrolEvents` are provided, they
+ * repeat after the reset and represent the ongoing patrol route.
+ */
+export function createFixtureBeaconScanner(
+  events: readonly FixtureReplayEvent[] = INITIAL_RESET_EVENTS,
+  speed = 60,
+  patrolEvents: readonly FixtureReplayEvent[] = [],
+): BeaconScanner {
+  if (!Number.isFinite(speed) || speed <= 0) {
+    throw new Error("Fixture replay speed must be greater than zero");
+  }
+
+  let timers: ReturnType<typeof setTimeout>[] = [];
+  let currentListener: ((event: BeaconConnectionEvent) => void) | null = null;
+  let replayGeneration = 0;
+  function stop() {
+    replayGeneration += 1;
+    for (const timer of timers) {
+      clearTimeout(timer);
+    }
+    timers = [];
+    currentListener = null;
+  }
+
+  function start(listener: (event: BeaconConnectionEvent) => void) {
+    stop();
+    currentListener = listener;
+    const generation = replayGeneration;
+
+    function scheduleBatch(
+      batch: readonly FixtureReplayEvent[],
+      onComplete: () => void,
+    ) {
+      if (currentListener === null || generation !== replayGeneration) {
+        return;
+      }
+
+      const startedAt = Date.now();
+      timers = batch.map((fixtureEvent) =>
+        setTimeout(() => {
+          currentListener?.({
+            event: fixtureEvent.event,
+            beacon_id: fixtureEvent.beacon_id,
+            timestamp: new Date(
+              startedAt + fixtureEvent.offsetMs / speed,
+            ).toISOString(),
+          });
+        }, fixtureEvent.offsetMs / speed),
+      );
+      if (batch.length > 0) {
+        timers.push(
+          setTimeout(
+            onComplete,
+            Math.max(...batch.map((event) => event.offsetMs)) / speed + 1,
+          ),
+        );
+      } else {
+        onComplete();
+      }
+    }
+
+    function schedulePatrolRound() {
+      if (currentListener === null || generation !== replayGeneration) {
+        return;
+      }
+      scheduleBatch(patrolEvents, schedulePatrolRound);
+    }
+
+    scheduleBatch(
+      events,
+      patrolEvents.length > 0
+        ? () => {
+            timers = [];
+            schedulePatrolRound();
+          }
+        : () => {
+            timers = [];
+          },
+    );
+  }
+
+  return {
+    start,
+    stop,
+    eventsAreConfirmed: true,
+  };
 }

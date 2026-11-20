@@ -46,6 +46,7 @@ services/api/
 ├── src/
 │   ├── main.py                  # FastAPI app definition and startup
 │   ├── domain/                  # Pure value objects and enums (no storage or API imports)
+│   │   ├── compliance.py        # CompliancePicture of one past shift (MET-B-021)
 │   │   ├── coverage.py          # Coverage and overdue log value objects (MET-B-007)
 │   │   ├── event.py             # EventType and EventRecord
 │   │   ├── patrol_area.py       # AreaKind
@@ -64,8 +65,9 @@ services/api/
 │   │       │   ├── health.py           # Health check endpoints (contracts/health v2)
 │   │       │   └── patrol_session.py   # Patrol-session ingestion routes (contracts/positioning-ingestion v2)
 │   │       └── schemas/         # Request/response payloads (dashboard, adjustment, ingestion)
-│   ├── scripts/                 # `uv run lint` / `check` / `verify-chain` entry points
+│   ├── scripts/                 # `uv run lint` / `check` / `verify-chain` / `reconstruct` entry points
 │   └── services/
+│       ├── compliance/          # Rebuild the compliance picture of a past shift (MET-B-021)
 │       ├── event_producer.py    # Appends events/adjustments to the append-only store
 │       ├── hash_chain/          # Link, load and verify the tamper-evident hash chain (MET-B-021)
 │       ├── positioning_service.py
@@ -125,3 +127,30 @@ full setup: `docker-compose.yml` defines the local PostgreSQL container
 ### Resetting the database
 
 - Run `uv run reset-db` — drops every table (including `alembic_version`) and re-applies all migrations. Stations, lines and patrol areas are re-ingested on the next server start; other rows (events, adjustments) are lost. Use `docker compose down -v` to start completely fresh.
+
+## Reconstructing a past shift
+
+`uv run reconstruct` rebuilds station coverage and train manning for one
+shift from the stored events, using the same calculation as the live
+dashboard. It only reads the database from `DATABASE_URL`.
+
+```bash
+uv run reconstruct --date 2026-11-03
+uv run reconstruct --date 2026-11-03 --known-at 2026-11-03T05:30+01:00
+uv run reconstruct --date 2026-11-03 --json
+```
+
+- `--date` is the local date the shift starts on. The night shift runs
+  00:00-06:00 Copenhagen time, so `2026-11-03` is the night of 2-3 November.
+  Events are placed in the shift by when the phone saw them
+  (`device_timestamp`).
+- `--known-at` reproduces the picture as it was known at that moment: only
+  events the backend had received by then (`server_timestamp`) are used, and
+  the shift is evaluated no later than that time. It must include a timezone.
+  Without it, every stored event counts, including ones that arrived late.
+- `--json` prints machine-readable output with times in UTC; the default
+  table shows local times.
+- A shift that has not started yet exits with status 1.
+
+The reconstruction uses today's stations, patrol areas, trains and patrol
+rules, and does not apply adjustments.

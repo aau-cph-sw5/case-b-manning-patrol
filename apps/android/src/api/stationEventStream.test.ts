@@ -96,6 +96,7 @@ describe("connectToStationUpdates", () => {
     expect(onUpdate).toHaveBeenCalledTimes(1);
     const [overview] = onUpdate.mock.calls[0];
     expect(overview.stations).toHaveLength(1);
+    expect(overview.stations[0].stationId).toBe("vanlose");
     expect(overview.stations[0].name).toBe("Vanløse");
     expect(overview.stations[0].areas[0].overdueAt).toEqual(
       new Date("2026-10-23T10:00:00.000Z"),
