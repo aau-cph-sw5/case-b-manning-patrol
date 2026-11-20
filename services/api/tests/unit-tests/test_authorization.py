@@ -2,21 +2,21 @@
 
 import json
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from pydantic import ValidationError
 
-from src.authorization.loader import load_authorization_config, validate_permissions
-from src.authorization.models import AuthorizationConfig
-from src.authorization.service import has_permission
-from src.security.current_user import User
 
-CONFIG_FILE = Path(__file__).parents[2] / "src" / "data" / "permissions.v1.json"
+from src.authorization.models import AuthorizationConfig
+from src.authorization.authorization_service import AuthorizationService
+from src.security.current_user import User
 
 
 @pytest.fixture
-def config() -> AuthorizationConfig:
-    return load_authorization_config()
+def mock_auth():
+    auth_service = Mock(spec=AuthorizationService)
+    
 
 
 def test_permission_file_loads_with_all_roles(config):

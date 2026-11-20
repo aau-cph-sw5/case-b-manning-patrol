@@ -7,11 +7,10 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException
 
-from src.authorization.loader import load_authorization_config
-from src.authorization.service import has_permission
+
+from src.authorization.authorization_service import AuthorizationService
 from src.security.current_user import User, get_current_user
 
-config = load_authorization_config()
 
 
 def require_permission(permission: str):
@@ -26,7 +25,9 @@ def require_permission(permission: str):
         user: Annotated[User, Depends(get_current_user)],
     ) -> User:
 
-        if not has_permission(user, permission, config):
+        auth_service = AuthorizationService()
+
+        if not auth_service.has_permission(user, permission):
             raise HTTPException(status_code=403, detail="Insufficient permissions")
 
         return user
