@@ -52,12 +52,26 @@ Everything that produces these events implements the `BeaconScanner` interface
 (`src/services/beacon/scanner.ts`).
 
 Until real BLE scanning lands, `MockBeaconScanner` simulates a steward walking past the
-beacon ids from the backend fixtures: connect, hold, disconnect, next beacon. It involves
+beacon ids from the backend reference data: connect, hold, disconnect, next beacon. It involves
 no Bluetooth, so it runs in Expo Go and on the emulator. Real BLE scanning is the same
 interface on a development build on a physical device.
 
-Forwarding the events to the backend (`POST /api/v2/connection/connect` and
-`/api/v2/connection/disconnect`) is not wired up yet.
+The random mock forwards confirmed events to the backend
+(`POST /api/v2/connection/connect` and
+`/api/v2/connection/disconnect`). Set `EXPO_PUBLIC_BEACON_MODE=fixture`
+to replay the deterministic end-to-end timeline. The replay uses the same
+beacon IDs as the backend reference data, rebases timestamps to when scanning
+starts, and sends events through the normal connection API. It connects every
+configured platform and concourse pair at demo start and disconnects them
+together after four simulated minutes, only once. It then repeats a
+station-by-station patrol route with three simulated minutes at each station
+and one simulated minute between stations. The route holds each station for
+four simulated minutes so the concourse's 20-second qualification threshold is
+met at the default 10x speed. Its default speed is 10x (about 24
+seconds for the initial reset); change it with
+`EXPO_PUBLIC_FIXTURE_REPLAY_SPEED`. Do not seed the
+same timeline into the backend while replaying it, or the database will contain
+duplicate logical events.
 
 ## Conventions
 

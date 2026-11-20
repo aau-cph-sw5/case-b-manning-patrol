@@ -18,7 +18,11 @@ import { useBeaconScanner } from "@/hooks/useBeaconScanner";
 import { useNow } from "@/hooks/useNow";
 import { usePatrolSession } from "@/hooks/usePatrolSession";
 import { useStationUpdates } from "@/hooks/useStationUpdates";
-import { createMockBeaconScanner } from "@/services/beacon/MockBeaconScanner";
+import {
+  createFixtureBeaconScanner,
+  createMockBeaconScanner,
+  PATROL_REPLAY_EVENTS,
+} from "@/services/beacon/MockBeaconScanner";
 import { sortStationsByUrgency } from "@/utils/areaStatus";
 import { LINE_GROUPS, type LineGroup } from "@/types/station";
 import { stationServesLineGroup } from "@/utils/stationLineGroup";
@@ -42,13 +46,20 @@ function formatClock(timestamp: number): string {
  * countdowns and the urgency order stay current between stream events.
  */
 export default function Index() {
+  const scannerMode = process.env.EXPO_PUBLIC_BEACON_MODE ?? "random";
   const scanner = useMemo(
     () =>
-      createMockBeaconScanner({
-        android_id: MOCK_ANDROID_ID,
-        beacon_ids: MOCK_BEACON_IDS,
-      }),
-    [],
+      scannerMode === "fixture"
+        ? createFixtureBeaconScanner(
+            undefined,
+            Number(process.env.EXPO_PUBLIC_FIXTURE_REPLAY_SPEED ?? 60),
+            PATROL_REPLAY_EVENTS,
+          )
+        : createMockBeaconScanner({
+            android_id: MOCK_ANDROID_ID,
+            beacon_ids: MOCK_BEACON_IDS,
+          }),
+    [scannerMode],
   );
   const { state: patrolSession, start, stop } = usePatrolSession();
   const { start: startScan, stop: stopScan } = useBeaconScanner(scanner);
@@ -91,7 +102,7 @@ export default function Index() {
               : `Sidst opdateret ${formatClock(lastUpdatedAt)}`}
           </Text>
           {round.map((station) => (
-            <Station key={station.name} station={station} now={now} />
+            <Station key={station.stationId} station={station} now={now} />
           ))}
       </View>
       </ScrollView>

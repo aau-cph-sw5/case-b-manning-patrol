@@ -144,7 +144,7 @@ def test_get_records_returns_open_and_closed_most_recent_first(client):
     assert open_record["status"] == "open"
     assert open_record["area"] == {
         "area_id": "PA-001-C",
-        "name": "Station 01 concourse",
+        "name": "Vestamager concourse",
         "line": ["M1"],
         "station_id": "STN-001",
         "area_type": "concourse",
@@ -161,7 +161,7 @@ def test_get_records_returns_open_and_closed_most_recent_first(client):
     assert closed["patrolled"] is True
     assert closed["status"] == "closed"
     assert closed["area"]["area_id"] == "PA-001-P"
-    assert closed["area"]["name"] == "Station 01 platform"
+    assert closed["area"]["name"] == "Vestamager platform"
     assert closed["area"]["area_type"] == "platform"
 
 
@@ -224,4 +224,4 @@ def test_get_records_resolves_all_lines_of_interchange_area(client):
     record = _single_record(client)
     assert record["area"]["station_id"] == "STN-010"
     assert record["area"]["line"] == ["M1", "M2"]
-    assert record["area"]["name"] == "Station 10 platform"
+    assert record["area"]["name"] == "Nørreport platform"
