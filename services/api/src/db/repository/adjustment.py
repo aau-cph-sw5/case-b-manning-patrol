@@ -1,5 +1,6 @@
 """Queries for supervisor adjustments to recorded events."""
 
+from datetime import datetime
 from uuid import UUID
 
 from sqlmodel import col, func, select
@@ -17,9 +18,21 @@ async def get_adjustment(session: AsyncSession, adjustment_id: UUID) -> Adjustme
     return result.one()
 
 
-async def get_adjustments(session: AsyncSession) -> list[Adjustment]:
-    """Return all adjustments."""
-    result = await session.exec(select(Adjustment))
+async def get_adjustments(
+    session: AsyncSession,
+    *,
+    known_at: datetime | None = None,
+) -> list[Adjustment]:
+    """Return the stored adjustments, in no particular order.
+
+    With ``known_at``, only adjustments recorded by then
+    (``server_timestamp <= known_at``) are returned. ``None`` returns every
+    adjustment.
+    """
+    statement = select(Adjustment)
+    if known_at is not None:
+        statement = statement.where(col(Adjustment.server_timestamp) <= known_at)
+    result = await session.exec(statement)
 
     return list(result.all())
 
