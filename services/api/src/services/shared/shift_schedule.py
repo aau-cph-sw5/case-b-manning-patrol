@@ -35,6 +35,11 @@ class ShiftSchedule:
             timezone=ZoneInfo(data["timezone"]),
         )
 
+    @property
+    def timezone(self) -> ZoneInfo:
+        """Return the local timezone the shift times are defined in."""
+        return self._timezone
+
     def latest_shift(self, now: datetime) -> Shift:
         """Return the most recent shift that started at or before ``now``.
 
@@ -47,6 +52,15 @@ class ShiftSchedule:
         if shift.start > now:
             shift = self._shift_starting_on(today - timedelta(days=1))
         return shift
+
+    def shift_on(self, day: date) -> Shift:
+        """Return the shift that starts on ``day`` in the schedule's local time.
+
+        A shift that runs past midnight ends on the following day. The
+        returned start and end are in UTC, so daylight saving changes are
+        already accounted for.
+        """
+        return self._shift_starting_on(day)
 
     def _shift_starting_on(self, day: date) -> Shift:
         end_day = day if self._end > self._start else day + timedelta(days=1)

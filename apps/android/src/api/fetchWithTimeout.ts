@@ -8,7 +8,7 @@
  * after a timeout turns the hang into an ordinary rejection, which callers
  * already handle as "backend unreachable".
  */
-import { getAccessToken } from "@/api/auth";
+import { getAccessToken, getAndroidId } from "@/fixtures/auth";
 
 /** How long a request may take before it counts as unreachable. */
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -16,8 +16,9 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 /**
  * Fetch a url, rejecting with an abort error when it takes longer than `timeoutMs`.
  *
- * Adds `Authorization: Bearer <token>` from {@link getAccessToken}; the
- * caller's own headers are kept, and the Authorization header always wins.
+ * Adds `Authorization: Bearer <token>` from {@link getAccessToken} and
+ * `X-Android-Id` from {@link getAndroidId}; the caller's own headers are kept,
+ * and the Authorization header always wins.
  *
  * @returns The response, exactly as fetch would return it; non-2xx still resolves.
  */
@@ -28,6 +29,7 @@ export async function fetchWithTimeout(
 ): Promise<Response> {
   const headers = new Headers(init?.headers);
   headers.set("Authorization", `Bearer ${await getAccessToken()}`);
+  headers.set("X-Android-Id", await getAndroidId());
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

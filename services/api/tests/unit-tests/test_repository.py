@@ -243,6 +243,32 @@ async def test_get_events_returns_all_inserted_events(session):
 
 
 @pytest.mark.asyncio
+async def test_get_events_known_at_leaves_out_events_received_later(session):
+    on_time = make_event(server_timestamp=TIMESTAMP)
+    at_cutoff = make_event(server_timestamp=TIMESTAMP + timedelta(minutes=5))
+    late = make_event(
+        device_timestamp=TIMESTAMP,
+        server_timestamp=TIMESTAMP + timedelta(minutes=6),
+    )
+
+    for event_row in (on_time, at_cutoff, late):
+        await event.insert_event(session, event_row, make_chain_link())
+    result = await event.get_events(session, known_at=TIMESTAMP + timedelta(minutes=5))
+
+    assert {e.event_id for e in result} == {on_time.event_id, at_cutoff.event_id}
+
+
+@pytest.mark.asyncio
+async def test_get_events_without_known_at_includes_late_events(session):
+    late = make_event(server_timestamp=TIMESTAMP + timedelta(hours=3))
+
+    await event.insert_event(session, late, make_chain_link())
+    result = await event.get_events(session)
+
+    assert [e.event_id for e in result] == [late.event_id]
+
+
+@pytest.mark.asyncio
 async def test_reconnect_to_same_beacon_is_stored_as_new_event(session):
     connect = make_event(event_type=EventType.CONNECT_EVENT)
     disconnect = make_event(
@@ -318,6 +344,18 @@ async def test_get_adjustments_returns_all_inserted_adjustments(session):
     result = await adjustment.get_adjustments(session)
 
     assert {a.adjustment_id for a in result} == expected_ids
+
+
+@pytest.mark.asyncio
+async def test_get_adjustments_known_at_leaves_out_later_adjustments(session):
+    recorded = make_adjustment(server_timestamp=TIMESTAMP)
+    later = make_adjustment(server_timestamp=TIMESTAMP + timedelta(minutes=1))
+
+    await adjustment.insert_adjustment(session, recorded, make_chain_link())
+    await adjustment.insert_adjustment(session, later, make_chain_link())
+    result = await adjustment.get_adjustments(session, known_at=TIMESTAMP)
+
+    assert [a.adjustment_id for a in result] == [recorded.adjustment_id]
 
 
 @pytest.mark.asyncio
