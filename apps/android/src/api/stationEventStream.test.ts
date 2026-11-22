@@ -37,7 +37,7 @@ vi.mock("react-native-sse", () => ({ default: MockEventSource }));
 
 const { getAccessToken } = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
 
-vi.mock("@/api/auth", () => ({ getAccessToken }));
+vi.mock("@/fixtures/auth", () => ({ getAccessToken }));
 
 
 const validPayload = JSON.stringify({

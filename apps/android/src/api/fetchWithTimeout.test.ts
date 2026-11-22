@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { fetchWithTimeout } from "@/api/fetchWithTimeout";
+import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 
 const URL = "http://backend.test/api";
 
@@ -30,6 +31,16 @@ describe("fetchWithTimeout", () => {
 
     const headers = new Headers(fetchMock.mock.calls[0][1].headers);
     expect(headers.get("Authorization")).toBe("Bearer steward");
+  });
+
+  it("sends the device android id as the X-Android-Id header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchWithTimeout(URL);
+
+    const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+    expect(headers.get("X-Android-Id")).toBe(MOCK_ANDROID_ID);
   });
 
   it("keeps the caller's own headers next to the Authorization header", async () => {

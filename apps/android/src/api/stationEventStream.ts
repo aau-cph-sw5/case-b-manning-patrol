@@ -10,7 +10,7 @@
  */
 import EventSource from "react-native-sse";
 import { StationOverviewSchema, type StationOverview } from "@/types/station";
-import { getAccessToken } from "@/api/auth";
+import { getAccessToken } from "@/fixtures/auth";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
 const SSE_URL = `${API_BASE_URL}/api/v2/dashboard/stream`;
