@@ -1,9 +1,13 @@
+/**
+ * Fetches the at-risk episode count for the latest shift from the backend.
+ * Uses the API v2 positioning interface and a relative URL proxied by Vite
+ * to the backend.
+ */
 import { authFetch } from '@/api/authFetch'
 
 const URL = '/api/v2/coverage/at-risk-count'
 
 export interface AtRiskCount {
-  /** ISO 8601 start of the shift the episodes were counted for. */
   shift_start: string
   episodes: number
 }

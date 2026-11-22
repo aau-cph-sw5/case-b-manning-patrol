@@ -66,7 +66,11 @@ def post_event(http: httpx2.Client, path: str, beacon_id: str, timestamp: str) -
 
 async def test_trains_stream_lists_the_train_unmanned(live_base_url, db_engine):
     await insert_train(db_engine)
-    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
         # An event on an unrelated beacon forces a refresh without manning.
         post_event(http, "/api/v2/connection/connect", OTHER_BEACON_ID, TIMESTAMP)
 
@@ -97,7 +101,11 @@ async def test_trains_stream_shows_the_manned_train_after_connect(
     live_base_url, db_engine
 ):
     await insert_train(db_engine)
-    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
         post_event(http, "/api/v2/connection/connect", BEACON_ID, TIMESTAMP)
 
         with http.stream("GET", "/api/v2/trains/stream") as response:
@@ -113,8 +121,16 @@ async def test_trains_stream_reemits_unmanned_train_after_disconnect(
     live_base_url, db_engine
 ):
     await insert_train(db_engine)
-    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
-        with httpx2.Client(base_url=live_base_url, timeout=5.0) as poster:
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
+        with httpx2.Client(
+            base_url=live_base_url,
+            timeout=5.0,
+            headers={"Authorization": "Bearer controlRoomOperator"},
+        ) as poster:
             post_event(poster, "/api/v2/connection/connect", BEACON_ID, TIMESTAMP)
 
             with http.stream("GET", "/api/v2/trains/stream") as response:
