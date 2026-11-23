@@ -80,10 +80,32 @@ function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
 /**
  * Render manning for all trains and for the trains serving `lineGroup`.
  *
- * @param update - Latest trains stream event; null before the first one,
- *   which renders the same placeholder as a stream with no trains.
+ * @param update - Latest trains stream event; null before the first one. Null
+ *   without an error renders the loading placeholder, the same as a stream
+ *   with no trains; null together with `error` renders an explicit "no manning
+ *   data" state instead. A stored `update` is still shown while `error` is
+ *   set, so the card degrades to the last known data rather than failing.
+ * @param error - Set while the trains stream cannot connect, e.g. when the
+ *   backend is down.
  */
-function TrainCard({ update, lineGroup }: { update: TrainsUpdate | null; lineGroup: LineGroup }) {
+function TrainCard({ update, lineGroup, error }: { update: TrainsUpdate | null; lineGroup: LineGroup; error: Error | null }) {
+  if (update === null && error !== null) {
+    return (
+      <section className="card train-card">
+        <header className="train-card-head">
+          <h2>
+            <RouteBadges routes={LINE_GROUPS.flatMap((group) => LINE_GROUP_ROUTES[group])} />
+          </h2>
+          <span className="train-head-status">
+            <span className="train-head-pct">—</span>
+          </span>
+        </header>
+        <p className="train-empty" role="status">
+          Ingen bemandingsdata tilgængelig — tjek forbindelsen til serveren
+        </p>
+      </section>
+    )
+  }
   const data = update ?? EMPTY_UPDATE
   const groupRoutes = LINE_GROUP_ROUTES[lineGroup]
   const groupPct = pct(
