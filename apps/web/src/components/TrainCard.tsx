@@ -78,35 +78,54 @@ function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
 }
 
 /**
+ * Render the card shown when the trains stream errored before any data
+ * arrived: all line badges and a "—" figure, plus a message that no manning
+ * data is available.
+ */
+function NoManningData() {
+  return (
+    <section className="card train-card">
+      <header className="train-card-head">
+        <h2>
+          <RouteBadges routes={LINE_GROUPS.flatMap((group) => LINE_GROUP_ROUTES[group])} />
+        </h2>
+        <span className="train-head-status">
+          <span className="train-head-pct">—</span>
+        </span>
+      </header>
+      <p className="train-empty" role="status">
+        Ingen bemandingsdata tilgængelig — tjek forbindelsen til serveren
+      </p>
+    </section>
+  )
+}
+
+/**
  * Render manning for all trains and for the trains serving `lineGroup`.
  *
  * @param update - Latest trains stream event; null before the first one. Null
  *   without an error renders the loading placeholder, the same as a stream
- *   with no trains; null together with `error` renders an explicit "no manning
- *   data" state instead. A stored `update` is still shown while `error` is
- *   set, so the card degrades to the last known data rather than failing.
+ *   with no trains; null together with `error` renders {@link NoManningData}
+ *   instead. A stored `update` is still shown while `error` is set, so the
+ *   card degrades to the last known data rather than failing.
  * @param error - Set while the trains stream cannot connect, e.g. when the
  *   backend is down.
  */
 function TrainCard({ update, lineGroup, error }: { update: TrainsUpdate | null; lineGroup: LineGroup; error: Error | null }) {
   if (update === null && error !== null) {
-    return (
-      <section className="card train-card">
-        <header className="train-card-head">
-          <h2>
-            <RouteBadges routes={LINE_GROUPS.flatMap((group) => LINE_GROUP_ROUTES[group])} />
-          </h2>
-          <span className="train-head-status">
-            <span className="train-head-pct">—</span>
-          </span>
-        </header>
-        <p className="train-empty" role="status">
-          Ingen bemandingsdata tilgængelig — tjek forbindelsen til serveren
-        </p>
-      </section>
-    )
+    return <NoManningData />
   }
-  const data = update ?? EMPTY_UPDATE
+  return <TrainCardContent data={update ?? EMPTY_UPDATE} lineGroup={lineGroup} />
+}
+
+/**
+ * Render the manning summary and progress bars for a trains update.
+ *
+ * @param data - The update to show; an empty one renders the loading
+ *   placeholder.
+ * @param lineGroup - Line group whose trains the summary counts.
+ */
+function TrainCardContent({ data, lineGroup }: { data: TrainsUpdate; lineGroup: LineGroup }) {
   const groupRoutes = LINE_GROUP_ROUTES[lineGroup]
   const groupPct = pct(
     lineGroup === 'M1/M2' ? data.m1m2_manning_percent : data.m3m4_manning_percent,
