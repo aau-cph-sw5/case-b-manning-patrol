@@ -22,6 +22,7 @@ dependencies = [
     "httpx2>=2.13.1",
     "alembic>=1.20.0",
     "tzdata>=2026.5",
+    "apscheduler>=3.11.3",
 ]
 
 [project.scripts]
@@ -30,6 +31,8 @@ positioning-simulator = "src.api.v1.routers.positioning_simulator:app"
 lint = "src.scripts.lint:main"
 check = "src.scripts.check:main"
 reset-db = "src.scripts.reset_db:main"
+verify-chain = "src.scripts.verify_chain:VerifyChainCommand.run"
+reconstruct = "src.scripts.reconstruct:main"
 
 [build-system]
 requires = ["uv_build>=0.12.15,<0.13.0"]

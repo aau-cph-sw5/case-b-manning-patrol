@@ -44,7 +44,7 @@ Paths: backend from `services/api/src/`, Android from `apps/android/src/`, web f
 
 | Term | What it means | In code |
 |---|---|---|
-| Steward | The person on night duty, carrying the phone. | `android_id` on every event, `domain/event.py` |
+| Steward | The person on night duty, carrying the phone. | `android_id` in API requests; stored events only hold `steward_ref`, a per-shift id looked up in `steward_shift_identity` (`db/models/steward_shift_identity.py`) |
 | Night shift | The working night, 00:00–06:00 Copenhagen. The only shift that matters here. | `Shift` in `domain/shift.py`; times in `data/shifts.v1.json` |
 | Patrol session | One stretch of work between start and stop. Breaks split a shift into several. | backend `api/v2/routers/patrol_session.py`; Android `components/SessionSlider.tsx`; event type `START_EVENT` / `STOP_EVENT` in `domain/event.py`  sent over the API as `shift_start` / `shift_stop`; the db stores `START_EVENT` / `STOP_EVENT` |
 | Record | One connect + its disconnect: the phone near one beacon. Built by the backend, never stored, never sent by the app. | `StewardPatrolInterval` in `domain/coverage.py`, built in `services/station_coverage/interval_builder.py` |
@@ -109,6 +109,6 @@ Code: rules 2–7 live in `services/api/src/services/station_coverage/` (mainly 
 - **`EventRecord` is not a record.** It is one event, the backend's in-memory copy of an `Event` row. A record (connect + disconnect) is `StewardPatrolInterval`.
 - **Area** is also called *level* or *station level*. Its kind is `area_kind` in the backend and `area_type` in the contracts.
 - **`manned`** in the web code means *covered now*. Elsewhere *manned* is about trains.
-- **`android_id`** is a phone id, but the contracts and `current_steward_ids` treat it as the steward. Working assumption: each steward has their own phone. To be confirmed by the team.
+- **`android_id`** is a phone id, but the contracts treat it as the steward. Working assumption: each steward has their own phone. To be confirmed by the team. The backend only keeps it in `steward_shift_identity`; events and `current_steward_ids` use the per-shift `steward_ref` instead.
 - **Adjustment of an adjustment:** the draft contract says an adjustment may point at another adjustment, but the code only accepts an event as the target.
 - **Beacon as the area's identity:** the data README says an area is identified by its area id (`PA-001-P`) and the beacon is only an attribute, so a swapped beacon keeps the same area. The database uses `beacon_id` as the primary key of `PatrolArea` (`db/models/patrol_area.py`), so a swapped beacon means a new area row.

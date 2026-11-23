@@ -119,3 +119,64 @@ How the schedule is used:
   the day.
 
 Changing the shift times only needs an edit to this file and a restart.
+
+# Permission matrix
+
+`permissions.v1.json` defines the role-based access policy based on Metro's
+decision of 7 November 2026 (source story B6.2), with the team's proposed
+interpretations in [ADR 0013](../../../../docs/docs/adr/0013-presence-and-shared-coverage-access.md).
+The ADR remains Proposed pending team review. The matrix is policy data;
+runtime loading and enforcement have not yet been implemented.
+
+Individual presence records and shared station patrol coverage are separate
+data categories. A shared countdown may reflect another steward's patrol
+without granting access to that steward's identity or individual records.
+Only the Operations Administrator may read historical individual presence
+records; roles scoped to `current` cannot reach past shifts.
+
+| Level | Field | Meaning |
+|---|---|---|
+| Top | `version` | Revision stamp of the policy contents; `2026-11-10.1` includes the ADR 0013 proposal. |
+| Top | `source` | Provenance of the matrix. |
+| Top | `default` | `deny`: anything not granted to a role is denied. This is what gives the IT Administrator no presence access. |
+| Top | `audit.log_every_individual_presence_access` | Every read of an individual steward record must be written to the B-020 audit record. |
+| Role | `role` / `label` | Stable role identifier / human-readable name. |
+| Grant | `data` | `presence` = individual steward presence records; `coverage` = shared station patrol status and countdowns without individual records or identities; `reference` = the registration sheet (locations, trains, beacons). |
+| Grant | `subject` | For `presence`, `own` = only the role holder's records and `all` = every steward's records. For `coverage`, `all` permits the shared result calculated from all contributing stewards; it does not permit access to their records. For `reference`, `all` covers all reference entities within the grant's line scope. |
+| Grant | `lines` | `own` = the caller's assigned M1/M2 or M3/M4 line group, resolved from trusted identity data; `all` = all lines. Supervisor presence scope and steward coverage scope are team decisions, not explicit Metro restrictions. |
+| Grant | `shift_scope` | `current` = only the current shift (see `shifts.v1.json`; the exact current/history boundary is an ADR topic); `all` = current and historical shifts. Carries no time restriction for `reference` data. |
+
+The five roles, as granted:
+
+| Role | Presence data | Shared coverage | Reference data |
+|---|---|---|---|
+| Steward | Own records, all lines, current shift | Assigned line group, current shift | — |
+| Steward Supervisor | All records, assigned line group, current shift | Assigned line group, current shift | — |
+| Control Room Operator | All records, all lines, current shift | All lines, current shift | — |
+| Operations Administrator | All records, all lines, current and historical | All lines, current shift | — |
+| IT Administrator | — | — | All (registration and replacement of locations, trains, beacons) |
+
+Stewards' own current-shift presence records are not restricted by line.
+Supervisor presence access is restricted to their assigned line group.
+The team decision of 10 November 2026 resolves the steward coverage scope
+left open by ADR 0013: shared patrol status and countdowns are restricted to
+the steward's assigned line group.
+
+The backend must calculate shared coverage and send only the permitted
+result. Hiding individual records in the Android interface after receiving
+them does not enforce the policy. A train stream containing steward IDs is
+individual presence disclosure and requires a matching `presence` grant;
+a `coverage` grant alone does not authorize it. Apply the same distinction
+to initial responses, stream updates and reconnects.
+
+Individual presence disclosures must be audited through B-020. Shared
+coverage alone does not trigger that individual-record audit requirement;
+additional coverage logging is a separate policy decision. A countdown
+change can still reveal that a patrol occurred and may allow someone with
+outside knowledge to infer who performed it.
+
+Presence and coverage grants describe read access, not permission to correct
+records. The existing reference-data grant describes the IT Administrator's
+registration and replacement responsibilities; action-specific enforcement
+remains to be defined. The exact current/history boundary needs a separate
+ADR, and these coverage grants do not authorize historical coverage reports.

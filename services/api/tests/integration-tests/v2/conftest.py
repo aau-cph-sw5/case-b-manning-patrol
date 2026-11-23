@@ -49,6 +49,14 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
 @pytest.fixture
 def client() -> TestClient:
+    # Authenticate as control room operator by default: its permission set is a
+    # superset of the other roles, so existing endpoint tests pass unchanged.
+    # Auth tests override the header per request or use anon_client.
+    return TestClient(app, headers={"Authorization": "Bearer controlRoomOperator"})
+
+
+@pytest.fixture
+def anon_client() -> TestClient:
     return TestClient(app)
 
 

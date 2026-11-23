@@ -5,9 +5,10 @@ from uuid import UUID
 
 import httpx2
 from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import Line, Train, TrainLine
+from src.db.models import Line, StewardShiftIdentity, Train, TrainLine
 
 ANDROID_ID = "660e8400-e29b-41d4-a716-446655440001"
 TRAIN_ID = "770e8400-e29b-41d4-a716-446655440001"
@@ -65,7 +66,11 @@ def post_event(http: httpx2.Client, path: str, beacon_id: str, timestamp: str) -
 
 async def test_trains_stream_lists_the_train_unmanned(live_base_url, db_engine):
     await insert_train(db_engine)
-    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
         # An event on an unrelated beacon forces a refresh without manning.
         post_event(http, "/api/v2/connection/connect", OTHER_BEACON_ID, TIMESTAMP)
 
@@ -96,21 +101,36 @@ async def test_trains_stream_shows_the_manned_train_after_connect(
     live_base_url, db_engine
 ):
     await insert_train(db_engine)
-    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
         post_event(http, "/api/v2/connection/connect", BEACON_ID, TIMESTAMP)
 
         with http.stream("GET", "/api/v2/trains/stream") as response:
             _, payload = read_sse_event(response.iter_lines())
 
-    assert payload["trains"][0]["current_steward_ids"] == [ANDROID_ID]
+    async with AsyncSession(db_engine) as session:
+        identity = (await session.exec(select(StewardShiftIdentity))).one()
+    assert identity.android_id == UUID(ANDROID_ID)
+    assert payload["trains"][0]["current_steward_ids"] == [str(identity.steward_ref)]
 
 
 async def test_trains_stream_reemits_unmanned_train_after_disconnect(
     live_base_url, db_engine
 ):
     await insert_train(db_engine)
-    with httpx2.Client(base_url=live_base_url, timeout=5.0) as http:
-        with httpx2.Client(base_url=live_base_url, timeout=5.0) as poster:
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
+        with httpx2.Client(
+            base_url=live_base_url,
+            timeout=5.0,
+            headers={"Authorization": "Bearer controlRoomOperator"},
+        ) as poster:
             post_event(poster, "/api/v2/connection/connect", BEACON_ID, TIMESTAMP)
 
             with http.stream("GET", "/api/v2/trains/stream") as response:

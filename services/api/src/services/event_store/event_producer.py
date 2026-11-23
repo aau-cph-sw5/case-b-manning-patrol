@@ -3,14 +3,28 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+from sqlalchemy.exc import NoResultFound
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.v2.schemas.adjustment import AdjustmentEventStored, CorrectedFact
 from src.db.models.adjustment import Adjustment
+from src.db.models.adjustment_author import AdjustmentAuthor
 from src.db.models.event import Event
+from src.db.models.integrity_chain_link import IntegrityChainLink
 from src.db.repository.adjustment import insert_adjustment
 from src.db.repository.event import get_event, get_open_connections, insert_event
+from src.db.repository.steward_shift_identity import get_or_create_steward_ref
 from src.domain.event import EventType
+from src.services.hash_chain.chain_linker import ChainLinker
+from src.services.hash_chain.entry_stringifier import ChainEntry
+from src.services.shared.shift_schedule import ShiftSchedule
+
+from .exceptions import (
+    AndroidIdNotFoundError,
+    BeaconNotFoundError,
+    EventValidationError,
+    TargetEventNotFoundError,
+)
 
 
 class EventProducer:
@@ -19,6 +33,11 @@ class EventProducer:
     def __init__(self, session: AsyncSession, source: str) -> None:
         self._session = session
         self._source = source
+        self._shift_schedule = ShiftSchedule.from_file()
+
+    async def _get_chain_link(self, chain_entry: ChainEntry) -> IntegrityChainLink:
+        linker = ChainLinker(self._session, chain_entry)
+        return await linker.link(source=self._source)
 
     async def append_event(
         self,
@@ -29,24 +48,21 @@ class EventProducer:
     ) -> Event:
         """Validate and store a new event and return it.
 
+        The event is stored under the steward's reference for the scheduled
+        shift running at ``device_timestamp``, never under ``android_id``;
+        the reference is created on the steward's first event of the shift.
         The server timestamp is set to the current time. Raises
         AndroidIdNotFoundError or BeaconNotFoundError for an unknown device or
         beacon, but both lookups are placeholders that accept every ID.
         """
         await self._validate_event(android_id, beacon_id)
-
-        event = Event(
-            event_id=uuid4(),
-            event_type=event_type,
-            android_id=android_id,
-            beacon_id=beacon_id,
-            device_timestamp=device_timestamp,
-            server_timestamp=_now_utc(),
-            source=self._source,
+        shift = self._shift_schedule.latest_shift(device_timestamp)
+        steward_ref = await get_or_create_steward_ref(
+            self._session, android_id, shift.start
         )
-
-        await insert_event(self._session, event)
-        return event
+        return await self._store_event(
+            event_type, steward_ref, device_timestamp, beacon_id
+        )
 
     async def close_open_connections(
         self,
@@ -56,21 +72,22 @@ class EventProducer:
         """Disconnect the steward from every beacon still connected.
 
         Stores one DISCONNECT event at ``device_timestamp`` per open connection
-        and returns the stored events.
+        and returns the stored events. Each disconnect gets the steward
+        reference of the connect it closes.
         """
         open_connections = await get_open_connections(self._session, android_id)
         pending_closures = [
-            (connection.android_id, connection.beacon_id)
+            (connection.steward_ref, connection.beacon_id)
             for connection in open_connections
         ]
         closed_connections: list[Event] = []
-        for connection_android_id, connection_beacon_id in pending_closures:
+        for steward_ref, beacon_id in pending_closures:
             closed_connections.append(
-                await self.append_event(
-                    event_type=EventType.DISCONNECT_EVENT,
-                    android_id=connection_android_id,
-                    beacon_id=connection_beacon_id,
-                    device_timestamp=device_timestamp,
+                await self._store_event(
+                    EventType.DISCONNECT_EVENT,
+                    steward_ref,
+                    device_timestamp,
+                    beacon_id,
                 )
             )
         return closed_connections
@@ -98,26 +115,57 @@ class EventProducer:
         if target_event_id is not None:
             try:
                 await get_event(self._session, target_event_id)
-            except Exception:
+            except NoResultFound:
                 raise TargetEventNotFoundError(
                     "target event id does not exist"
                 ) from None
-
         adjustment = Adjustment(
             adjustment_id=uuid4(),
             target_event_id=target_event_id,
-            android_id=android_id,
-            reason=reason,
-            author=author,
-            server_timestamp=_now_utc(),
+            server_timestamp=EventProducer._now_utc(),
             source=self._source,
             corrected_fact_type=corrected_fact.fact_type,
             corrected_beacon_id=corrected_fact.beacon_id,
             corrected_occured_at=corrected_fact.occurred_at,
         )
 
-        await insert_adjustment(self._session, adjustment)
-        return AdjustmentEventStored.from_adjustment(adjustment)
+        await insert_adjustment(
+            self._session, adjustment, chain_link=await self._get_chain_link(adjustment)
+        )
+
+        adjustment_author = AdjustmentAuthor(
+            adjustment_id=adjustment.adjustment_id,
+            android_id=android_id,
+            reason=reason,
+            author=author,
+            server_timestamp=EventProducer._now_utc(),
+            source=self._source,
+        )
+        self._session.add(adjustment_author)
+        await self._session.commit()
+        await self._session.refresh(adjustment_author)
+
+        return await AdjustmentEventStored.from_adjustment(adjustment, self._session)
+
+    async def _store_event(
+        self,
+        event_type: EventType,
+        steward_ref: UUID,
+        device_timestamp: datetime,
+        beacon_id: UUID | None,
+    ) -> Event:
+        event = Event(
+            event_id=uuid4(),
+            event_type=event_type,
+            steward_ref=steward_ref,
+            beacon_id=beacon_id,
+            device_timestamp=device_timestamp,
+            server_timestamp=EventProducer._now_utc(),
+            source=self._source,
+        )
+        return await insert_event(
+            self._session, event, chain_link=await self._get_chain_link(event)
+        )
 
     async def _validate_event(self, android_id: UUID, beacon_id: UUID | None) -> None:
         if await self._find_android_id(android_id) is None:
@@ -141,38 +189,6 @@ class EventProducer:
         """
         return "Beacon_1"
 
-
-def _now_utc() -> datetime:
-    return datetime.now(UTC)
-
-
-class EventValidationError(Exception):
-    """An event or adjustment is invalid; the API answers 400."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
-
-
-class TargetEventNotFoundError(Exception):
-    """An adjustment targets an event that does not exist; the API answers 404."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
-
-
-class AndroidIdNotFoundError(Exception):
-    """The device that sent an event is not known."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
-
-
-class BeaconNotFoundError(Exception):
-    """An event refers to a beacon that is not known."""
-
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+    @staticmethod
+    def _now_utc() -> datetime:
+        return datetime.now(UTC)

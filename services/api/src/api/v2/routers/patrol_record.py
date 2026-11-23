@@ -2,9 +2,10 @@
 
 import logging
 from datetime import UTC, datetime
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -16,6 +17,7 @@ from src.api.v2.schemas.patrol_record import (
     RecordList,
     Status,
 )
+from src.authorization.dependencies import require_permission
 from src.db.models.event import Event
 from src.db.repository.event import (
     get_connection_events_by_android_id,
@@ -25,6 +27,7 @@ from src.db.repository.patrol_area import get_patrol_areas
 from src.db.repository.station import get_station_lines, get_stations
 from src.domain.event import EventType
 from src.domain.patrol_area import AreaKind
+from src.security.current_user import User
 from src.services.station_coverage.coverage_window import MIN_QUALIFYING_DURATIONS
 
 logger = logging.getLogger(__name__)
@@ -37,11 +40,18 @@ class RecordBuildError(Exception):
 
 
 @router.get("/record")
-async def get_records(android_id: UUID, session: AsyncDbSessionDep) -> RecordList:
+async def get_records(
+    android_id: UUID,
+    session: AsyncDbSessionDep,
+    user: Annotated[
+        User, Depends(require_permission("steward_own_patrol_record_view"))
+    ],
+) -> RecordList:
     """Return the steward's patrol records for the current shift, most recent first.
 
     Raises RecordBuildError if the database cannot be read.
     """
+
     try:
         return await build_records(session, android_id)
     except SQLAlchemyError as error:
@@ -72,11 +82,13 @@ async def build_records(session: AsyncSession, android_id: UUID) -> RecordList:
         connect = open_connects.pop(event.beacon_id, None)
         if connect is not None:
             record = build_record(
-                event.beacon_id, areas[event.beacon_id], connect, event, now
+                android_id, event.beacon_id, areas[event.beacon_id], connect, event, now
             )
             records.append(record)
     for beacon_id, connect in open_connects.items():
-        records.append(build_record(beacon_id, areas[beacon_id], connect, None, now))
+        records.append(
+            build_record(android_id, beacon_id, areas[beacon_id], connect, None, now)
+        )
 
     records.sort(key=lambda record: record.started_at, reverse=True)
     return RecordList(records=records, time=now)
@@ -128,6 +140,7 @@ async def get_record_areas(session: AsyncSession) -> dict[UUID, RecordArea]:
 
 
 def build_record(
+    android_id: UUID,
     beacon_id: UUID,
     area: RecordArea,
     connect: Event,
@@ -136,7 +149,9 @@ def build_record(
 ) -> Record:
     """Build a closed record, or an open one measured up to `now`.
 
-    `disconnect` is None for an open record. The area counts as patrolled once
+    `android_id` is the device the records were requested for, since events
+    only store a per-shift steward reference. `disconnect` is None for an
+    open record. The area counts as patrolled once
     the visit lasts at least the minimum qualifying duration for its area type.
     """
     min_duration = MIN_QUALIFYING_DURATIONS[AreaKind(area.area_type.value)]
@@ -144,7 +159,7 @@ def build_record(
     effective_end = ended_at if ended_at is not None else now
     duration = effective_end - connect.device_timestamp
     return Record(
-        android_id=connect.android_id,
+        android_id=android_id,
         beacon_id=beacon_id,
         started_at=connect.device_timestamp,
         ended_at=ended_at,

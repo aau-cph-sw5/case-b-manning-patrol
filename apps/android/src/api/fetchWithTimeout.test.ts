@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { fetchWithTimeout } from "@/api/fetchWithTimeout";
+import { MOCK_ANDROID_ID } from "@/fixtures/mockBeacons";
 
 const URL = "http://backend.test/api";
 
@@ -20,6 +21,40 @@ describe("fetchWithTimeout", () => {
 
     await expect(fetchWithTimeout(URL, { method: "POST" }, 1000)).resolves.toBe(response);
     expect(fetchMock).toHaveBeenCalledWith(URL, expect.objectContaining({ method: "POST" }));
+  });
+
+  it("sends the access token as a bearer Authorization header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchWithTimeout(URL);
+
+    const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+    expect(headers.get("Authorization")).toBe("Bearer steward");
+  });
+
+  it("sends the device android id as the X-Android-Id header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchWithTimeout(URL);
+
+    const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+    expect(headers.get("X-Android-Id")).toBe(MOCK_ANDROID_ID);
+  });
+
+  it("keeps the caller's own headers next to the Authorization header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchWithTimeout(URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+    expect(headers.get("Content-Type")).toBe("application/json");
+    expect(headers.get("Authorization")).toBe("Bearer steward");
   });
 
   it("aborts a request that never answers once the deadline passes", async () => {

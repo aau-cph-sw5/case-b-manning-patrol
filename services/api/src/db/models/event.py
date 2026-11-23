@@ -18,7 +18,7 @@ class Event(SQLModel, table=True):
 
     event_id: UUID = Field(primary_key=True)
     event_type: EventType
-    android_id: UUID
+    steward_ref: UUID = Field(foreign_key="steward_shift_identity.steward_ref")
     beacon_id: UUID | None
     device_timestamp: datetime
     server_timestamp: datetime

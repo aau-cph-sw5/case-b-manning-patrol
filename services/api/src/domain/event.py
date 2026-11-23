@@ -26,7 +26,7 @@ class EventRecord:
 
     event_id: UUID
     event_type: EventType
-    android_id: UUID
+    steward_ref: UUID
     beacon_id: UUID | None
     device_timestamp: datetime
     server_timestamp: datetime

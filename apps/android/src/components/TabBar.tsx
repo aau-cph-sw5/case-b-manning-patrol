@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 /** Feather icon per route name; routes not listed get "square". */
 const TAB_ICONS: Record<string, React.ComponentProps<typeof Feather>["name"]> = {
-  dataTransparency: "settings",
+  dataTransparency: "eye",
   index: "home",
   patrolHistory: "folder",
 };

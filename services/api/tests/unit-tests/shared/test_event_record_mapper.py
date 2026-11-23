@@ -16,7 +16,7 @@ def make_event() -> Event:
     return Event(
         event_id=EVENT_ID,
         event_type=EventType.CONNECT_EVENT,
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=BEACON,
         device_timestamp=DEVICE_AT,
         server_timestamp=SERVER_AT,
@@ -30,7 +30,7 @@ def test_to_record_copies_the_event_fields():
     assert record == EventRecord(
         event_id=EVENT_ID,
         event_type=EventType.CONNECT_EVENT,
-        android_id=STEWARD,
+        steward_ref=STEWARD,
         beacon_id=BEACON,
         device_timestamp=DEVICE_AT,
         server_timestamp=SERVER_AT,
