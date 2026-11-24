@@ -1,20 +1,24 @@
 import './LineGroupFilter.css'
 
 import {
-  LINE_GROUPS,
-  LINE_GROUP_ROUTES,
+  LINE_GROUP_SELECTIONS,
   ROUTE_COLORS,
-  type LineGroup,
+  selectionRoutes,
+  type LineGroupSelection,
 } from '../utils/lineGroup'
 
 interface LineGroupFilterProps {
-  selected: LineGroup
-  onSelect: (lineGroup: LineGroup) => void
+  selected: LineGroupSelection
+  onSelect: (selection: LineGroupSelection) => void
 }
 
-// segmented M1/M2 | M3/M4 toggle, mirrors the Android StationFilter
+/**
+ * Segmented Alle | M1/M2 | M3/M4 toggle, mirrors the Android StationFilter
+ * with an extra first segment for the composed all-lines view. The 'ALL'
+ * segment is a plain text label; the group segments show their route badges.
+ */
 export default function LineGroupFilter({ selected, onSelect }: LineGroupFilterProps) {
-  const selectedIndex = LINE_GROUPS.indexOf(selected)
+  const selectedIndex = LINE_GROUP_SELECTIONS.indexOf(selected)
 
   return (
     <div className="line-filter" role="tablist" aria-label="Filtrer efter metrolinje">
@@ -22,27 +26,31 @@ export default function LineGroupFilter({ selected, onSelect }: LineGroupFilterP
         className="line-filter-thumb"
         style={{ transform: `translateX(${selectedIndex * 100}%)` }}
       />
-      {LINE_GROUPS.map((lineGroup) => (
+      {LINE_GROUP_SELECTIONS.map((selection) => (
         <button
-          key={lineGroup}
+          key={selection}
           type="button"
           role="tab"
-          aria-selected={selected === lineGroup}
-          className={`line-filter-segment${selected === lineGroup ? ' selected' : ''}`}
-          onClick={() => onSelect(lineGroup)}
+          aria-selected={selected === selection}
+          className={`line-filter-segment${selected === selection ? ' selected' : ''}`}
+          onClick={() => onSelect(selection)}
         >
-          {LINE_GROUP_ROUTES[lineGroup].map((route) => (
-            <span
-              key={route}
-              className="route-badge"
-              style={{
-                backgroundColor: ROUTE_COLORS[route] ?? '#686868',
-                color: route === 'M2' ? '#000000' : '#ffffff',
-              }}
-            >
-              {route}
-            </span>
-          ))}
+          {selection === 'ALL' ? (
+            <span className="line-filter-all-label">Alle</span>
+          ) : (
+            selectionRoutes(selection).map((route) => (
+              <span
+                key={route}
+                className="route-badge"
+                style={{
+                  backgroundColor: ROUTE_COLORS[route] ?? '#686868',
+                  color: route === 'M2' ? '#000000' : '#ffffff',
+                }}
+              >
+                {route}
+              </span>
+            ))
+          )}
         </button>
       ))}
     </div>
