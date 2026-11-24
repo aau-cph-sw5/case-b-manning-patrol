@@ -1,0 +1,17 @@
+/* topbar button next to the line-group switch */
+.summary-button {
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 24px;
+  border: 2px solid #cccccc;
+  background: #ffffff;
+  color: #1e1e1e;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.summary-button:hover {
+  background: #f2f4f7;
+}

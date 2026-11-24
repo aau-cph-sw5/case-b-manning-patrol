@@ -3,6 +3,7 @@ import { BsEmojiFrown } from 'react-icons/bs'
 import StationCard from './StationCard.tsx'
 import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
+import ButtonToSummary from './ButtonToSummary.tsx'
 import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
 import {
   formatRemaining,
@@ -104,6 +105,7 @@ function Dashboard() {
         </div>
         <div className="topbar-right">
           <LineGroupFilter selected={lineGroup} onSelect={setLineGroup} />
+          <ButtonToSummary />
         </div>
       </header>
 
