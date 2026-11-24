@@ -37,7 +37,9 @@ async def stream(
         request.app.state.train_manning_broadcaster
     )
     broadcaster.subscribe()
-
+    updater: TrainManningUpdater = request.app.state.train_manning_updater
+    presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
+    queue = broadcaster.subscribe()
 
 class SSETrainStream:
     def __init__(
