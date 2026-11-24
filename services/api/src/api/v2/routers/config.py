@@ -7,19 +7,13 @@ positioning-interface contract.
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
 
+from src.api.v2.config_schemas.at_risk_treshold import AtRiskThreshold
 from src.api.v2.dependencies import AsyncDbSessionDep, ConfigServiceDep
 from src.authorization.dependencies import require_permission
 from src.security.current_user import User
 
 router = APIRouter(tags=["config"])
-
-
-class AtRiskThreshold(BaseModel):
-    """Minutes left before an area is overdue at which it counts as at risk."""
-
-    at_risk_threshold_minutes: int = Field(ge=1)
 
 
 @router.get("/config/at-risk-threshold")
