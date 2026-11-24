@@ -7,9 +7,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
-from services.api.src.services.train_manning.train_manning_updater import (
-    TrainManningUpdater,
-)
 
 from src.authorization.dependencies import require_permission
 from src.domain.train_manning import TrainManningReport
@@ -17,6 +14,7 @@ from src.security.current_user import User
 from src.services.train_manning.train_manning_publisher import (
     SseTrainManningBroadcaster,
 )
+from src.services.train_manning.train_manning_updater import TrainManningUpdater
 from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 
 router = APIRouter(tags=["positioning-interface"])
@@ -40,7 +38,9 @@ async def stream(
     presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
     queue = broadcaster.subscribe()
     stream = SSETrainStream(broadcaster, presenter, updater, queue)
-    return stream.run_stream()
+    async for event in stream.run_stream():
+        yield event
+
 
 class SSETrainStream:
     def __init__(
@@ -55,7 +55,7 @@ class SSETrainStream:
         self.updater = updater
         self.queue = queue
 
-    async def run_stream(self):
+    async def run_stream(self) -> AsyncIterable[ServerSentEvent]:
         try:
             yield self._trains_event(self.presenter, self.updater.snapshot())
             while True:
