@@ -14,6 +14,7 @@ from src.authorization.dependencies import require_permission
 from src.db.repository.at_risk_log import count_episodes
 from src.security.current_user import User
 from src.services.shared.shift_schedule import ShiftSchedule
+from src.api.v2.schemas.at_risk_count import AtRiskCount
 
 router = APIRouter(tags=["at-risk"])
 
@@ -21,13 +22,6 @@ ShiftStartQuery = Annotated[
     datetime | None,
     Query(description="ISO 8601 with offset. Defaults to the latest shift."),
 ]
-
-
-class AtRiskCount(BaseModel):
-    """At-risk episodes counted for one shift."""
-
-    shift_start: datetime
-    episodes: int
 
 
 @router.get("/coverage/at-risk-count")
