@@ -6,9 +6,9 @@
 
 import type { TrainsUpdate } from '../api/dashboardApi'
 
-import { BsArrowDown, BsArrowRight, BsArrowUp } from 'react-icons/bs'
-
-import { LINE_GROUPS, LINE_GROUP_ROUTES, ROUTE_COLORS, type LineGroup } from '../utils/lineGroup.ts'
+import { LINE_GROUPS, LINE_GROUP_ROUTES, type LineGroup } from '../utils/lineGroup.ts'
+import { trendOf } from '../utils/trainManning.ts'
+import { NoManningData, RouteBadges, TrendArrow } from './TrainCardParts.tsx'
 
 /** Compliance rule: a train must be manned at least 70% of its running time. */
 const MANNING_TARGET_PCT = 70
@@ -25,79 +25,6 @@ const EMPTY_UPDATE: TrainsUpdate = {
 /** Round a backend percentage (0..100) to a whole percent; null means no running time. */
 function pct(percent: number | null): number | null {
   return percent === null ? null : Math.round(percent)
-}
-
-function RouteBadges({ routes }: { routes: string[] }) {
-  return (
-    <span className="route-badges">
-      {routes.map((route) => (
-        <span
-          key={route}
-          className="route-badge"
-          style={{
-            backgroundColor: ROUTE_COLORS[route] ?? '#686868',
-            color: route === 'M2' ? '#000000' : '#ffffff',
-          }}
-        >
-          {route}
-        </span>
-      ))}
-    </span>
-  )
-}
-
-type Trend = 'up' | 'down' | 'flat'
-
-/** Percentage points within which the current manned share counts as flat. */
-const TREND_TOLERANCE_PCT = 1
-
-/**
- * Direction the manning percentage is heading right now.
- *
- * The percentage is manned time over running time, so it rises while the share
- * of trains manned right now is above it and falls while it is below. Within
- * {@link TREND_TOLERANCE_PCT} of it the trend is flat.
- *
- * @param percent - The displayed manning percentage (0..100).
- * @returns Null when there are no trains or no percentage yet.
- */
-function trendOf(manned: number, total: number, percent: number | null): Trend | null {
-  if (total <= 0 || percent === null) return null
-  const currentPct = (manned / total) * 100
-  if (currentPct > percent + TREND_TOLERANCE_PCT) return 'up'
-  if (currentPct < percent - TREND_TOLERANCE_PCT) return 'down'
-  return 'flat'
-}
-
-function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
-  if (trend === null) return null
-  const Icon = trend === 'up' ? BsArrowUp : trend === 'down' ? BsArrowDown : BsArrowRight
-  const cls = trend === 'up' ? 'ok-arrow' : trend === 'down' ? 'low-arrow' : 'flat-arrow'
-  const text = trend === 'up' ? 'stigende' : trend === 'down' ? 'faldende' : 'stabil'
-  return <Icon className={cls} aria-label={`${label} ${text}`} />
-}
-
-/**
- * Render the card shown when the trains stream errored before any data
- * arrived: all line badges and a "—" figure, plus a message that no manning
- * data is available.
- */
-function NoManningData() {
-  return (
-    <section className="card train-card">
-      <header className="train-card-head">
-        <h2>
-          <RouteBadges routes={LINE_GROUPS.flatMap((group) => LINE_GROUP_ROUTES[group])} />
-        </h2>
-        <span className="train-head-status">
-          <span className="train-head-pct">—</span>
-        </span>
-      </header>
-      <p className="train-empty" role="status">
-        Ingen bemandingsdata tilgængelig — tjek forbindelsen til serveren
-      </p>
-    </section>
-  )
 }
 
 /**
