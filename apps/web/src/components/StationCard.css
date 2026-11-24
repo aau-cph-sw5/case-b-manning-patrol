@@ -71,3 +71,46 @@
   font-weight: 600;
   font-size: 14px;
 }
+
+/* cards when the grid shows every station (the composed all-lines view):
+   smaller than single-group cards so all stations fit the fixed page, but
+   sized with viewport clamps and stretched rows (.station-grid.all uses
+   grid-auto-rows: minmax(min-content, 1fr)) so they grow slightly to fill
+   the leftover height instead of leaving an empty band at the bottom */
+.station-grid.all .station-card {
+  padding: clamp(8px, 1vh, 12px) clamp(10px, 0.9vw, 14px);
+  justify-content: space-between;
+}
+
+.station-grid.all .station-title {
+  gap: 5px;
+}
+
+.station-grid.all .station-card .route-badge {
+  min-width: 20px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-size: 9px;
+}
+
+.station-grid.all .station-card-head h2 {
+  font-size: clamp(13px, 1.5vh, 16px);
+}
+
+.station-grid.all .station-status {
+  font-size: clamp(15px, 1.8vh, 19px);
+}
+
+.station-grid.all .station-card .levels {
+  margin-top: 5px;
+  padding-top: 5px;
+  gap: 4px;
+}
+
+.station-grid.all .levels li {
+  height: clamp(20px, 2.4vh, 30px);
+  gap: 6px;
+  padding: 0 8px;
+  font-size: clamp(12px, 1.35vh, 14px);
+}
