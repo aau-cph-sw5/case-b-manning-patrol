@@ -7,6 +7,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
+from services.api.src.services.train_manning.train_manning_updater import (
+    TrainManningUpdater,
+)
 
 from src.authorization.dependencies import require_permission
 from src.domain.train_manning import TrainManningReport
@@ -14,7 +17,6 @@ from src.security.current_user import User
 from src.services.train_manning.train_manning_publisher import (
     SseTrainManningBroadcaster,
 )
-from src.services.train_manning.train_manning_updater import TrainManningUpdater
 from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 
 router = APIRouter(tags=["positioning-interface"])
@@ -24,7 +26,7 @@ router = APIRouter(tags=["positioning-interface"])
 async def stream(
     request: Request,
     user: Annotated[User, Depends(require_permission("train_manning_coverage_view"))],
-) -> AsyncIterable[ServerSentEvent]:
+) -> AsyncIterable[ServerSentEvent] | None:
     """Stream train manning as server-sent `trains` events.
 
     The latest known train manning is sent as soon as the client connects.
@@ -34,31 +36,46 @@ async def stream(
     broadcaster: SseTrainManningBroadcaster = (
         request.app.state.train_manning_broadcaster
     )
-    updater: TrainManningUpdater = request.app.state.train_manning_updater
-    presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
-    queue = broadcaster.subscribe()
-    try:
-        yield _trains_event(presenter, updater.snapshot())
-        while True:
-            await _wait_for_refresh(queue)
-            yield _trains_event(presenter, updater.snapshot())
-    finally:
-        broadcaster.unsubscribe(queue)
+    broadcaster.subscribe()
 
 
-async def _wait_for_refresh(queue: asyncio.Queue) -> None:
-    task = asyncio.create_task(queue.get())
-    try:
-        await task
-    finally:
-        task.cancel()
-    while not queue.empty():
-        queue.get_nowait()
+class SSETrainStream:
+    def __init__(
+        self,
+        broadcaster: SseTrainManningBroadcaster,
+        presenter: TrainsUpdatePresenter,
+        updater: TrainManningUpdater,
+        queue: asyncio.Queue,
+    ):
+        self.broadcaster = broadcaster
+        self.presenter = presenter
+        self.updater = updater
+        self.queue = queue
 
+    async def run_stream(self):
+        try:
+            yield self._trains_event(self.presenter, self.updater.snapshot())
+            while True:
+                await self._wait_for_refresh()
+                yield self._trains_event(self.presenter, self.updater.snapshot())
+        finally:
+            self.broadcaster.unsubscribe(self.queue)
 
-def _trains_event(
-    presenter: TrainsUpdatePresenter,
-    train_reports: list[TrainManningReport],
-) -> ServerSentEvent:
-    trains_update = presenter.to_trains_update(train_reports, sent_at=datetime.now(UTC))
-    return ServerSentEvent(data=trains_update, event="trains")
+    async def _wait_for_refresh(self) -> None:
+        task = asyncio.create_task(self.queue.get())
+        try:
+            await task
+        finally:
+            task.cancel()
+        while not self.queue.empty():
+            await self.queue.get_nowait()
+
+    def _trains_event(
+        self,
+        presenter: TrainsUpdatePresenter,
+        train_reports: list[TrainManningReport],
+    ) -> ServerSentEvent:
+        trains_update = presenter.to_trains_update(
+            train_reports, sent_at=datetime.now(UTC)
+        )
+        return ServerSentEvent(data=trains_update, event="trains")
