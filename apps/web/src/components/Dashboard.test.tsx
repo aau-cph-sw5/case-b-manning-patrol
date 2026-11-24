@@ -56,6 +56,11 @@ function dashboardHandlers(): [(d: DashboardEvent) => void, (e: unknown) => void
   ]
 }
 
+/** The callbacks useTrainStream registered on the mocked trains stream. */
+function trainsHandlers(): [(u: unknown) => void, (e: unknown) => void] {
+  return subscribeToTrains.mock.calls[0] as [(u: unknown) => void, (e: unknown) => void]
+}
+
 beforeEach(() => {
   localStorage.clear()
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -102,5 +107,26 @@ describe('Dashboard without a backend connection', () => {
 
     expect(screen.getByText('Nørreport')).toBeTruthy()
     expect(screen.queryByText(/Ingen forbindelse/)).toBeNull()
+  })
+
+  it('shows a manning-specific offline pill when only the trains stream fails', () => {
+    render(<Dashboard />)
+    const [onMessage] = dashboardHandlers()
+    const [, trainOnError] = trainsHandlers()
+    act(() => onMessage(STORED))
+    act(() => trainOnError(new Error('SSE connection error')))
+
+    expect(screen.getByText('Nørreport')).toBeTruthy()
+    expect(screen.getByText(/Ingen forbindelse til bemandingsdata/)).toBeTruthy()
+    expect(screen.queryByText(/viser seneste data/)).toBeNull()
+  })
+
+  it('keeps showing "Henter data…" while the station stream connects, even if the trains stream failed', () => {
+    render(<Dashboard />)
+    const [, trainOnError] = trainsHandlers()
+    act(() => trainOnError(new Error('SSE connection error')))
+
+    expect(screen.getByText(/Henter data…/)).toBeTruthy()
+    expect(screen.queryByText(/Kunne ikke hente data/)).toBeNull()
   })
 })

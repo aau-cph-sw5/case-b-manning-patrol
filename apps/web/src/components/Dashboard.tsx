@@ -121,9 +121,11 @@ function Dashboard() {
         )}
         {offline && (
           <div className="nav-pill offline" role="status">
-            {dashboard
-              ? 'Ingen forbindelse — viser seneste data'
-              : 'Ingen forbindelse til serveren'}
+            {error
+              ? dashboard
+                ? 'Ingen forbindelse — viser seneste data'
+                : 'Ingen forbindelse til serveren'
+              : 'Ingen forbindelse til bemandingsdata'}
           </div>
         )}
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
@@ -154,7 +156,7 @@ function Dashboard() {
         <section className="station-grid">
           {stations.length === 0 && (
             <p className="dashboard-empty">
-              {error || trainsError
+              {error
                 ? 'Kunne ikke hente data — ingen forbindelse til serveren'
                 : isLoading
                   ? 'Henter data…'
