@@ -108,14 +108,14 @@ function Dashboard() {
       </header>
 
       <div className="legend-row">
-        <div className="nav-pill at-risk-total" role="status">
-          I risiko denne vagt ({atRiskEpisodes ?? '-'})
-        </div>
         {overdueCount > 0 && (
           <div className="nav-pill warn" role="status">
             <BsEmojiFrown className="smiley-icon" /> Overskredet stationer ({overdueCount})
           </div>
         )}
+        <div className="nav-pill at-risk-total" role="status">
+          I risiko denne vagt ({atRiskEpisodes ?? '-'})
+        </div>
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
       </div>
 
