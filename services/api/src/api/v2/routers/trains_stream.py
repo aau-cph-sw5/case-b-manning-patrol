@@ -26,7 +26,7 @@ router = APIRouter(tags=["positioning-interface"])
 async def stream(
     request: Request,
     user: Annotated[User, Depends(require_permission("train_manning_coverage_view"))],
-) -> AsyncIterable[ServerSentEvent] | None:
+) -> AsyncIterable[ServerSentEvent]:
     """Stream train manning as server-sent `trains` events.
 
     The latest known train manning is sent as soon as the client connects.
@@ -36,10 +36,11 @@ async def stream(
     broadcaster: SseTrainManningBroadcaster = (
         request.app.state.train_manning_broadcaster
     )
-    broadcaster.subscribe()
     updater: TrainManningUpdater = request.app.state.train_manning_updater
     presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
     queue = broadcaster.subscribe()
+    stream = SSETrainStream(broadcaster, presenter, updater, queue)
+    return stream.run_stream()
 
 class SSETrainStream:
     def __init__(
