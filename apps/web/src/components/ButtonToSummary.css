@@ -1,5 +1,8 @@
 /* topbar button next to the line-group switch */
 .summary-button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
   height: 48px;
   padding: 0 24px;
   border-radius: 24px;

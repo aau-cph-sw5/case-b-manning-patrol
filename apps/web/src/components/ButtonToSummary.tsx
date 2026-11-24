@@ -9,12 +9,10 @@ import './ButtonToSummary.css'
  */
 export default function ButtonToSummary() {
   return (
-    <button
-      type="button"
+    <a
       className="summary-button"
-      onClick={() => window.location.assign('/summary')}
-    >
+      href="/summary">
       Opsummering
-    </button>
+    </a>
   )
 }
