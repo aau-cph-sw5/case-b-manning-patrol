@@ -4,7 +4,8 @@ import StationCard from './StationCard.tsx'
 import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
 import ButtonToSummary from './ButtonToSummary.tsx'
-import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
+//import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
+import { stationServesLineGroup, type LineGroupSelection } from '../utils/lineGroup.ts'
 import {
   formatRemaining,
   remainingMinutes,
@@ -30,7 +31,7 @@ const AT_RISK_COUNT_POLL_MS = 30_000
 function Dashboard() {
   const now = useNow()
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
-  const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0])
+  const [selection, setSelection] = useState<LineGroupSelection>('ALL')
   const { dashboard, isLoading, error, lastUpdated } = useDashboardStream()
   const stations = useMemo(
     () => (dashboard ? toViewStations(dashboard) : []),
@@ -79,7 +80,7 @@ function Dashboard() {
   }
 
   const attention = stations
-    .filter((station) => stationServesLineGroup(station, lineGroup))
+    .filter((station) => stationServesLineGroup(station, selection))
     .flatMap((station) =>
       station.levels.map((level) => ({
         code: `${station.stationId}_${level.label}`,
@@ -93,8 +94,9 @@ function Dashboard() {
   const overdueCount = attention.filter((item) => item.minutes <= 0).length
 
   const visibleStations = stations.filter((station) =>
-    stationServesLineGroup(station, lineGroup),
+    stationServesLineGroup(station, selection),
   )
+  const showAll = selection === 'ALL'
 
   return (
     <div className="dashboard-page">
@@ -104,26 +106,26 @@ function Dashboard() {
           <span className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</span>
         </div>
         <div className="topbar-right">
-          <LineGroupFilter selected={lineGroup} onSelect={setLineGroup} />
           <ButtonToSummary />
+          <LineGroupFilter selected={selection} onSelect={setSelection} />
         </div>
       </header>
 
       <div className="legend-row">
-        <div className="nav-pill at-risk-total" role="status">
-          I risiko denne vagt ({atRiskEpisodes ?? '-'})
-        </div>
         {overdueCount > 0 && (
           <div className="nav-pill warn" role="status">
             <BsEmojiFrown className="smiley-icon" /> Overskredet stationer ({overdueCount})
           </div>
         )}
+        <div className="nav-pill at-risk-total" role="status">
+          I risiko denne vagt ({atRiskEpisodes ?? '-'})
+        </div>
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
       </div>
 
       <main className="dash">
         <div className="side-col">
-          <TrainCard update={trainsUpdate} lineGroup={lineGroup} />
+          <TrainCard update={trainsUpdate} selection={selection} />
           <aside className="card attention">
             <h2>Kræver handling ({attention.length})</h2>
             <ul className="attention-list">
@@ -143,7 +145,7 @@ function Dashboard() {
           </aside>
         </div>
 
-        <section className="station-grid">
+        <section className={showAll ? 'station-grid all' : 'station-grid'}>
           {stations.length === 0 && (
             <p className="dashboard-empty">
               {error
