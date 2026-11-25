@@ -9,10 +9,11 @@ import type { Area, AreaType, Station } from "@/types/station";
 /** Levels must be patrolled hourly, so a fresh counter starts at 60 minutes. */
 export const PATROL_INTERVAL_MS = 60 * 60 * 1000;
 
-/** Risk bucket of a level: more than 10 minutes left, 10 or fewer, or past the deadline. */
+/** Risk bucket of a level: more than the threshold left, within it, or past the deadline. */
 export type AreaStatus = "fresh" | "due" | "overdue";
 
-const DUE_SOON_MS = 10 * 60 * 1000;
+/** Default at-risk window in ms (10 minutes), used until the stream sends the configured threshold. */
+export const DUE_SOON_MS = 10 * 60 * 1000;
 
 /**
  * A level with no deadline yet never counts down and never turns red; it sorts
@@ -30,11 +31,13 @@ export function remainingMs(overdueAt: Date | null, now: number): number {
  * Return the risk bucket that drives the cell colour.
  *
  * A level counts as overdue from the second its deadline passes, so a stale
- * snapshot still turns red.
+ * snapshot still turns red. It counts as due while at most `dueSoonMs` remain;
+ * the streamed at-risk threshold decides that window, and the 10-minute
+ * default applies until the first threshold event arrives.
  */
-export function areaStatus(remaining: number): AreaStatus {
+export function areaStatus(remaining: number, dueSoonMs: number = DUE_SOON_MS): AreaStatus {
   if (remaining < 0) return "overdue";
-  if (remaining <= DUE_SOON_MS) return "due";
+  if (remaining <= dueSoonMs) return "due";
   return "fresh";
 }
 

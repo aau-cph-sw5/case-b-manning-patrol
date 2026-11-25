@@ -3,7 +3,7 @@
 	"info": {
 		"title": "Positioning Interface API",
 		"description": "Backend API contract for station and train presence positioning data. Consumed by the control room dashboard and the steward Android app. A single Server-Sent Events (SSE) stream pushes the Dashboard to every client.",
-		"version": "2.6.0"
+		"version": "2.9.0"
 	},
 	"servers": [
 		{
@@ -131,10 +131,10 @@
 		"/api/v2/dashboard/stream": {
 			"get": {
 				"summary": "Subscribe to dashboard updates",
-				"description": "Server-Sent Events stream (text/event-stream). Every message is an SSE event named `dashboard` whose `data` is a JSON-encoded Dashboard. Every event contains every station, changed or not, so clients replace their whole state on each event. An event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically, even when nothing changed. The stream stays open until the client disconnects.",
+				"description": "Server-Sent Events stream (text/event-stream). Messages are SSE events named `dashboard` whose `data` is a JSON-encoded Dashboard, plus events named `at-risk-threshold` whose `data` is a JSON-encoded AtRiskThreshold. Every `dashboard` event contains every station, changed or not, so clients replace their whole state on each event. A `dashboard` event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically, even when nothing changed. The current `at-risk-threshold` is sent once when the client connects, and a new one is pushed to every connected client whenever the threshold changes via POST /api/v2/config/at-risk-threshold. The stream stays open until the client disconnects.",
 				"responses": {
 					"200": {
-						"description": "Open SSE stream. Each event's data is a Dashboard.",
+						"description": "Open SSE stream. `dashboard` events carry a Dashboard, `at-risk-threshold` events carry an AtRiskThreshold.",
 						"content": {
 							"text/event-stream": {
 								"schema": {

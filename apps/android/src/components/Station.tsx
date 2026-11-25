@@ -14,6 +14,8 @@ type StationProps = {
   station: StationData;
   /** Current time in epoch ms; the countdowns are computed from it. */
   now: number;
+  /** At-risk threshold in minutes from the stream; drives the due (yellow) bucket. */
+  atRiskThresholdMinutes: number;
 };
 
 /** Render the column header: station, then the platform and concourse timers. */
@@ -39,7 +41,7 @@ export function StationListHeader() {
  * {@link mostUrgentArea}), so a station with several platforms still shows a
  * single platform timer.
  */
-export default function Station({ station, now }: StationProps) {
+export default function Station({ station, now, atRiskThresholdMinutes }: StationProps) {
   const lines = [...new Set(station.areas.flatMap((area) => area.line))];
 
   return (
@@ -64,9 +66,17 @@ export default function Station({ station, now }: StationProps) {
         </Text>
       </View>
       <View style={styles.timerPanel}>
-        <AreaTimer area={mostUrgentArea(station.areas, "platform")} now={now} />
+        <AreaTimer
+          area={mostUrgentArea(station.areas, "platform")}
+          now={now}
+          atRiskThresholdMinutes={atRiskThresholdMinutes}
+        />
         <View style={styles.timerDivider} />
-        <AreaTimer area={mostUrgentArea(station.areas, "concourse")} now={now} />
+        <AreaTimer
+          area={mostUrgentArea(station.areas, "concourse")}
+          now={now}
+          atRiskThresholdMinutes={atRiskThresholdMinutes}
+        />
       </View>
     </View>
   );
@@ -79,7 +89,15 @@ export default function Station({ station, now }: StationProps) {
  * An area with no deadline yet renders the same "--" placeholder as a missing
  * one, whether or not it is being patrolled right now.
  */
-function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
+function AreaTimer({
+  area,
+  now,
+  atRiskThresholdMinutes,
+}: {
+  area: Area | undefined;
+  now: number;
+  atRiskThresholdMinutes: number;
+}) {
   if (!area || area.overdueAt === null) {
     return (
       <View style={[styles.timerCell, styles.missing]}>
@@ -89,6 +107,8 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
   }
 
   const remaining = remainingMs(area.overdueAt, now);
+  const dueSoonMs = atRiskThresholdMinutes * 60_000;
+  const status = areaStatus(remaining, dueSoonMs);
 
   if (area.coveredNow) {
     return (
@@ -101,15 +121,13 @@ function AreaTimer({ area, now }: { area: Area | undefined; now: number }) {
 
   return (
     <View
-      style={[styles.timerCell, statusColors[areaStatus(remaining)]]}
+      style={[styles.timerCell, statusColors[status]]}
       accessibilityLabel={`${area.name} ${formatCountdown(remaining)}`}
     >
       <Text style={styles.timer} accessibilityLiveRegion="polite">
         {formatCountdown(remaining)}
       </Text>
-      {areaStatus(remaining) === "overdue" ? (
-        <Text style={styles.caption}>Overskredet</Text>
-      ) : null}
+      {status === "overdue" ? <Text style={styles.caption}>Overskredet</Text> : null}
     </View>
   );
 }

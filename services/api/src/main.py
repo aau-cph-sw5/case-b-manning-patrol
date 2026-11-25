@@ -17,6 +17,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
+from src.services.config.at_risk_threshold_broadcaster import AtRiskThresholdBroadcaster
+from src.services.config.config_service import ConfigService
 from src.services.event_store.event_producer import (
     EventValidationError,
     TargetEventNotFoundError,
@@ -100,6 +102,9 @@ async def lifespan(app: FastAPI):
         trains_update_presenter = TrainsUpdatePresenter(
             await get_trains(session), await get_train_lines(session)
         )
+        at_risk_threshold_broadcaster = AtRiskThresholdBroadcaster(
+            current_minutes=await ConfigService(session).get_at_risk_threshold_minutes()
+        )
 
     builder = IntervalBuilder()
     rule = CoverageWindow(
@@ -141,6 +146,7 @@ async def lifespan(app: FastAPI):
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
+    app.state.at_risk_threshold_broadcaster = at_risk_threshold_broadcaster
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter

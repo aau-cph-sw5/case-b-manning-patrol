@@ -1,13 +1,18 @@
-// pins the contract of the station list hook: the snapshot starts empty, a
-// receipt replaces it and stamps the update time, an error deliberately keeps
-// the last snapshot, and unmount disconnects. happy-dom only for the hook
+// pins the contract of the station list hook: the snapshot starts empty with
+// the default threshold, a receipt replaces it and stamps the update time, a
+// threshold event replaces only the threshold, an error deliberately keeps
+// the last state, and unmount disconnects. happy-dom only for the hook
 // renderer; the stream connection itself is a mock.
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useStationUpdates } from "@/hooks/useStationUpdates";
+
 import { createMockStations } from "@/fixtures/mockStations";
+
+import { DEFAULT_AT_RISK_THRESHOLD_MINUTES, type AtRiskThreshold } from "@/types/config";
 import type { Station, StationOverview } from "@/types/station";
 
 const { connectToStationUpdates, disconnect } = vi.hoisted(() => ({
@@ -21,8 +26,11 @@ vi.mock("@/api/stationEventStream", () => ({
 
 const FIXED_NOW = 1760000000000;
 
-let onUpdate: (data: StationOverview) => void;
-let onError: (error: unknown) => void;
+let handlers: {
+  onStations: (data: StationOverview) => void;
+  onAtRiskThreshold: (threshold: AtRiskThreshold) => void;
+  onError: (error: unknown) => void;
+};
 
 function overview(stations: Station[]): StationOverview {
   return { stations };
@@ -30,9 +38,8 @@ function overview(stations: Station[]): StationOverview {
 
 beforeEach(() => {
   vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-  connectToStationUpdates.mockImplementation((on, err) => {
-    onUpdate = on;
-    onError = err;
+  connectToStationUpdates.mockImplementation((h) => {
+    handlers = h;
     return disconnect;
   });
 });
@@ -44,11 +51,12 @@ afterEach(() => {
 });
 
 describe("useStationUpdates", () => {
-  it("starts empty with no update time", () => {
+  it("starts empty with no update time and the default threshold", () => {
     const { result } = renderHook(() => useStationUpdates());
 
     expect(result.current.stations).toEqual([]);
     expect(result.current.lastUpdatedAt).toBeNull();
+    expect(result.current.atRiskThresholdMinutes).toBe(DEFAULT_AT_RISK_THRESHOLD_MINUTES);
     expect(connectToStationUpdates).toHaveBeenCalledTimes(1);
   });
 
@@ -57,37 +65,56 @@ describe("useStationUpdates", () => {
     const incoming = createMockStations(FIXED_NOW + 1);
 
     act(() => {
-      onUpdate(overview(incoming));
+      handlers.onStations(overview(incoming));
     });
 
     expect(result.current.stations).toBe(incoming);
     expect(result.current.lastUpdatedAt).toBe(FIXED_NOW);
   });
 
-  it("keeps the last snapshot on error after a successful update", () => {
+  it("replaces only the threshold on a threshold event", () => {
     const { result } = renderHook(() => useStationUpdates());
-    const received = createMockStations(FIXED_NOW + 1);
+    const incoming = createMockStations(FIXED_NOW + 1);
     act(() => {
-      onUpdate(overview(received));
+      handlers.onStations(overview(incoming));
     });
 
     act(() => {
-      onError(new Error("SSE connection dropped"));
+      handlers.onAtRiskThreshold({ atRiskThresholdMinutes: 25 });
+    });
+
+    expect(result.current.atRiskThresholdMinutes).toBe(25);
+    expect(result.current.stations).toBe(incoming);
+    expect(result.current.lastUpdatedAt).toBe(FIXED_NOW);
+  });
+
+  it("keeps the last snapshot and threshold on error after updates", () => {
+    const { result } = renderHook(() => useStationUpdates());
+    const received = createMockStations(FIXED_NOW + 1);
+    act(() => {
+      handlers.onStations(overview(received));
+      handlers.onAtRiskThreshold({ atRiskThresholdMinutes: 30 });
+    });
+
+    act(() => {
+      handlers.onError(new Error("SSE connection dropped"));
     });
 
     expect(result.current.stations).toBe(received);
     expect(result.current.lastUpdatedAt).toBe(FIXED_NOW);
+    expect(result.current.atRiskThresholdMinutes).toBe(30);
   });
 
-  it("keeps the empty snapshot on error before any update arrives", () => {
+  it("keeps the empty snapshot and default threshold on error before any update arrives", () => {
     const { result } = renderHook(() => useStationUpdates());
 
     act(() => {
-      onError(new Error("SSE connection dropped"));
+      handlers.onError(new Error("SSE connection dropped"));
     });
 
     expect(result.current.stations).toEqual([]);
     expect(result.current.lastUpdatedAt).toBeNull();
+    expect(result.current.atRiskThresholdMinutes).toBe(DEFAULT_AT_RISK_THRESHOLD_MINUTES);
   });
 
   it("disconnects on unmount", () => {

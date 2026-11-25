@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.9.0 - Positioning Interface: at-risk threshold pushed on the dashboard stream
+- Positioning Interface: `/api/v2/dashboard/stream` now also sends SSE events named
+  `at-risk-threshold` whose `data` is a JSON-encoded `AtRiskThreshold`
+  (`{"at_risk_threshold_minutes": 10}`).
+- The current threshold is sent to every client right after the first `dashboard`
+  event on connect, and a new `at-risk-threshold` event is pushed to every connected
+  client whenever `POST /api/v2/config/at-risk-threshold` changes the value.
+- Clients use it to colour areas at-risk (yellow) under the current threshold: an
+  area whose remaining time until `overdue_at` is within `at_risk_threshold_minutes`
+  counts as at-risk. The steward Android app consumes this so its station colours
+  follow threshold changes made from the control room dashboard without a refetch.
+- `dashboard` events are unchanged; clients that only listen for `dashboard` keep
+  working.
+
 ## v2.8.0 - Positioning Interface: at-risk episode count per shift
 - Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
   `AtRiskCount` — how many areas have been at-risk during a shift. An area is

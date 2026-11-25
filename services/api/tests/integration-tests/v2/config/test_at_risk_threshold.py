@@ -1,6 +1,7 @@
 """Tests for the at-risk threshold config endpoints (AtRiskThreshold)."""
 
 from src.db.models.config import DEFAULT_AT_RISK_THRESHOLD_MINUTES
+from src.main import app
 
 
 def test_at_risk_threshold_returns_200(client):
@@ -52,3 +53,25 @@ def test_post_rejects_value_below_contract_minimum(client):
     )
 
     assert response.status_code == 400
+
+
+def test_post_publishes_the_new_threshold_to_the_stream_broadcaster(client):
+    response = client.post(
+        "/api/v2/config/at-risk-threshold",
+        json={"at_risk_threshold_minutes": 15},
+    )
+
+    assert response.status_code == 200
+    assert app.state.at_risk_threshold_broadcaster.current() == 15
+
+
+def test_rejected_post_does_not_publish(client):
+    client.post(
+        "/api/v2/config/at-risk-threshold",
+        json={"at_risk_threshold_minutes": 0},
+    )
+
+    assert (
+        app.state.at_risk_threshold_broadcaster.current()
+        == DEFAULT_AT_RISK_THRESHOLD_MINUTES
+    )

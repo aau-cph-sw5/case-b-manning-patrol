@@ -20,6 +20,8 @@ from src.api.v2.routers import connection, dashboard_stream, trains_stream
 from src.db.repository.station import get_station_lines, get_stations
 from src.db.repository.train import get_train_lines, get_trains
 from src.main import app
+from src.services.config.at_risk_threshold_broadcaster import AtRiskThresholdBroadcaster
+from src.services.config.config_service import ConfigService
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.at_risk_tracker import AtRiskTracker
@@ -75,6 +77,7 @@ def live_base_url(override_db_session) -> Generator[str]:
     for key in (
         "coverage_updater",
         "sse_broadcaster",
+        "at_risk_threshold_broadcaster",
         "dashboard_presenter",
         "train_manning_updater",
         "train_manning_broadcaster",
@@ -159,9 +162,13 @@ async def override_db_session(db_engine: AsyncEngine) -> AsyncGenerator[None]:
         trains_presenter = TrainsUpdatePresenter(
             await get_trains(session), await get_train_lines(session)
         )
+        at_risk_threshold_broadcaster = AtRiskThresholdBroadcaster(
+            current_minutes=await ConfigService(session).get_at_risk_threshold_minutes()
+        )
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
+    app.state.at_risk_threshold_broadcaster = at_risk_threshold_broadcaster
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter
