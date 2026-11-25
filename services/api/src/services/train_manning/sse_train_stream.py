@@ -1,3 +1,5 @@
+"""Server-sent events stream of train manning for one trains client."""
+
 import asyncio
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
@@ -13,6 +15,8 @@ from src.services.train_manning.trains_update_presenter import TrainsUpdatePrese
 
 
 class SSETrainStream:
+    """Send `trains` events to one client every time train manning is refreshed."""
+
     def __init__(
         self,
         broadcaster: SseTrainManningBroadcaster,
@@ -26,6 +30,12 @@ class SSETrainStream:
         self.queue = queue
 
     async def run_stream(self) -> AsyncGenerator[ServerSentEvent]:
+        """Yield the current train manning at once, then again after every refresh.
+
+        Refreshes that pile up while the client is busy are sent as one event
+        with the newest train manning. The queue is unsubscribed when the
+        generator is closed.
+        """
         try:
             yield self._trains_event(self.presenter, self.updater.snapshot())
             while True:
