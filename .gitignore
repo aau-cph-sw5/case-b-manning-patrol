@@ -65,3 +65,6 @@ temp-mistral-context-view/
 
 # Local todo list
 TODO.txt
+
+# local DB
+local.db
