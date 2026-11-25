@@ -1,7 +1,7 @@
 /** Root component with a minimal path-based router. */
 import Dashboard from './components/Dashboard'
 import Home from './Home'
-import Summary from './components/Summary'
+import Summary from './components/Summary/Summary'
 
 /**
  * Render the Vite starter at `/vitestarter`, the shift summary page at
