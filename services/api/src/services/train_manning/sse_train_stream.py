@@ -41,7 +41,7 @@ class SSETrainStream:
         finally:
             task.cancel()
         while not self.queue.empty():
-            await self.queue.get_nowait()
+            self.queue.get_nowait()
 
     def _trains_event(
         self,
