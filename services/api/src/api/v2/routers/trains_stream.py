@@ -1,6 +1,7 @@
 """Server-sent events stream of train manning."""
 
 from collections.abc import AsyncIterable
+from contextlib import aclosing
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -36,5 +37,6 @@ async def stream(
     presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
     queue = broadcaster.subscribe()
     stream = SSETrainStream(broadcaster, presenter, updater, queue)
-    async for event in stream.run_stream():
-        yield event
+    async with aclosing(stream.run_stream()) as events:
+        async for event in events:
+            yield event

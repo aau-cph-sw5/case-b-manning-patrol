@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import AsyncIterable
+from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 
 from fastapi.sse import ServerSentEvent
@@ -25,7 +25,7 @@ class SSETrainStream:
         self.updater = updater
         self.queue = queue
 
-    async def run_stream(self) -> AsyncIterable[ServerSentEvent]:
+    async def run_stream(self) -> AsyncGenerator[ServerSentEvent]:
         try:
             yield self._trains_event(self.presenter, self.updater.snapshot())
             while True:
