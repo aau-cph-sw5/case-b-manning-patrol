@@ -9,15 +9,14 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIASGIMiddleware
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.api.limiter import limiter
+from src.api.limiter import limiter, rate_limit
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
 from src.services.event_store.event_producer import (
@@ -158,11 +157,13 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="Manning Patrol Backend", lifespan=lifespan)
+app = FastAPI(
+    title="Manning Patrol Backend",
+    lifespan=lifespan,
+    dependencies=[Depends(rate_limit)],
+)
 
 app.state.limiter = limiter
-
-app.add_middleware(SlowAPIASGIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
