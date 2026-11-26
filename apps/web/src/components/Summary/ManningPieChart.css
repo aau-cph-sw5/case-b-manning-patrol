@@ -1,0 +1,22 @@
+/* ManningPieChart.css */
+.manning-pie { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.manning-pie-title { font-size: 1rem; margin-bottom: 0.5rem; }
+.manning-pie-status { margin: 0.5rem 0 0; font-size: 0.85rem; color: #666; }
+.manning-pie-status.ok { color: #1b7a3d; }
+.manning-pie-status.low { color: #b3261e; }
+
+/* Summary.css */
+.summary-content {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3rem;
+  padding: 2rem;
+}
+.train-manning-pies { display: flex; align-items: center; gap: 2rem; }
+.train-manning-pies-groups { display: flex; flex-direction: column; gap: 1.5rem; }
+.stream-error { color: #b3261e; font-size: 0.85rem; }
+
+@media (max-width: 900px) {
+  .summary-content { grid-template-columns: 1fr; }
+  .train-manning-pies { flex-direction: column; }
+}
