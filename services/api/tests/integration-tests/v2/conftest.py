@@ -33,10 +33,8 @@ from src.services.station_coverage.coverage_window import (
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 from src.services.station_coverage.overdue_tracker import OverdueTracker
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.train_manning.sse_broadcaster import SseTrainManningBroadcaster
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
-from src.services.train_manning.train_manning_publisher import (
-    SseTrainManningBroadcaster,
-)
 from src.services.train_manning.train_manning_service import TrainManningService
 from src.services.train_manning.train_manning_updater import (
     TrainManningDeps,

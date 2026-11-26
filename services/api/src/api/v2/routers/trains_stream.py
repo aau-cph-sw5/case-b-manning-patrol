@@ -9,10 +9,8 @@ from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from src.authorization.dependencies import require_permission
 from src.security.current_user import User
+from src.services.train_manning.sse_broadcaster import SseTrainManningBroadcaster
 from src.services.train_manning.sse_train_stream import SSETrainStream
-from src.services.train_manning.train_manning_publisher import (
-    SseTrainManningBroadcaster,
-)
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
 from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 

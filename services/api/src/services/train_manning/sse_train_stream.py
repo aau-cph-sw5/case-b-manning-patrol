@@ -7,9 +7,7 @@ from datetime import UTC, datetime
 from fastapi.sse import ServerSentEvent
 
 from src.domain.train_manning import TrainManningReport
-from src.services.train_manning.train_manning_publisher import (
-    SseTrainManningBroadcaster,
-)
+from src.services.train_manning.sse_broadcaster import SseTrainManningBroadcaster
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
 from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 

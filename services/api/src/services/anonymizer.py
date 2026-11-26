@@ -1,4 +1,5 @@
-# src/services/anonymizer.py
+"""Anonymize steward identities and adjustment authors after five years."""
+
 from datetime import UTC, datetime
 
 from sqlalchemy import and_, or_
