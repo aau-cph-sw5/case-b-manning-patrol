@@ -1,10 +1,11 @@
+/** Display live station patrol and train staffing status for the selected lines. */
 import { useEffect, useMemo, useState } from 'react'
 import { BsEmojiFrown } from 'react-icons/bs'
 import StationCard from './StationCard.tsx'
 import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
 import ButtonToSummary from './ButtonToSummary.tsx'
-//import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
+import ComplianceReport from './ComplianceReport.tsx'
 import { stationServesLineGroup, type LineGroupSelection } from '../utils/lineGroup.ts'
 import {
   formatRemaining,
@@ -17,6 +18,7 @@ import { useNow } from '../hooks/useNow.ts'
 import { RiskTime, setRiskTime } from '../settings.ts'
 import { getAtRiskThreshold, setAtRiskThreshold } from '../api/configApi.ts'
 import { getAtRiskCount } from '../api/atRiskCountApi.ts'
+import { canViewHistoricalData } from '../api/auth.ts'
 import { toViewStations } from '../api/dashboardMapper.ts'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import { useTrainStream } from '../hooks/useTrainStream'
@@ -25,10 +27,16 @@ import { formatTimestamp } from '../utils/FormatTimestamp.tsx'
 
 import './Dashboard.css'
 
-/** How often the at-risk episode count is refetched, in milliseconds. */
 const AT_RISK_COUNT_POLL_MS = 30_000
 
-function Dashboard() {
+/**
+ * Render live compliance for the selected lines.
+ *
+ * Update as station and train snapshots arrive and poll the at-risk episode
+ * count every 30 seconds. The subscriptions and polling stop on unmount.
+ * Show the historical report control to Operations Administrators.
+ */
+export default function Dashboard() {
   const now = useNow()
   const [riskTime, setRiskTimeState] = useState<number>(RiskTime)
   const [selection, setSelection] = useState<LineGroupSelection>('ALL')
@@ -90,7 +98,6 @@ function Dashboard() {
     .filter((item) => item.minutes <= riskTime)
     .sort((a, b) => a.minutes - b.minutes)
 
-  // the warn pill is about overdue stations only (not at-risk within the threshold)
   const overdueCount = attention.filter((item) => item.minutes <= 0).length
 
   const visibleStations = stations.filter((station) =>
@@ -106,6 +113,7 @@ function Dashboard() {
           <span className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</span>
         </div>
         <div className="topbar-right">
+          {canViewHistoricalData() && <ComplianceReport />}
           <ButtonToSummary />
           <LineGroupFilter selected={selection} onSelect={setSelection} />
         </div>
@@ -163,5 +171,3 @@ function Dashboard() {
     </div>
   )
 }
-
-export default Dashboard
