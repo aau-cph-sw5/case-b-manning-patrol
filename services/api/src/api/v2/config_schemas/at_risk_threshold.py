@@ -1,3 +1,5 @@
+"""Request and response bodies for the at-risk threshold setting."""
+
 from pydantic import BaseModel, Field
 
 
