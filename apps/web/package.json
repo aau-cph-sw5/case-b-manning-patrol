@@ -12,6 +12,8 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@mui/x-charts": "^9.18.1",
     "@mui/x-data-grid": "^9.18.0",

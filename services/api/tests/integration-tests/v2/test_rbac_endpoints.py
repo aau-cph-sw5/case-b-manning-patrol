@@ -60,6 +60,7 @@ ANDROID_REST_CALLS = [
 
 WEB_REST_CALLS = [
     ("GET", "/api/v2/coverage/at-risk-count", None),
+    ("GET", "/api/v2/coverage/summary", None),
     ("GET", "/api/v2/config/at-risk-threshold", None),
     ("POST", "/api/v2/config/at-risk-threshold", {"at_risk_threshold_minutes": 15}),
 ]

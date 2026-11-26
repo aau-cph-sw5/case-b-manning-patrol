@@ -1,6 +1,6 @@
 """Queries for the append-only at-risk log."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -32,6 +32,20 @@ async def count_episodes(session: AsyncSession, shift_start: datetime) -> int:
         select(AtRiskLogEntry).where(AtRiskLogEntry.shift_start == shift_start)
     )
     return len(result.all())
+
+
+async def at_risk_onsets(
+    session: AsyncSession, shift_start: datetime
+) -> list[timedelta]:
+    """Return how far into the shift each at-risk episode for the shift began.
+
+    The onset is ``at_risk_at - shift_start``, the moment the episode crossed
+    the at-risk threshold.
+    """
+    result = await session.exec(
+        select(AtRiskLogEntry).where(AtRiskLogEntry.shift_start == shift_start)
+    )
+    return [entry.at_risk_at - shift_start for entry in result.all()]
 
 
 def _to_row(entry: AtRiskDetected) -> AtRiskLogEntry:

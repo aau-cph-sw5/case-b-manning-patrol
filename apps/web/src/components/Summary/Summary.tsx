@@ -1,5 +1,6 @@
 import './Summary.css'
 import ButtonToDashboard from './ButtonToDashboard.tsx'
+import BarCharts from './BarCharts.tsx'
 
 export default function Summary() {
   return (
@@ -10,6 +11,7 @@ export default function Summary() {
         </div>
         <ButtonToDashboard />
       </header>
+      <BarCharts />
     </div>
   )
 }

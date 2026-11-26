@@ -31,6 +31,9 @@
     "at_risk_count_view": {
       "description": "Allows viewing the at-risk episode count."
     },
+    "coverage_summary_view": {
+      "description": "Allows viewing the per-station overdue and at-risk summary for a shift."
+    },
     "patrol_record_view_all": {
       "description": "Allows viewing any steward's patrol records, not just the caller's own."
     },
@@ -74,7 +77,7 @@
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view",
-        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all",
+        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "coverage_summary_view", "patrol_record_view_all",
         "at_risk_threshold_view", "at_risk_threshold_set"]
     },
     {
@@ -85,7 +88,7 @@
         { "data": "coverage", "subject": "all", "lines": "all", "shift_scope": "current" }
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view",
-        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all",
+        "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "coverage_summary_view", "patrol_record_view_all",
         "at_risk_threshold_view", "at_risk_threshold_set"]
     },
     {
