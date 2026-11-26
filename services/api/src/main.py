@@ -21,6 +21,7 @@ from src.services.event_store.event_producer import (
     EventValidationError,
     TargetEventNotFoundError,
 )
+from src.services.patrol_record.record_builder import RecordBuildError
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.at_risk_tracker import AtRiskTracker
@@ -177,10 +178,10 @@ async def target_event_not_found_exception_handler(
     )
 
 
-@app.exception_handler(patrol_record.RecordBuildError)
+@app.exception_handler(RecordBuildError)
 async def record_build_exception_handler(
     _: Request,
-    error: patrol_record.RecordBuildError,
+    error: RecordBuildError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=500,
