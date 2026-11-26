@@ -8,7 +8,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from src.api.v2.config_schemas.at_risk_treshold import AtRiskThreshold
+from src.api.v2.config_schemas.at_risk_threshold import AtRiskThreshold
 from src.api.v2.dependencies import AsyncDbSessionDep, ConfigServiceDep
 from src.authorization.dependencies import require_permission
 from src.security.current_user import User
