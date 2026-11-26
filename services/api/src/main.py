@@ -183,6 +183,7 @@ async def record_build_exception_handler(
     _: Request,
     error: RecordBuildError,
 ) -> JSONResponse:
+    """Answer 500 when a steward's patrol records cannot be read."""
     return JSONResponse(
         status_code=500,
         content={"code": "500", "message": str(error)},

@@ -1,3 +1,5 @@
+"""Response body for the at-risk episode count."""
+
 from datetime import datetime
 
 from pydantic import BaseModel
