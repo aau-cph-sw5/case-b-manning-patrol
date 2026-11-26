@@ -11,20 +11,20 @@ numbering scheme.
 
 | ADR | Title | Status | Date | Related Items |
 |-----|-------|--------|------|---------------|
-| [0001](0001-record-architectural-decision.md) | Record architectural decisions | Proposed | 2026-09-18 | — |
+| [0001](0001-record-architectural-decision.md) | Record architectural decisions | Accepted | 2026-09-18 | — |
 | [0002](0002-evidence-rule-decision.md) | Evidence rule decision | Accepted | 2026-09-18 | MET-B-001, 004, 005, 007, 014, 024 |
-| [0003](0003-branching-strategy.md) | Branching strategy | Proposed | 2026-09-21 | — |
+| [0003](0003-branching-strategy.md) | Branching strategy | Accepted | 2026-09-21 | — |
 | [0004](0004-positioning-interface-contract.md) | Positioning interface contract | Accepted | 2026-09-23 | B-002 |
-| [0005](0005-hosting-platform.md) | Hosting platform (Ucloud) | Proposed | 2026-09-23 | MET-B-004, 005, 012, 013, 020, 021, 023, 025 |
-| [0006](0006-tolerated-gap-decision.md) | Tolerated gap decision | Proposed | 2026-10-05 | MET-B-004 |
-| [0007](0007-database-decision.md) | PostgreSQL as database | Proposed | 2026-10-07 | MET-B-004, 013, 018–021, 023, 024 |
-| [0008](0008-append-only-event-store-decision.md) | Append-only event store | Proposed | 2026-10-09 | MET-B-020 |
+| [0005](0005-hosting-platform.md) | Hosting platform (Ucloud) | Accepted | 2026-09-23 | MET-B-004, 005, 012, 013, 020, 021, 023, 025 |
+| [0006](0006-tolerated-gap-decision.md) | Tolerated gap decision | Accepted | 2026-10-05 | MET-B-004 |
+| [0007](0007-database-decision.md) | PostgreSQL as database | Accepted | 2026-10-07 | MET-B-004, 013, 018–021, 023, 024 |
+| [0008](0008-append-only-event-store-decision.md) | Append-only event store | Accepted | 2026-10-09 | MET-B-020 |
 | [0009](0009-late-arriving-report-rule.md) | Late-arriving report rule | Accepted | 2026-10-16 | MET-B-006 |
-| [0010](0010-patrol-completion.md) | Patrol completion | Proposed | 2026-10-16 | MET-B-007, 008, 009, 012–015, 024 |
+| [0010](0010-patrol-completion.md) | Patrol completion | Accepted | 2026-10-16 | MET-B-007, 008, 009, 012–015, 024 |
 | [0011](00011-server-sent-events.md) | Server-sent events for live updates | Superseded by [0012](0012-train-manning-stream.md) | 2026-10-19 | MET-B-007–009, 012–015, 024 |
-| [0012](0012-train-manning-stream.md) | Train manning on its own SSE stream | Proposed | 2026-11-05 | MET-B-011, 012 |
+| [0012](0012-train-manning-stream.md) | Train manning on its own SSE stream | Accepted | 2026-11-05 | MET-B-011, 012 |
 | [0013](0013-presence-and-shared-coverage-access.md) | Separate individual presence access from shared patrol coverage | Accepted | 2026-11-10 | MET-B-020, 022, 023 |
-| [0014](0014-hash-chained-event-store.md) | Hash-chained event store | Proposed | 2026-11-17 | MET-B-021, 022 |
+| [0014](0014-hash-chained-event-store.md) | Hash-chained event store | Accepted | 2026-11-17 | MET-B-021, 022 |
 
 ## Status Legend
 
