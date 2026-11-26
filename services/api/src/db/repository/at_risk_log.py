@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlmodel import select
+from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models.at_risk_log import AtRiskLogEntry
@@ -29,9 +29,11 @@ async def append_new_entries(
 async def count_episodes(session: AsyncSession, shift_start: datetime) -> int:
     """Return how many at-risk episodes were logged for the given shift."""
     result = await session.exec(
-        select(AtRiskLogEntry).where(AtRiskLogEntry.shift_start == shift_start)
+        select(func.count())
+        .select_from(AtRiskLogEntry)
+        .where(AtRiskLogEntry.shift_start == shift_start)
     )
-    return len(result.all())
+    return result.one()
 
 
 def _to_row(entry: AtRiskDetected) -> AtRiskLogEntry:
