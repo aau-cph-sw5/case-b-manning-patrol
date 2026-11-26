@@ -1,3 +1,5 @@
+"""Turn one train's steward visits into a manning report."""
+
 from datetime import datetime, timedelta
 
 from src.domain.coverage import StewardPatrolInterval, TimeSpan
@@ -5,6 +7,8 @@ from src.domain.train_manning import TrainManningReport, TrainReference
 
 
 class TrainManningEvaluator:
+    """Compute manned and running time for a single train."""
+
     @staticmethod
     def evaluate(
         train: TrainReference,
@@ -12,6 +16,14 @@ class TrainManningEvaluator:
         shift_start_time: datetime,
         now: datetime,
     ) -> TrainManningReport:
+        """Return the train's manning as of ``now``.
+
+        Manned time is the total time at least one steward was on board.
+        Overlapping visits are merged so they are not counted twice, and
+        visits still open are counted up to ``now``. Running time is counted
+        from ``shift_start_time``. The train is manned now when any visit is
+        still open.
+        """
         spans = [
             TimeSpan(start=interval.started_at, end=interval.ended_at or now)
             for interval in intervals

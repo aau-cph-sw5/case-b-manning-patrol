@@ -1,3 +1,5 @@
+"""Compute train manning from the event log."""
+
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
@@ -16,6 +18,8 @@ from src.services.train_manning.train_manning_evaluator import TrainManningEvalu
 
 @dataclass
 class TrainManningService:
+    """Build a manning report for every train from steward visits to its beacon."""
+
     _interval_builder: IntervalBuilder
     _evaluator: TrainManningEvaluator
 
