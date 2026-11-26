@@ -3,6 +3,8 @@ import { BsEmojiFrown } from 'react-icons/bs'
 import StationCard from './StationCard.tsx'
 import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
+import ButtonToSummary from './ButtonToSummary.tsx'
+//import { LINE_GROUPS, stationServesLineGroup, type LineGroup } from '../utils/lineGroup.ts'
 import { stationServesLineGroup, type LineGroupSelection } from '../utils/lineGroup.ts'
 import {
   formatRemaining,
@@ -104,6 +106,7 @@ function Dashboard() {
           <span className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</span>
         </div>
         <div className="topbar-right">
+          <ButtonToSummary />
           <LineGroupFilter selected={selection} onSelect={setSelection} />
         </div>
       </header>
