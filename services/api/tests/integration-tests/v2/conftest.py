@@ -20,6 +20,7 @@ from src.api.v2.routers import connection, dashboard_stream, trains_stream
 from src.db.repository.station import get_station_lines, get_stations
 from src.db.repository.train import get_train_lines, get_trains
 from src.main import app
+from src.services.compliance.reconstruction import ComplianceReconstructor
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.at_risk_tracker import AtRiskTracker
@@ -125,15 +126,15 @@ async def override_db_session(db_engine: AsyncEngine) -> AsyncGenerator[None]:
 
     shift_schedule = ShiftSchedule.from_file()
     sse_broadcaster = SseCoverageBroadcaster()
-    shift_schedule = ShiftSchedule.from_file()
+    builder = IntervalBuilder()
+    rule = CoverageWindow(
+        time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
+        min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
+    )
+    coverage_service = CoverageService(builder, rule)
+    train_manning_service = TrainManningService(builder, TrainManningEvaluator())
     coverage_updater = CoverageUpdater(
-        service=CoverageService(
-            IntervalBuilder(),
-            CoverageWindow(
-                time_until_next_needed_patrol=TIME_UNTIL_NEXT_NEEDED_PATROL,
-                min_qualifying_durations=MIN_QUALIFYING_DURATIONS,
-            ),
-        ),
+        service=coverage_service,
         overdue_tracker=OverdueTracker(),
         at_risk_tracker=AtRiskTracker(),
         publisher=sse_broadcaster,
@@ -143,7 +144,7 @@ async def override_db_session(db_engine: AsyncEngine) -> AsyncGenerator[None]:
     )
     train_manning_broadcaster = SseTrainManningBroadcaster()
     train_manning_updater = TrainManningUpdater(
-        service=TrainManningService(IntervalBuilder(), TrainManningEvaluator()),
+        service=train_manning_service,
         publisher=train_manning_broadcaster,
         deps=TrainManningDeps(
             session_factory=lambda: AsyncSession(engine),
@@ -167,6 +168,11 @@ async def override_db_session(db_engine: AsyncEngine) -> AsyncGenerator[None]:
     app.state.dashboard_presenter = dashboard_presenter
     app.state.trains_update_presenter = trains_presenter
     app.state.shift_schedule = shift_schedule
+    app.state.compliance_reconstructor = ComplianceReconstructor(
+        coverage_service=coverage_service,
+        manning_service=train_manning_service,
+        shift_schedule=shift_schedule,
+    )
     yield
 
     app.dependency_overrides.pop(get_async_db_session, None)

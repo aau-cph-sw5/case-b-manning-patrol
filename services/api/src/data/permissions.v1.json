@@ -39,6 +39,9 @@
     },
     "at_risk_threshold_set": {
       "description": "Allows changing the at-risk threshold setting."
+    },
+    "historical_data": {
+      "description": "Allows retrieving historical data for all station and train coverage"
     }
   },
   "roles": [
@@ -86,7 +89,7 @@
       ],
       "permissions":["connection_event_send", "disconnection_event_send", "steward_own_patrol_record_view",
         "patrol_session_start", "patrol_session_stop", "station_manning_coverage_view", "train_manning_coverage_view", "adjustment_event_send", "at_risk_count_view", "patrol_record_view_all",
-        "at_risk_threshold_view", "at_risk_threshold_set"]
+        "at_risk_threshold_view", "at_risk_threshold_set", "historical_data"]
     },
     {
       "role": "it_administrator",

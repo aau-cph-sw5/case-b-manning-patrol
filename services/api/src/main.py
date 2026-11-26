@@ -15,8 +15,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.api.v2.routers import report_data
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
+from src.services.compliance.reconstruction import ComplianceReconstructor
 from src.services.event_store.event_producer import (
     EventValidationError,
     TargetEventNotFoundError,
@@ -88,8 +90,8 @@ async def lifespan(app: FastAPI):
 
     Creates missing tables, reloads stations and trains from the data files,
     computes coverage and train manning once and starts a 5-second clock tick
-    for each. The updaters, SSE broadcasters and presenters are put on
-    ``app.state`` for the dashboard and trains stream routers.
+    for each. The updaters, SSE broadcasters, presenters and the compliance
+    reconstructor are put on ``app.state`` for the stream and report routers.
     """
     await init_db()
     async with AsyncSession(engine) as session:
@@ -120,15 +122,21 @@ async def lifespan(app: FastAPI):
         clock=lambda: datetime.now(UTC),
         shift_schedule=shift_schedule,
     )
+    train_manning_service = TrainManningService(builder, TrainManningEvaluator())
     train_manning_broadcaster = SseTrainManningBroadcaster()
     train_manning_updater = TrainManningUpdater(
-        service=TrainManningService(builder, TrainManningEvaluator()),
+        service=train_manning_service,
         publisher=train_manning_broadcaster,
         deps=TrainManningDeps(
             session_factory=lambda: AsyncSession(engine),
             clock=lambda: datetime.now(UTC),
             shift_schedule=shift_schedule,
         ),
+    )
+    compliance_reconstructor = ComplianceReconstructor(
+        coverage_service=service,
+        manning_service=train_manning_service,
+        shift_schedule=shift_schedule,
     )
     await coverage_updater.refresh()
     await train_manning_updater.refresh()
@@ -146,6 +154,7 @@ async def lifespan(app: FastAPI):
     app.state.dashboard_presenter = dashboard_presenter
     app.state.trains_update_presenter = trains_update_presenter
     app.state.shift_schedule = shift_schedule
+    app.state.compliance_reconstructor = compliance_reconstructor
     scheduler = start_anonymizer_scheduler()
 
     yield
@@ -190,6 +199,15 @@ async def record_build_exception_handler(
     )
 
 
+@app.exception_handler(report_data.ReportNotAvailableError)
+async def report_not_available_exception_handler(
+    _: Request,
+    error: report_data.ReportNotAvailableError,
+) -> JSONResponse:
+    """Answer 400 when the requested shift cannot be reported on yet."""
+    return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, error: RequestValidationError):
     """Answer request validation errors with 400 instead of FastAPI's 422."""
@@ -212,6 +230,7 @@ app.include_router(patrol_record.router, prefix=API_PREFIX_V2)
 app.include_router(patrol_session.router, prefix=API_PREFIX_V2)
 app.include_router(connection.router, prefix=API_PREFIX_V2)
 app.include_router(trains_stream.router, prefix=API_PREFIX_V2)
+app.include_router(report_data.router, prefix=API_PREFIX_V2)
 
 
 @app.get("/ping")
