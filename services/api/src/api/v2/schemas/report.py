@@ -1,6 +1,6 @@
 """Response payload of the historical compliance report endpoint.
 
-Defined by the positioning-interface contract.
+Defined by the report contract (contracts/api/v2/report).
 """
 
 from datetime import datetime, timedelta

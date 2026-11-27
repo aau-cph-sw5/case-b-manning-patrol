@@ -1,7 +1,7 @@
 """Historical compliance report of one shift, rebuilt from the stored record.
 
-Mounted in main.py under /api/v2; the endpoint is specified by the
-positioning-interface contract."""
+Mounted in main.py under /api/v2; the endpoint is specified by the report
+contract (contracts/api/v2/report)."""
 
 from datetime import UTC, date, datetime
 from typing import Annotated

@@ -1,4 +1,8 @@
-"""Tests for GET /api/v2/report_data (historical compliance report endpoint)."""
+"""Tests for GET /api/v2/report_data (historical compliance report endpoint).
+
+The night shift starting 2026-10-08 runs 00:00-23:59 Europe/Copenhagen
+(UTC+2), i.e. 2026-10-07T22:00:00Z to 2026-10-08T21:59:00Z.
+"""
 
 from datetime import UTC, datetime
 from uuid import UUID
@@ -18,7 +22,6 @@ STEWARD_REF = UUID("880e8400-e29b-41d4-a716-446655440001")
 ANDROID_ID = UUID("660e8400-e29b-41d4-a716-446655440002")
 EVENT_ID = UUID("990e8400-e29b-41d4-a716-446655440001")
 
-# The night shift starting 2026-10-08 runs 00:00-23:59 Europe/Copenhagen (UTC+2).
 SHIFT_DAY = "2026-10-08"
 SHIFT_START = datetime(2026, 10, 7, 22, 0, tzinfo=UTC)
 SHIFT_END_KNOWN_AT = "2026-10-08T23:59:00+02:00"
@@ -53,6 +56,8 @@ async def seed_train_manned_all_shift(db_engine: AsyncEngine) -> None:
 
 
 def test_empty_database_returns_empty_report(client):
+    """An empty database yields an empty report; 2020-01-01 00:00 in
+    Europe/Copenhagen (UTC+1 in January) is 2019-12-31T23:00:00Z."""
     response = client.get(
         "/api/v2/report_data", params={"date": "2020-01-01"}, headers=OPS_ADMIN
     )
@@ -65,7 +70,6 @@ def test_empty_database_returns_empty_report(client):
     assert body["m1m2_manning_percent"] is None
     assert body["m3m4_manning_percent"] is None
     assert body["known_at"] is None
-    # 2020-01-01 00:00 Europe/Copenhagen is 2019-12-31 23:00 UTC.
     assert body["shift"]["start"] == "2019-12-31T23:00:00Z"
 
 
