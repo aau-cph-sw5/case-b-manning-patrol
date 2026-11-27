@@ -16,8 +16,8 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.api.v2.routers import report_data
 from src.api.limiter import limiter, rate_limit
+from src.api.v2.routers import report_data
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
 from src.services.compliance.reconstruction import ComplianceReconstructor
