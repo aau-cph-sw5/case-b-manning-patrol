@@ -47,6 +47,16 @@ def make_link(
     return IntegrityChainLink(**(fields | overrides))
 
 
+async def store_link(
+    session: AsyncSession, link: IntegrityChainLink
+) -> IntegrityChainLink:
+    """Insert and commit the link on its own, then reload it."""
+    session.add(link)
+    await session.commit()
+    await session.refresh(link)
+    return link
+
+
 @pytest.mark.asyncio
 async def test_head_hash_is_none_for_chain_without_links(
     session: AsyncSession,
@@ -63,7 +73,7 @@ async def test_head_hash_is_the_newest_link_of_the_chain(
 ) -> None:
     """The head is the head_hash of the row with the highest seq."""
     for seq in (1, 2, 3):
-        await integrity_chain_link.insert_link(session, make_link(seq=seq))
+        await store_link(session, make_link(seq=seq))
 
     head = await integrity_chain_link.get_head_hash(session, ChainName.EVENTS)
 
@@ -73,11 +83,11 @@ async def test_head_hash_is_the_newest_link_of_the_chain(
 @pytest.mark.asyncio
 async def test_head_hash_is_per_chain(session: AsyncSession) -> None:
     """Appending to one chain never moves the head of another."""
-    await integrity_chain_link.insert_link(session, make_link())
-    await integrity_chain_link.insert_link(
+    await store_link(session, make_link())
+    await store_link(
         session, make_link(ChainName.ADJUSTMENTS, head_hash="head-adjustments-2")
     )
-    await integrity_chain_link.insert_link(session, make_link(seq=3))
+    await store_link(session, make_link(seq=3))
 
     events_head = await integrity_chain_link.get_head_hash(session, ChainName.EVENTS)
     adjustments_head = await integrity_chain_link.get_head_hash(
@@ -95,7 +105,7 @@ async def test_get_chain_returns_links_oldest_first(
     """Verify walks the chain in append order, so it must come back sorted."""
     links = [make_link(seq=seq) for seq in (2, 3, 1)]
     for link in links:
-        await integrity_chain_link.insert_link(session, link)
+        await store_link(session, link)
 
     chain = await integrity_chain_link.get_chain(session, ChainName.EVENTS)
 
@@ -106,9 +116,9 @@ async def test_get_chain_returns_links_oldest_first(
 @pytest.mark.asyncio
 async def test_seq_is_autoassigned_when_not_given(session: AsyncSession) -> None:
     """Links inserted without a seq get increasing database-assigned values."""
-    first = await integrity_chain_link.insert_link(session, make_link())
+    first = await store_link(session, make_link())
     first_seq = first.seq
-    second = await integrity_chain_link.insert_link(session, make_link())
+    second = await store_link(session, make_link())
     second_seq = second.seq
 
     assert first_seq is not None
@@ -119,10 +129,10 @@ async def test_seq_is_autoassigned_when_not_given(session: AsyncSession) -> None
 @pytest.mark.asyncio
 async def test_seq_must_be_unique(session: AsyncSession) -> None:
     """seq is the primary key, so two links cannot share the same value."""
-    await integrity_chain_link.insert_link(session, make_link(seq=1))
+    await store_link(session, make_link(seq=1))
 
     with pytest.raises(IntegrityError):
-        await integrity_chain_link.insert_link(session, make_link(seq=1))
+        await store_link(session, make_link(seq=1))
     await session.rollback()
 
     head = await integrity_chain_link.get_head_hash(session, ChainName.EVENTS)

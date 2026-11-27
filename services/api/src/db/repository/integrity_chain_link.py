@@ -33,4 +33,3 @@ async def get_chain(
     )
 
     return list(result.all())
-

@@ -1,3 +1,15 @@
+"""Coverage acceptance tests on one steward's night patrol.
+
+The timeline covers three scenarios:
+
+- A gap over the hourly requirement: station 3 is left at 03:10:27 and
+  next visited at 04:45:40, about 95 minutes later.
+- Two areas at once: while riding train 50 and train 60 the steward is
+  also connected to the stations the train passes.
+- Signal blips: station 2 drops for 4 s and station 4 for 7 s; neither
+  counts as leaving the area.
+"""
+
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4

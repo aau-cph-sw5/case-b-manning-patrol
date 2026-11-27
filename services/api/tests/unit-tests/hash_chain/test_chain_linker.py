@@ -2,7 +2,7 @@
 
 ``ChainLinker`` reads the chain's current head hash from the database itself,
 so each test runs against an in-memory SQLite database seeded through
-``insert_link``.
+``store_link``.
 """
 
 from collections.abc import AsyncGenerator
@@ -19,7 +19,6 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models.adjustment import Adjustment
 from src.db.models.event import Event
 from src.db.models.integrity_chain_link import ChainName, IntegrityChainLink
-from src.db.repository.integrity_chain_link import insert_link
 from src.domain.event import EventRecord, EventType
 from src.services.hash_chain.chain_linker import ChainLinker
 from src.services.hash_chain.entry_hasher import EntryHasher
@@ -93,6 +92,12 @@ def make_stored_link(chain: ChainName, head_hash: str) -> IntegrityChainLink:
     )
 
 
+async def store_link(session: AsyncSession, link: IntegrityChainLink) -> None:
+    """Insert and commit the link on its own, without an entry."""
+    session.add(link)
+    await session.commit()
+
+
 async def test_event_on_an_empty_chain_matches_the_golden_hashes(
     session: AsyncSession,
 ) -> None:
@@ -142,7 +147,7 @@ async def test_changing_a_field_changes_the_hashes(session: AsyncSession) -> Non
 
 
 async def test_link_chains_onto_the_current_head(session: AsyncSession) -> None:
-    await insert_link(session, make_stored_link(ChainName.EVENTS, OTHER_HEAD_HASH))
+    await store_link(session, make_stored_link(ChainName.EVENTS, OTHER_HEAD_HASH))
 
     link = await ChainLinker(session, make_event()).link(source="test")
 
@@ -152,7 +157,7 @@ async def test_link_chains_onto_the_current_head(session: AsyncSession) -> None:
 
 
 async def test_head_hash_is_read_per_chain(session: AsyncSession) -> None:
-    await insert_link(session, make_stored_link(ChainName.EVENTS, OTHER_HEAD_HASH))
+    await store_link(session, make_stored_link(ChainName.EVENTS, OTHER_HEAD_HASH))
 
     event_link = await ChainLinker(session, make_event()).link(source="test")
     adjustment_link = await ChainLinker(session, make_adjustment()).link(source="test")
@@ -178,7 +183,7 @@ async def test_domain_event_record_is_rejected(session: AsyncSession) -> None:
 
 
 async def test_malformed_stored_head_hash_is_rejected(session: AsyncSession) -> None:
-    await insert_link(session, make_stored_link(ChainName.EVENTS, "abc"))
+    await store_link(session, make_stored_link(ChainName.EVENTS, "abc"))
 
     with pytest.raises(ValueError, match="prev_hash"):
         await ChainLinker(session, make_event()).link(source="test")
