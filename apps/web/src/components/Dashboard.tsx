@@ -37,7 +37,10 @@ function Dashboard() {
     () => (dashboard ? toViewStations(dashboard) : []),
     [dashboard],
   )
-  const { trainsUpdate } = useTrainStream()
+  const { trainsUpdate, error: trainsError } = useTrainStream()
+  // either stream failing means the backend is unreachable; the last known
+  // state (localStorage or last event) keeps rendering meanwhile
+  const offline = error !== null || trainsError !== null
 
   useEffect(() => {
     if (!import.meta.env.DEV) return
@@ -120,12 +123,21 @@ function Dashboard() {
         <div className="nav-pill at-risk-total" role="status">
           I risiko denne vagt ({atRiskEpisodes ?? '-'})
         </div>
+        {offline && (
+          <div className="nav-pill offline" role="status">
+            {error
+              ? dashboard
+                ? 'Ingen forbindelse — viser seneste data'
+                : 'Ingen forbindelse til serveren'
+              : 'Ingen forbindelse til bemandingsdata'}
+          </div>
+        )}
         <Legend riskTime={riskTime} onRiskTimeChange={handleRiskTimeChange} />
       </div>
 
       <main className="dash">
         <div className="side-col">
-          <TrainCard update={trainsUpdate} selection={selection} />
+          <TrainCard update={trainsUpdate} selection={selection} error={trainsError} />
           <aside className="card attention">
             <h2>Kræver handling ({attention.length})</h2>
             <ul className="attention-list">
@@ -149,7 +161,7 @@ function Dashboard() {
           {stations.length === 0 && (
             <p className="dashboard-empty">
               {error
-                ? `Kunne ikke hente data: ${error.message}`
+                ? 'Kunne ikke hente data — ingen forbindelse til serveren'
                 : isLoading
                   ? 'Henter data…'
                   : 'Ingen stationer'}

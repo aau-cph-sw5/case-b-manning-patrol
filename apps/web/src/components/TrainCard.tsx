@@ -89,21 +89,63 @@ function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
 }
 
 /**
+ * Render the card shown when the trains stream errored before any data
+ * arrived: all line badges and a "—" figure, plus a message that no manning
+ * data is available.
+ */
+function NoManningData() {
+  return (
+    <section className="card train-card">
+      <header className="train-card-head">
+        <h2>
+          <RouteBadges routes={ALL_ROUTES} />
+        </h2>
+        <span className="train-head-status">
+          <span className="train-head-pct">—</span>
+        </span>
+      </header>
+      <p className="train-empty" role="status">
+        Ingen bemandingsdata tilgængelig — tjek forbindelsen til serveren
+      </p>
+    </section>
+  )
+}
+
+/**
  * Render the manning summary for the selected scope: every train for 'ALL',
  * or only the trains serving the selected line group. For a single line
  * group the overall head and bar are rendered below the summary; for 'ALL'
  * they are omitted, since the summary already shows the overall figures.
  *
- * @param update - Latest trains stream event; null before the first one,
- *   which renders the same placeholder as a stream with no trains.
+ * @param update - Latest trains stream event; null before the first one. Null
+ *   without an error renders the loading placeholder, the same as a stream
+ *   with no trains; null together with `error` renders {@link NoManningData}
+ *   instead. A stored `update` is still shown while `error` is set, so the
+ *   card degrades to the last known data rather than failing.
  * @param selection - Which trains the summary covers; 'ALL' shows the
  *   overall percentage over all trains.
+ * @param error - Set while the trains stream cannot connect, e.g. when the
+ *   backend is down.
  */
 function TrainCard({
   update,
   selection,
-}: { update: TrainsUpdate | null; selection: LineGroupSelection }) {
-  const data = update ?? EMPTY_UPDATE
+  error,
+}: { update: TrainsUpdate | null; selection: LineGroupSelection; error: Error | null }) {
+  if (update === null && error !== null) {
+    return <NoManningData />
+  }
+  return <TrainCardContent data={update ?? EMPTY_UPDATE} selection={selection} />
+}
+
+/**
+ * Render the manning summary and progress bars for a trains update.
+ *
+ * @param data - The update to show; an empty one renders the loading
+ *   placeholder.
+ * @param selection - Which trains the summary covers.
+ */
+function TrainCardContent({ data, selection }: { data: TrainsUpdate; selection: LineGroupSelection }) {
   const isAll = selection === 'ALL'
   const allRoutes = [...new Set(data.trains.flatMap((train) => train.line))]
   if (allRoutes.length === 0) {

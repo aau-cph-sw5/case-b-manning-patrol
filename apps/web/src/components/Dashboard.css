@@ -53,6 +53,10 @@
   background: #474e5f;
 }
 
+.nav-pill.offline {
+  background: #6b7280;
+}
+
 .nav-pill .smiley-icon {
   font-size: 20px;
 }
@@ -208,6 +212,13 @@
 .attention-list::-webkit-scrollbar-thumb:hover,
 .station-grid::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* message shown in the train card when no manning data is available */
+.train-empty {
+  margin: 14px 0 0;
+  color: #666666;
+  font-size: 15px;
 }
 
 /* overall figures head of the train card — rendered only when a single line
