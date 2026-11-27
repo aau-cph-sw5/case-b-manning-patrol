@@ -1,72 +1,142 @@
-.compliance-report-dialog {
-  width: min(34rem, calc(100% - 2rem));
-  box-sizing: border-box;
-  border: 1px solid #e8e8e8;
-  border-radius: 16px;
-  padding: 24px;
-  background: #fff;
+.compliance-report-page {
+  min-height: 100svh;
+  background: #f2f4f7;
   color: #1e1e1e;
   color-scheme: light;
   text-align: left;
 }
 
-.compliance-report-dialog::backdrop {
-  background: rgb(0 0 0 / 45%);
+.compliance-report-main {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+  padding: 24px clamp(16px, 4vw, 32px) 32px;
+  box-sizing: border-box;
 }
 
-.compliance-report-dialog h2 {
+.compliance-report-main h1,
+.compliance-report-main h2 {
   color: inherit;
+}
+
+.compliance-report-main h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.2;
+  margin: 0 0 20px;
+}
+
+.compliance-report-picker {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
-.compliance-report-form,
-.compliance-report-form label {
+.compliance-report-picker label,
+.compliance-report-results {
   display: grid;
   gap: 8px;
 }
 
-.compliance-report-actions {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.compliance-report-form input,
-.compliance-report-actions button {
-  min-width: 0;
+.compliance-report-picker input,
+.compliance-report-picker button {
   padding: 8px 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #b8b8b8;
   border-radius: 8px;
   font: inherit;
 }
 
-.compliance-report-actions button[type='submit']:enabled {
+.compliance-report-picker button:enabled {
   background: #e40037;
   color: #fff;
   border-color: #e40037;
+  cursor: pointer;
 }
 
-.compliance-report-dialog > p,
-.compliance-report-result {
-  margin-top: 16px;
+.compliance-report-results {
+  gap: 16px;
 }
 
-.compliance-report-result {
-  border-top: 1px solid #e8e8e8;
+.compliance-report-card {
+  padding: 16px;
+  min-width: 0;
 }
 
-.compliance-report-result dt {
+.compliance-report-card h2,
+.compliance-report-card p {
+  margin: 0 0 12px;
+}
+
+.compliance-report-period,
+.compliance-report-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.compliance-report-period dd,
+.compliance-report-metrics dd {
+  margin: 4px 0 0;
+}
+
+.compliance-report-card dt {
   font-weight: 600;
 }
 
-.compliance-report-result dd {
-  margin: 0 0 8px;
+.compliance-report-metrics > div {
+  background: #f2f4f7;
+  padding: 12px;
+  border-radius: 8px;
 }
 
-.compliance-report-partial {
+.compliance-report-metrics dd:first-of-type {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.compliance-report-card .compliance-report-status {
+  width: fit-content;
   padding: 8px 12px;
   border-radius: 8px;
+  font-weight: 600;
+}
+
+.compliance-report-period + .compliance-report-status {
+  margin: 12px 0 0;
+}
+
+.compliance-report-status[data-tone='pending'] {
   background: #fff2cf;
   color: #694900;
+}
+
+.compliance-report-status[data-tone='pass'] {
+  background: #e5f4ee;
+  color: #00543a;
+}
+
+.compliance-report-status[data-tone='fail'] {
+  background: #ffe8ed;
+  color: #a50028;
+}
+
+.compliance-report-table {
+  overflow-x: auto;
+}
+
+.compliance-report-table table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.compliance-report-table th,
+.compliance-report-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.compliance-report-table thead {
+  background: #f2f4f7;
 }

@@ -5,7 +5,6 @@ import StationCard from './StationCard.tsx'
 import TrainCard from './TrainCard.tsx'
 import LineGroupFilter from './LineGroupFilter.tsx'
 import ButtonToSummary from './ButtonToSummary.tsx'
-import ComplianceReport from './ComplianceReport.tsx'
 import { stationServesLineGroup, type LineGroupSelection } from '../utils/lineGroup.ts'
 import {
   formatRemaining,
@@ -113,7 +112,9 @@ export default function Dashboard() {
           <span className="last-updated">Sidst opdateret: {formatTimestamp(lastUpdated)}</span>
         </div>
         <div className="topbar-right">
-          {canViewHistoricalData() && <ComplianceReport />}
+          {canViewHistoricalData() && (
+            <a className="topbar-button" href="/compliance-report">Compliance report</a>
+          )}
           <ButtonToSummary />
           <LineGroupFilter selected={selection} onSelect={setSelection} />
         </div>
