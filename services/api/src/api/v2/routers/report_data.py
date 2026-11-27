@@ -12,11 +12,13 @@ from src.api.v2.dependencies import AsyncDbSessionDep
 from src.api.v2.schemas.report import ReportData
 from src.authorization.dependencies import require_permission
 from src.db.repository.station import get_station_lines, get_stations
-from src.security.current_user import User
 from src.services.compliance.reconstruction import ComplianceReconstructor
 from src.services.report.report_presenter import ReportPresenter
 
-router = APIRouter(tags=["report-data"])
+router = APIRouter(
+    tags=["report-data"],
+    dependencies=[Depends(require_permission("historical_data"))],
+)
 
 DateQuery = Annotated[
     date,
@@ -44,7 +46,6 @@ class ReportNotAvailableError(Exception):
 async def get_report_data(
     request: Request,
     session: AsyncDbSessionDep,
-    user: Annotated[User, Depends(require_permission("historical_data"))],
     day: DateQuery,
     known_at: KnownAtQuery = None,
 ) -> ReportData:
