@@ -157,6 +157,26 @@ def test_adjustment_requires_permission(client):
     assert allowed.status_code == 201
 
 
+def test_report_data_rejects_anonymous_requests(anon_client):
+    response = anon_client.get("/api/v2/report_data", params={"date": "2020-01-01"})
+    assert response.status_code == 401
+
+
+def test_only_operations_administrator_can_read_report_data(client):
+    """GET /api/v2/report_data is guarded by historical_data, granted to
+    operations_administrator only (permissions.v1.json)."""
+    for headers in (STEWARD, CRO, IT_ADMIN):
+        response = client.get(
+            "/api/v2/report_data", params={"date": "2020-01-01"}, headers=headers
+        )
+        assert response.status_code == 403, headers["Authorization"]
+
+    allowed = client.get(
+        "/api/v2/report_data", params={"date": "2020-01-01"}, headers=OPS_ADMIN
+    )
+    assert allowed.status_code == 200
+
+
 @pytest.mark.parametrize(("method", "path", "body"), ANDROID_REST_CALLS)
 def test_android_client_is_authorized_for_its_endpoints(
     anon_client, method, path, body
