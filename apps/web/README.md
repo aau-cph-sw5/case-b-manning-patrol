@@ -63,6 +63,18 @@ Every request and stream sends `Authorization: Bearer <role>`. Until real
 sign-in exists, the role comes from `VITE_ROLE` in `apps/web/.env` (see
 `.env.example`) and defaults to `controlRoomOperator`.
 
+### Compliance report
+
+Set `VITE_ROLE=operations_administrator` to show **Compliance report** in the
+dashboard toolbar. Operations Administrator is the role with `historical_data`
+access. The report API enforces that permission on each request.
+
+Select the shift's start date in Copenhagen. The dashboard sends that date
+to `GET /api/v2/report_data` without `known_at`, so reloading the report can
+include late events and corrections. The dialog displays the shift boundaries
+in Danish local time and identifies partial reports when `as_of` precedes
+the shift end.
+
 ## Available Scripts
 
 | Script | Description |
