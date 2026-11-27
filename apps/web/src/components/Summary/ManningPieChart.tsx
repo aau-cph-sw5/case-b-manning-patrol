@@ -17,7 +17,7 @@ const NO_DATA_COLOR = '#d9d9d9'
  * Dashed radius from the centre to where 70% falls on the circle.
  *
  * The pie starts at 12 o'clock and runs clockwise, so the manned slice ends
- * past this line exactly when the target is met.
+ * past or reaches this line exactly when the target is met.
  */
 function TargetMarker() {
   const { left, top, width, height } = useDrawingArea()
@@ -86,7 +86,7 @@ export default function ManningPieChart({
       </PieChart>
       <p className={`manning-pie-status ${hasData ? (ok ? 'ok' : 'low') : ''}`}>
         {hasData
-          ? `${Math.round(manned)}% bemandet · ${ok ? 'mål på 70% opnået' : 'under målet på 70%'}`
+          ? `${Math.floor(manned)}% bemandet · ${ok ? 'mål på 70% opnået' : 'under målet på 70%'}`
           : 'Ingen køretid endnu'}
       </p>
     </figure>
