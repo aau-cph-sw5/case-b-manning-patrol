@@ -9,12 +9,14 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.api.limiter import limiter, rate_limit
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
 from src.services.event_store.event_producer import (
@@ -155,7 +157,34 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="Manning Patrol Backend", lifespan=lifespan)
+app = FastAPI(
+    title="Manning Patrol Backend",
+    lifespan=lifespan,
+    dependencies=[Depends(rate_limit)],
+)
+
+app.state.limiter = limiter
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exception_handler(
+    request: Request, error: RateLimitExceeded
+) -> JSONResponse:
+    """Answer 429 when a client exceeds the rate limit"""
+    response = JSONResponse(
+        status_code=429,
+        content={"code": "429", "message": f"Rate limit exceeded: {error.detail}"},
+    )
+    return request.app.state.limiter._inject_headers(
+        response, request.state.view_rate_limit
+    )
 
 
 @app.exception_handler(EventValidationError)
@@ -195,13 +224,6 @@ async def validation_exception_handler(_: Request, error: RequestValidationError
     """Answer request validation errors with 400 instead of FastAPI's 422."""
     return JSONResponse(status_code=400, content={"code": "400", "message": str(error)})
 
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.include_router(adjustment.router, prefix=API_PREFIX_V2)
 app.include_router(at_risk_tracker.router, prefix=API_PREFIX_V2)

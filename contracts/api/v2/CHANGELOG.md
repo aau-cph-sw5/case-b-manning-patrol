@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.9.0 - Report API: historical compliance report per shift
+- Added the Report API contract (`report/`): `GET /api/v2/report_data?date={YYYY-MM-DD}[&known_at={ISO 8601}]`
+  returns a `ReportData` — the compliance picture of the night shift starting on `date`, rebuilt
+  from the append-only event log with the same computation as the live dashboard streams and
+  evaluated at the shift end, with station names and lines resolved server-side.
+- `ReportData` contains the shift boundaries, `as_of`, `known_at`, per-station `ReportStation`
+  with `ReportArea` entries (coverage status, `overdue_at`, `last_covered_at`), per-train
+  `ReportTrain` entries (`slug`, `line`, `manned_ratio` 0..1, `manned_now`, `manned_time` /
+  `running_time` in seconds), and the aggregate `manning_percent` / `m1m2_manning_percent` /
+  `m3m4_manning_percent` (0..100, null when a scope has no running time) on the same scale as
+  the trains stream.
+- `date` is the local date (Europe/Copenhagen) the shift starts on; `known_at` (ISO 8601 with
+  offset) optionally limits the report to events received by that moment. The endpoint is
+  guarded by the `historical_data` permission (operations_administrator role only): 401 without
+  a bearer token, 403 for other roles, 400 when the shift has not started or `known_at` has no
+  offset.
+- The control room dashboard uses this to show after each night shift how the manning (70% of
+  running time) and hourly patrol requirements were held.
+
+
 ## v2.8.0 - Positioning Interface: at-risk episode count per shift
 - Positioning Interface: added `GET /api/v2/coverage/at-risk-count`, returning
   `AtRiskCount` — how many areas have been at-risk during a shift. An area is

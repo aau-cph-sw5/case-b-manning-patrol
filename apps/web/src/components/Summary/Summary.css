@@ -1,0 +1,38 @@
+/* Styles for the shift summary page at `/summary`. */
+
+/* Base page layout, matching the dashboard page (see .dashboard-page in index.css) */
+.summary-page {
+  text-align: left;
+  background: #f2f4f7;
+  color: #1e1e1e;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top bar, styled like the one on the dashboard page */
+.summary-page .topbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: clamp(72px, 11vh, 120px);
+  padding: 12px 32px;
+  background: #e40037;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.summary-page .brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-page .logo {
+  font-size: clamp(26px, 2.1vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
