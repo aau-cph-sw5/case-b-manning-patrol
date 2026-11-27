@@ -86,14 +86,24 @@ def start_anonymizer_scheduler() -> AsyncIOScheduler:
     return scheduler
 
 
+async def _shutdown(
+    scheduler: AsyncIOScheduler,
+    coverage_tick: asyncio.Task,
+    train_manning_tick: asyncio.Task,
+) -> None:
+    """Stop the anonymizer scheduler and clock ticks, and dispose the engine."""
+    scheduler.shutdown()
+    coverage_tick.cancel()
+    train_manning_tick.cancel()
+    await engine.dispose()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Set up the database, coverage and train manning pipelines; stop them on exit.
+    """Set up the database and pipelines; stop them on exit.
 
-    Creates missing tables, reloads stations and trains from the data files,
-    computes coverage and train manning once and starts a 5-second clock tick
-    for each. The updaters, SSE broadcasters, presenters and the compliance
-    reconstructor are put on ``app.state`` for the stream and report routers.
+    Creates tables, reloads reference data, computes coverage and manning once,
+    starts the clock ticks and puts everything on ``app.state`` for the routers.
     """
     await init_db()
     async with AsyncSession(engine) as session:
@@ -160,10 +170,7 @@ async def lifespan(app: FastAPI):
     scheduler = start_anonymizer_scheduler()
 
     yield
-    scheduler.shutdown()
-    coverage_tick.cancel()
-    train_manning_tick.cancel()
-    await engine.dispose()
+    await _shutdown(scheduler, coverage_tick, train_manning_tick)
 
 
 app = FastAPI(
