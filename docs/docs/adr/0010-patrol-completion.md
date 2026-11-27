@@ -1,9 +1,12 @@
 # ADR 0010. Patrol completion: rolling hour and independent levels.
 
-**Status.** Proposed
-**Date.** 2026-10-16
-**Deciders.** Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen, team 8
-**Related backlog items.** MET-B-007, MET-B-008, MET-B-009, MET-B-012, MET-B-013, MET-B-014, MET-B-015, MET-B-024
+**Status:** Accepted
+
+**Date:** 2026-10-16
+
+**Deciders:** Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen, team 8
+
+**Related backlog items:** MET-B-007, MET-B-008, MET-B-009, MET-B-012, MET-B-013, MET-B-014, MET-B-015, MET-B-024
 
 ## Context
 
