@@ -1,10 +1,14 @@
 # ADR 0012. Train manning gets its own server-sent events stream.
 
-**Status.** Proposed
-**Date.** 2026-11-05
-**Deciders.** Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen, team 8
-**Related backlog items.** MET-B-011, MET-B-012
-**Supersedes.** [ADR 0011](00011-server-sent-events.md)
+**Status:** Accepted
+
+**Date:** 2026-11-05
+
+**Deciders:** Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen, team 8
+
+**Related backlog items:** MET-B-011, MET-B-012
+
+**Supersedes:** [ADR 0011](00011-server-sent-events.md)
 
 ## Context
 

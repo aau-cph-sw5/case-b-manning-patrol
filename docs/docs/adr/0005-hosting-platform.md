@@ -1,9 +1,12 @@
 # ADR 0005. Ucloud as cloud platform.
 
-**Status.** Proposed
-**Date.** 2026-09-23
-**Deciders.** Peter Rasmussen, Sebastian Milo, team 3
-**Related backlog items.** MET-b-004, MET-b-005, MET-b-012, MET-b-013, MET-b-020, MET-b-021, MET-b-023, MET-b-025
+**Status:** Accepted
+
+**Date:** 2026-09-23
+
+**Deciders:** Peter Rasmussen, Sebastian Milo, team 3
+
+**Related backlog items:** MET-b-004, MET-b-005, MET-b-012, MET-b-013, MET-b-020, MET-b-021, MET-b-023, MET-b-025
 
 ## Context
 

@@ -1,12 +1,12 @@
 # ADR 0007. PostgreSQL as database
 
-**Status.** Proposed
+**Status:** Accepted
 
-**Date.** 2026-10-07
+**Date:** 2026-10-07
 
-**Deciders.** Peter Rasmussen, Tue Elhegn, Maya Lauritsen, Markus Jørgensen, Jacob Jensen, Signe Jensen, Patrick Hallberg, Victor Zacho, team 3, team 2
+**Deciders:** Peter Rasmussen, Tue Elhegn, Maya Lauritsen, Markus Jørgensen, Jacob Jensen, Signe Jensen, Patrick Hallberg, Victor Zacho, team 3, team 2
 
-**Related backlog items.** MET-B-004, MET-B-013, MET-B-018, MET-B-019, MET-B-020, MET-B-021, MET-B-023, MET-B-024
+**Related backlog items:** MET-B-004, MET-B-013, MET-B-018, MET-B-019, MET-B-020, MET-B-021, MET-B-023, MET-B-024
 
 ## Context
 

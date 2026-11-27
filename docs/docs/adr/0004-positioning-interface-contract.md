@@ -1,12 +1,12 @@
 # ADR POSITIONING INTERFACE CONTRACT.
 
-**Status.** Accepted
+**Status:** Accepted
 
-**Date.** 2026-9-23
+**Date:** 2026-9-23
 
-**Deciders.** Team 8, Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen,
+**Deciders:** Team 8, Asbjørn Gosvig, Jakob Michaelsen, Marcus Linde, Nichlas Christiansen, Rohan Atik, Ryan Zachariasen,
 
-**Related backlog items.**  
+**Related backlog items:**  
 B-002
 
 Blocks: B-003, B-004, B-006, B-007, B-012, B-014, B-025
