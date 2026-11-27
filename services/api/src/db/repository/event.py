@@ -131,8 +131,7 @@ async def count_unlinked_events(session: AsyncSession) -> int:
     """Return how many events have no link in the events hash chain.
 
     ``insert_event`` saves every event together with its link, so this is 0
-    unless rows were written to the database directly, for example by the
-    seed script or by someone editing the database.
+    unless rows were written to the database directly.
     """
     linked_ids = select(IntegrityChainLink.record_id).where(
         IntegrityChainLink.chain == ChainName.EVENTS

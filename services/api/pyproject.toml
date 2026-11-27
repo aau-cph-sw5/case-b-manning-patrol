@@ -27,7 +27,6 @@ dependencies = [
 
 [project.scripts]
 dev = "src.main:dev"
-positioning-simulator = "src.api.v1.routers.positioning_simulator:app"
 lint = "src.scripts.lint:main"
 check = "src.scripts.check:main"
 reset-db = "src.scripts.reset_db:main"
