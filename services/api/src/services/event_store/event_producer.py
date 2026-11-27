@@ -106,11 +106,13 @@ class EventProducer:
         beacon, and TargetEventNotFoundError if ``target_event_id`` is given but
         the event cannot be loaded.
         """
-        if (
-            corrected_fact.fact_type == EventType.CONNECT_EVENT
-            or corrected_fact.fact_type == EventType.DISCONNECT_EVENT
-        ) and corrected_fact.beacon_id is None:
-            raise EventValidationError("Connect and Disconnect event needs beacon")
+
+        needs_beacon = corrected_fact.fact_type in {
+            EventType.CONNECT_EVENT,
+            EventType.DISCONNECT_EVENT,
+        }
+        if needs_beacon and corrected_fact.beacon_id is None:
+            raise EventValidationError("Connect and disconnect events need a beacon")
 
         if target_event_id is not None:
             try:

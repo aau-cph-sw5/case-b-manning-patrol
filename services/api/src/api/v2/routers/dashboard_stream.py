@@ -1,19 +1,18 @@
 """Server-sent events stream of station coverage."""
 
-import asyncio
 from collections.abc import AsyncIterable
-from datetime import UTC, datetime
+from contextlib import aclosing
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from src.authorization.dependencies import require_permission
-from src.domain.coverage import StationCoverageReport
 from src.security.current_user import User
 from src.services.station_coverage.coverage_updater import CoverageUpdater
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.station_coverage.sse_dashboard_stream import SSEDashboardStream
 
 router = APIRouter(tags=["positioning-interface"])
 
@@ -34,28 +33,7 @@ async def stream(
     updater: CoverageUpdater = request.app.state.coverage_updater
     presenter: DashboardPresenter = request.app.state.dashboard_presenter
     queue = broadcaster.subscribe()
-    try:
-        yield _dashboard_event(presenter, updater.snapshot())
-        while True:
-            await _wait_for_refresh(queue)
-            yield _dashboard_event(presenter, updater.snapshot())
-    finally:
-        broadcaster.unsubscribe(queue)
-
-
-async def _wait_for_refresh(queue: asyncio.Queue) -> None:
-    task = asyncio.create_task(queue.get())
-    try:
-        await task
-    finally:
-        task.cancel()
-    while not queue.empty():
-        queue.get_nowait()
-
-
-def _dashboard_event(
-    presenter: DashboardPresenter,
-    station_reports: list[StationCoverageReport],
-) -> ServerSentEvent:
-    dashboard = presenter.to_dashboard(station_reports, sent_at=datetime.now(UTC))
-    return ServerSentEvent(data=dashboard, event="dashboard")
+    stream = SSEDashboardStream(broadcaster, presenter, updater, queue)
+    async with aclosing(stream.run_stream()) as events:
+        async for event in events:
+            yield event

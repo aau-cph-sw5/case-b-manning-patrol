@@ -14,7 +14,7 @@ export const MOCK_CONCOURSE_BEACON_IDS = REFERENCE_STATION_INDICES.map((index) =
 );
 
 /**
- * The synthetic steward the backend fixtures send events for. The real app
- * takes the device's own id; until then the mock claims to be this one.
+ * The synthetic steward the mock scanner and API clients send events as. The
+ * real app takes the device's own id; until then the mock claims to be this one.
  */
 export const MOCK_ANDROID_ID = "660e8400-e29b-41d4-a716-446655440000";

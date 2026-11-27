@@ -69,9 +69,7 @@ and one simulated minute between stations. The route holds each station for
 four simulated minutes so the concourse's 20-second qualification threshold is
 met at the default 10x speed. Its default speed is 10x (about 24
 seconds for the initial reset); change it with
-`EXPO_PUBLIC_FIXTURE_REPLAY_SPEED`. Do not seed the
-same timeline into the backend while replaying it, or the database will contain
-duplicate logical events.
+`EXPO_PUBLIC_FIXTURE_REPLAY_SPEED`.
 
 ## Conventions
 

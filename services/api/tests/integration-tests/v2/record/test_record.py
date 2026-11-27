@@ -8,9 +8,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
 
 from src.api.v2.dependencies import get_async_db_session
-from src.api.v2.routers import patrol_record
 from src.db.ingest import load_stations
 from src.main import app
+from src.services.patrol_record import record_builder
 
 ANDROID_ID = "770e8400-e29b-41d4-a716-446655440001"
 OTHER_ANDROID_ID = "770e8400-e29b-41d4-a716-446655440002"
@@ -82,7 +82,7 @@ def test_get_records_returns_error_body_when_database_fails(client, monkeypatch)
     async def failing_read(*_):
         raise OperationalError("SELECT", {}, Exception("database is locked"))
 
-    monkeypatch.setattr(patrol_record, "get_shift_connection_events", failing_read)
+    monkeypatch.setattr(record_builder, "get_shift_connection_events", failing_read)
 
     response = _get_records(client)
 

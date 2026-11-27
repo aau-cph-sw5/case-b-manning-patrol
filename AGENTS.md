@@ -47,12 +47,11 @@ uv run check    # CI parity: uv sync --locked, ruff check, ty check,
 uv run ruff format .   # fix formatting before check complains
 uv run dev      # dev server, localhost:8000
 uv run verify-chain    # check every hash chain; exit 1 if broken, 2 if it can't run
-uv run positioning-simulator
 ```
 
 - Deps via `uv add <pkg>` only; `uv.lock` is committed and CI uses
   `uv sync --locked`, so keep it in sync.
-- Tests in `tests/`, synthetic fixtures in `fixtures/`.
+- Tests in `tests/`; test data is synthetic and lives with the tests.
 - Lint rules: E, W, F, I, N, UP, B. Modern syntax (py313): `X | None`,
   `dict[...]`, `datetime.UTC`, sorted imports.
 
@@ -62,7 +61,7 @@ Code is read by other groups who did not write it. Follow
 [PEP 8](https://peps.python.org/pep-0008/) and its docstring conventions
 ([PEP 257](https://peps.python.org/pep-0257/)) so a reader understands a
 module, class or function from its docstring without reading the body.
-`src/scripts/seed.py` is the reference example.
+`src/services/station_coverage/coverage_clock_tick.py` is the reference example.
 
 - Every module, public class and public function/method gets a docstring.
   Private helpers (`_name`) only need one when their purpose is not obvious.

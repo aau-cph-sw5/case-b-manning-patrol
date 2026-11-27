@@ -54,7 +54,6 @@ services/api/
 │   ├── services/                # Business logic (coverage, positioning, producer)
 │   ├── scripts/                 # CLI entry points
 │   └── data/                    # Reference data (stations)
-├── fixtures/                    # Synthetic test data
 ├── tests/                       # pytest tests
 ├── docker-compose.yml           # Local PostgreSQL
 ├── pyproject.toml               # Dependencies and tool config
@@ -77,11 +76,6 @@ The backend uses **PostgreSQL** through SQLModel and the async `asyncpg` driver.
   uv run alembic check         # verify models and migrations agree
   ```
 
-- **Seeding:** Load the fixture event timeline:
-  ```bash
-  uv run python -m src.scripts.seed
-  ```
-
 - **Resetting:** Drop all tables and re-apply migrations:
   ```bash
   uv run reset-db
@@ -91,22 +85,6 @@ The backend uses **PostgreSQL** through SQLModel and the async `asyncpg` driver.
     `create_all` runs on server startup. If you start the server before applying
     migrations, tables are created without Alembic's version record and
     `alembic upgrade head` will fail with "table already exists".
-
-## Positioning Simulator
-
-The API includes a simulator implementing the Positioning Interface contract
-(`contracts/positioning-interface/v1/`):
-
-- `GET /observations` — currently active area observations
-- `GET /observation-events` — all observation events
-- `GET /ws/observation-events` — WebSocket stream of events
-
-Fixture: `fixtures/fixture-events-v1.json` — event timeline replayed by the simulator.
-
-Run the simulator:
-```bash
-uv run positioning-simulator
-```
 
 ## API Versions
 

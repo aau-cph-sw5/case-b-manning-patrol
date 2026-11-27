@@ -1,19 +1,16 @@
 """Server-sent events stream of train manning."""
 
-import asyncio
 from collections.abc import AsyncIterable
-from datetime import UTC, datetime
+from contextlib import aclosing
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from src.authorization.dependencies import require_permission
-from src.domain.train_manning import TrainManningReport
 from src.security.current_user import User
-from src.services.train_manning.train_manning_publisher import (
-    SseTrainManningBroadcaster,
-)
+from src.services.train_manning.sse_broadcaster import SseTrainManningBroadcaster
+from src.services.train_manning.sse_train_stream import SSETrainStream
 from src.services.train_manning.train_manning_updater import TrainManningUpdater
 from src.services.train_manning.trains_update_presenter import TrainsUpdatePresenter
 
@@ -37,28 +34,7 @@ async def stream(
     updater: TrainManningUpdater = request.app.state.train_manning_updater
     presenter: TrainsUpdatePresenter = request.app.state.trains_update_presenter
     queue = broadcaster.subscribe()
-    try:
-        yield _trains_event(presenter, updater.snapshot())
-        while True:
-            await _wait_for_refresh(queue)
-            yield _trains_event(presenter, updater.snapshot())
-    finally:
-        broadcaster.unsubscribe(queue)
-
-
-async def _wait_for_refresh(queue: asyncio.Queue) -> None:
-    task = asyncio.create_task(queue.get())
-    try:
-        await task
-    finally:
-        task.cancel()
-    while not queue.empty():
-        queue.get_nowait()
-
-
-def _trains_event(
-    presenter: TrainsUpdatePresenter,
-    train_reports: list[TrainManningReport],
-) -> ServerSentEvent:
-    trains_update = presenter.to_trains_update(train_reports, sent_at=datetime.now(UTC))
-    return ServerSentEvent(data=trains_update, event="trains")
+    stream = SSETrainStream(broadcaster, presenter, updater, queue)
+    async with aclosing(stream.run_stream()) as events:
+        async for event in events:
+            yield event

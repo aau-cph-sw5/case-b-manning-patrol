@@ -33,14 +33,3 @@ async def get_chain(
     )
 
     return list(result.all())
-
-
-async def insert_link(
-    session: AsyncSession,
-    link: IntegrityChainLink,
-) -> IntegrityChainLink:
-    """Insert and commit the link, then reload it from the database."""
-    session.add(link)
-    await session.commit()
-    await session.refresh(link)
-    return link

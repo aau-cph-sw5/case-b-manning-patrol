@@ -12,12 +12,12 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.api.v2.routers.patrol_record import build_records
 from src.api.v2.schemas.patrol_record import AreaType, Status
 from src.db.models import Line, PatrolArea, Station, StationLine
 from src.domain.event import EventType
 from src.domain.patrol_area import AreaKind
 from src.services.event_store.event_producer import EventProducer
+from src.services.patrol_record.record_builder import build_records
 
 SHIFT_START = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
 STEWARD_ANDROID_ID = UUID("b80fdb46-0666-41e8-883c-0d0bda93f835")

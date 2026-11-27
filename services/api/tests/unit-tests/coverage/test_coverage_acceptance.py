@@ -1,6 +1,18 @@
+"""Coverage acceptance tests on one steward's night patrol.
+
+The timeline covers three scenarios:
+
+- A gap over the hourly requirement: station 3 is left at 03:10:27 and
+  next visited at 04:45:40, about 95 minutes later.
+- Two areas at once: while riding train 50 and train 60 the steward is
+  also connected to the stations the train passes.
+- Signal blips: station 2 drops for 4 s and station 4 for 7 s; neither
+  counts as leaving the area.
+"""
+
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
@@ -15,8 +27,8 @@ from src.domain.coverage import (
     OverdueEpisode,
     StationCoverageReport,
 )
+from src.domain.event import EventType
 from src.domain.patrol_area import AreaKind
-from src.scripts.seed import FIXTURE, load_events
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.station_coverage.coverage_service import CoverageService
 from src.services.station_coverage.coverage_window import (
@@ -69,13 +81,52 @@ async def session() -> AsyncGenerator[AsyncSession]:
     await engine.dispose()
 
 
+STEWARD_REF = UUID("660e8400-e29b-41d4-a716-446655440001")
+STATION_2 = STATION_BEACONS["STN-2"]
+STATION_3 = STATION_BEACONS["STN-3"]
+STATION_4 = STATION_BEACONS["STN-4"]
+TRAIN_50 = UUID("550e8400-e29b-41d4-a716-000000000050")
+TRAIN_60 = UUID("550e8400-e29b-41d4-a716-000000000060")
+CONNECT = EventType.CONNECT_EVENT
+DISCONNECT = EventType.DISCONNECT_EVENT
+
+# One steward's patrol session: rides train 50 past stations 2-4, signal blips
+# at stations 2 and 4, a break away from station 4, then train 60 to station 3.
+TIMELINE: list[tuple[EventType, UUID | None, datetime]] = [
+    (EventType.START_EVENT, None, at(3, 7, 13)),
+    (CONNECT, STATION_2, at(3, 8, 13)),
+    (CONNECT, TRAIN_50, at(3, 8, 50)),
+    (DISCONNECT, STATION_2, at(3, 9, 20)),
+    (CONNECT, STATION_2, at(3, 9, 24)),
+    (DISCONNECT, STATION_2, at(3, 9, 46)),
+    (CONNECT, STATION_3, at(3, 10, 13)),
+    (DISCONNECT, STATION_3, at(3, 10, 27)),
+    (CONNECT, STATION_4, at(3, 11, 0)),
+    (DISCONNECT, TRAIN_50, at(3, 11, 15)),
+    (DISCONNECT, STATION_4, at(3, 12, 0)),
+    (CONNECT, STATION_4, at(3, 12, 7)),
+    (DISCONNECT, STATION_4, at(3, 20, 46)),
+    (CONNECT, STATION_4, at(4, 25, 59)),
+    (CONNECT, TRAIN_60, at(4, 35, 40)),
+    (CONNECT, STATION_3, at(4, 45, 40)),
+    (DISCONNECT, TRAIN_60, at(4, 50, 40)),
+    (EventType.STOP_EVENT, None, at(4, 51, 40)),
+]
+
+
 def fixture_events() -> list[Event]:
-    # build_events leaves the fixture's beacon ids as strings, which SQLite rejects.
-    events = load_events(FIXTURE)
-    for event in events:
-        if event.beacon_id is not None:
-            event.beacon_id = UUID(str(event.beacon_id))
-    return events
+    return [
+        Event(
+            event_id=uuid4(),
+            event_type=event_type,
+            steward_ref=STEWARD_REF,
+            beacon_id=beacon_id,
+            device_timestamp=timestamp,
+            server_timestamp=timestamp,
+            source="test",
+        )
+        for event_type, beacon_id, timestamp in TIMELINE
+    ]
 
 
 @pytest.fixture

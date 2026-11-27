@@ -41,8 +41,7 @@ async def count_unlinked_adjustments(session: AsyncSession) -> int:
     """Return how many adjustments have no link in the adjustments hash chain.
 
     ``insert_adjustment`` saves every adjustment together with its link, so
-    this is 0 unless rows were written to the database directly, for example
-    by the seed script or by someone editing the database.
+    this is 0 unless rows were written to the database directly.
     """
     linked_ids = select(IntegrityChainLink.record_id).where(
         IntegrityChainLink.chain == ChainName.ADJUSTMENTS

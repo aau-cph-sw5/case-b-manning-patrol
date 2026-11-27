@@ -23,6 +23,7 @@ from src.services.event_store.event_producer import (
     EventValidationError,
     TargetEventNotFoundError,
 )
+from src.services.patrol_record.record_builder import RecordBuildError
 from src.services.shared.interval_builder import IntervalBuilder
 from src.services.shared.shift_schedule import ShiftSchedule
 from src.services.station_coverage.at_risk_tracker import AtRiskTracker
@@ -37,11 +38,9 @@ from src.services.station_coverage.coverage_window import (
 from src.services.station_coverage.dashboard_presenter import DashboardPresenter
 from src.services.station_coverage.overdue_tracker import OverdueTracker
 from src.services.station_coverage.sse_broadcaster import SseCoverageBroadcaster
+from src.services.train_manning.sse_broadcaster import SseTrainManningBroadcaster
 from src.services.train_manning.train_manning_clock_tick import TrainManningClockTick
 from src.services.train_manning.train_manning_evaluator import TrainManningEvaluator
-from src.services.train_manning.train_manning_publisher import (
-    SseTrainManningBroadcaster,
-)
 from src.services.train_manning.train_manning_service import TrainManningService
 from src.services.train_manning.train_manning_updater import (
     TrainManningDeps,
@@ -208,11 +207,12 @@ async def target_event_not_found_exception_handler(
     )
 
 
-@app.exception_handler(patrol_record.RecordBuildError)
+@app.exception_handler(RecordBuildError)
 async def record_build_exception_handler(
     _: Request,
-    error: patrol_record.RecordBuildError,
+    error: RecordBuildError,
 ) -> JSONResponse:
+    """Answer 500 when a steward's patrol records cannot be read."""
     return JSONResponse(
         status_code=500,
         content={"code": "500", "message": str(error)},

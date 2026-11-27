@@ -79,7 +79,7 @@ contracts/     published interfaces other teams build against, versioned
 docs/adr/      architecture decision records
 ```
 
-Synthetic test data lives in `services/api/fixtures/`. Never anything Metro supplied.
+Test data is synthetic and lives with the tests. Never anything Metro supplied.
 
 ## Branches
 

@@ -69,8 +69,9 @@ Everything that produces these events implements the `BeaconScanner` interface
 
 ### Mock vs Real Scanning
 
-- **MockBeaconScanner** — simulates a steward walking past beacon IDs from the
-  backend fixtures. No Bluetooth needed; runs in Expo Go and emulator.
+- **MockBeaconScanner** — simulates a steward walking past the station beacon
+  IDs from the backend reference data. No Bluetooth needed; runs in Expo Go and
+  emulator.
 - **Real BLE scanning** — same interface, requires a development build on a
   physical device.
 
