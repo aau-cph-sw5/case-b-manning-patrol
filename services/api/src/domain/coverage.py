@@ -241,10 +241,6 @@ class OverdueCleared:
         datestring = self.overdue_at.isoformat()
         return f"{self.area.station_id}:{self.area.area_id}:{datestring}:CLEARED"
 
-    def overdue_for(self) -> timedelta:
-        """Return how long the area was overdue."""
-        return self.cleared_at - self.overdue_at
-
 
 @dataclass(frozen=True)
 class AtRiskDetected:
