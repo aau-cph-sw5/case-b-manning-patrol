@@ -1,12 +1,12 @@
 # ADR 0013. Separate individual presence access from shared patrol coverage.
 
-**Status.** Accepted
+**Status:** Accepted
 
-**Date.** 2026-11-10
+**Date:** 2026-11-10
 
-**Deciders.** Group 3 - Tue Elhegn, Peter Rasmussen, Héðinn Snær Arnarson
+**Deciders:** Group 3 - Tue Elhegn, Peter Rasmussen, Héðinn Snær Arnarson
 
-**Related backlog items.** MET-B-023, MET-B-020, MET-B-022
+**Related backlog items:** MET-B-023, MET-B-020, MET-B-022
 
 ## Context
 

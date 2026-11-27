@@ -1,14 +1,14 @@
 # ADR 0014. Hash-chained event store.
 
-**Status.** Proposed
+**Status:** Accepted
 
-**Date.** 2026-11-17
+**Date:** 2026-11-17
 
-**Deciders.** Rohan Atik, Nichlas Christiansen, Ryan Zachariasen, Jakob Michaelsen, Asbjørn Gosvig, Marcus Hørup, team 8
+**Deciders:** Rohan Atik, Nichlas Christiansen, Ryan Zachariasen, Jakob Michaelsen, Asbjørn Gosvig, Marcus Hørup, team 8
 
-**Related backlog items.** MET-B-021, MET-B-022
+**Related backlog items:** MET-B-021, MET-B-022
 
-**Extends.** [ADR 0008](0008-append-only-event-store-decision.md)
+**Extends:** [ADR 0008](0008-append-only-event-store-decision.md)
 
 ## Context
 

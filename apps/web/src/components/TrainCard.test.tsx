@@ -29,33 +29,33 @@ const WITH_TRAIN: TrainsUpdate = {
 
 describe('TrainCard', () => {
   it('shows the loading placeholder before the first trains event', () => {
-    render(<TrainCard update={null} lineGroup="M1/M2" error={null} />)
+    render(<TrainCard update={null} selection="M1/M2" error={null} />)
 
     expect(screen.getByLabelText('Ingen tog i drift')).toBeTruthy()
   })
 
   it('shows an explicit empty state when the stream errors before any data arrived', () => {
-    render(<TrainCard update={null} lineGroup="M1/M2" error={new Error('SSE connection error')} />)
+    render(<TrainCard update={null} selection="M1/M2" error={new Error('SSE connection error')} />)
 
     expect(screen.getByRole('status').textContent).toContain('Ingen bemandingsdata')
     expect(screen.queryByLabelText('Ingen tog i drift')).toBeNull()
   })
 
   it('shows the placeholder when the manning source returns no trains', () => {
-    render(<TrainCard update={EMPTY} lineGroup="M1/M2" error={null} />)
+    render(<TrainCard update={EMPTY} selection="M1/M2" error={null} />)
 
     expect(screen.getByLabelText('Ingen tog i drift')).toBeTruthy()
   })
 
   it('keeps showing the last known update while the stream errors', () => {
-    render(<TrainCard update={WITH_TRAIN} lineGroup="M1/M2" error={new Error('SSE connection error')} />)
+    render(<TrainCard update={WITH_TRAIN} selection="M1/M2" error={new Error('SSE connection error')} />)
 
     expect(screen.getByText('80%')).toBeTruthy()
     expect(screen.queryByRole('status')).toBeNull()
   })
 
   it('renders overall and line-group percentages from the update', () => {
-    render(<TrainCard update={WITH_TRAIN} lineGroup="M1/M2" error={null} />)
+    render(<TrainCard update={WITH_TRAIN} selection="M1/M2" error={null} />)
 
     expect(screen.getByText('80%')).toBeTruthy()
     expect(screen.getByText('75%')).toBeTruthy()

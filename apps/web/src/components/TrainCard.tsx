@@ -1,14 +1,25 @@
 /**
  * Dashboard card showing train manning from the trains SSE stream: the share
- * of running time trains were manned, overall and for the selected line group,
- * against the 70% compliance target.
+ * of running time trains were manned for the selected scope (all lines, or
+ * one line group) against the 70% compliance target.
+ *
+ * The card is a summary row — route badges and the manned count on the left,
+ * percentage, trend and a slim progress bar on the right. When a single line
+ * group is selected, a head with the overall percentage and a full-width bar
+ * is shown below it, since those differ from the group figures; for 'ALL' the
+ * head is hidden because the summary already shows the overall figures.
  */
 
 import type { TrainsUpdate } from '../api/dashboardApi'
 
-import { LINE_GROUPS, LINE_GROUP_ROUTES, type LineGroup } from '../utils/lineGroup.ts'
-import { trendOf } from '../utils/trainManning.ts'
-import { NoManningData, RouteBadges, TrendArrow } from './TrainCardParts.tsx'
+import { BsArrowDown, BsArrowRight, BsArrowUp } from 'react-icons/bs'
+
+import {
+  ALL_ROUTES,
+  LINE_GROUP_ROUTES,
+  ROUTE_COLORS,
+  type LineGroupSelection,
+} from '../utils/lineGroup.ts'
 
 /** Compliance rule: a train must be manned at least 70% of its running time. */
 const MANNING_TARGET_PCT = 70
@@ -27,22 +38,104 @@ function pct(percent: number | null): number | null {
   return percent === null ? null : Math.round(percent)
 }
 
+function RouteBadges({ routes }: { routes: string[] }) {
+  return (
+    <span className="route-badges">
+      {routes.map((route) => (
+        <span
+          key={route}
+          className="route-badge"
+          style={{
+            backgroundColor: ROUTE_COLORS[route] ?? '#686868',
+            color: route === 'M2' ? '#000000' : '#ffffff',
+          }}
+        >
+          {route}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+type Trend = 'up' | 'down' | 'flat'
+
+/** Percentage points within which the current manned share counts as flat. */
+const TREND_TOLERANCE_PCT = 1
+
 /**
- * Render manning for all trains and for the trains serving `lineGroup`.
+ * Direction the manning percentage is heading right now.
+ *
+ * The percentage is manned time over running time, so it rises while the share
+ * of trains manned right now is above it and falls while it is below. Within
+ * {@link TREND_TOLERANCE_PCT} of it the trend is flat.
+ *
+ * @param percent - The displayed manning percentage (0..100).
+ * @returns Null when there are no trains or no percentage yet.
+ */
+function trendOf(manned: number, total: number, percent: number | null): Trend | null {
+  if (total <= 0 || percent === null) return null
+  const currentPct = (manned / total) * 100
+  if (currentPct > percent + TREND_TOLERANCE_PCT) return 'up'
+  if (currentPct < percent - TREND_TOLERANCE_PCT) return 'down'
+  return 'flat'
+}
+
+function TrendArrow({ trend, label }: { trend: Trend | null; label: string }) {
+  if (trend === null) return null
+  const Icon = trend === 'up' ? BsArrowUp : trend === 'down' ? BsArrowDown : BsArrowRight
+  const cls = trend === 'up' ? 'ok-arrow' : trend === 'down' ? 'low-arrow' : 'flat-arrow'
+  const text = trend === 'up' ? 'stigende' : trend === 'down' ? 'faldende' : 'stabil'
+  return <Icon className={cls} aria-label={`${label} ${text}`} />
+}
+
+/**
+ * Render the card shown when the trains stream errored before any data
+ * arrived: all line badges and a "—" figure, plus a message that no manning
+ * data is available.
+ */
+function NoManningData() {
+  return (
+    <section className="card train-card">
+      <header className="train-card-head">
+        <h2>
+          <RouteBadges routes={ALL_ROUTES} />
+        </h2>
+        <span className="train-head-status">
+          <span className="train-head-pct">—</span>
+        </span>
+      </header>
+      <p className="train-empty" role="status">
+        Ingen bemandingsdata tilgængelig — tjek forbindelsen til serveren
+      </p>
+    </section>
+  )
+}
+
+/**
+ * Render the manning summary for the selected scope: every train for 'ALL',
+ * or only the trains serving the selected line group. For a single line
+ * group the overall head and bar are rendered below the summary; for 'ALL'
+ * they are omitted, since the summary already shows the overall figures.
  *
  * @param update - Latest trains stream event; null before the first one. Null
  *   without an error renders the loading placeholder, the same as a stream
  *   with no trains; null together with `error` renders {@link NoManningData}
  *   instead. A stored `update` is still shown while `error` is set, so the
  *   card degrades to the last known data rather than failing.
+ * @param selection - Which trains the summary covers; 'ALL' shows the
+ *   overall percentage over all trains.
  * @param error - Set while the trains stream cannot connect, e.g. when the
  *   backend is down.
  */
-function TrainCard({ update, lineGroup, error }: { update: TrainsUpdate | null; lineGroup: LineGroup; error: Error | null }) {
+function TrainCard({
+  update,
+  selection,
+  error,
+}: { update: TrainsUpdate | null; selection: LineGroupSelection; error: Error | null }) {
   if (update === null && error !== null) {
     return <NoManningData />
   }
-  return <TrainCardContent data={update ?? EMPTY_UPDATE} lineGroup={lineGroup} />
+  return <TrainCardContent data={update ?? EMPTY_UPDATE} selection={selection} />
 }
 
 /**
@@ -50,29 +143,34 @@ function TrainCard({ update, lineGroup, error }: { update: TrainsUpdate | null; 
  *
  * @param data - The update to show; an empty one renders the loading
  *   placeholder.
- * @param lineGroup - Line group whose trains the summary counts.
+ * @param selection - Which trains the summary covers.
  */
-function TrainCardContent({ data, lineGroup }: { data: TrainsUpdate; lineGroup: LineGroup }) {
-  const groupRoutes = LINE_GROUP_ROUTES[lineGroup]
-  const groupPct = pct(
-    lineGroup === 'M1/M2' ? data.m1m2_manning_percent : data.m3m4_manning_percent,
-  )
-  const overallPct = pct(data.manning_percent)
-  const groupOk = groupPct !== null && groupPct >= MANNING_TARGET_PCT
-  const overallOk = overallPct !== null && overallPct >= MANNING_TARGET_PCT
-  const groupTrains = data.trains.filter((train) =>
-    train.line.some((line) => LINE_GROUP_ROUTES[lineGroup].includes(line)),
-  )
-  const mannedCount = data.trains.filter((train) => train.current_steward_ids.length > 0).length
-  const groupMannedCount = groupTrains.filter(
-    (train) => train.current_steward_ids.length > 0,
-  ).length
-  const overallTrend = trendOf(mannedCount, data.trains.length, overallPct)
-  const groupTrend = trendOf(groupMannedCount, groupTrains.length, groupPct)
+function TrainCardContent({ data, selection }: { data: TrainsUpdate; selection: LineGroupSelection }) {
+  const isAll = selection === 'ALL'
   const allRoutes = [...new Set(data.trains.flatMap((train) => train.line))]
   if (allRoutes.length === 0) {
-    allRoutes.push(...LINE_GROUPS.flatMap((group) => LINE_GROUP_ROUTES[group]))
+    allRoutes.push(...ALL_ROUTES)
   }
+  const scopeRoutes = isAll ? allRoutes : LINE_GROUP_ROUTES[selection]
+  const scopeTrains = isAll
+    ? data.trains
+    : data.trains.filter((train) =>
+        train.line.some((line) => LINE_GROUP_ROUTES[selection].includes(line)),
+      )
+  const scopePct = isAll
+    ? pct(data.manning_percent)
+    : pct(selection === 'M1/M2' ? data.m1m2_manning_percent : data.m3m4_manning_percent)
+  const scopeOk = scopePct !== null && scopePct >= MANNING_TARGET_PCT
+  const scopeMannedCount = scopeTrains.filter(
+    (train) => train.current_steward_ids.length > 0,
+  ).length
+  const scopeTrend = trendOf(scopeMannedCount, scopeTrains.length, scopePct)
+  const scopeLabel = isAll ? 'alle linjer' : selection
+  const barLabel = isAll ? 'Samlet bemanding' : `Bemanding ${selection}`
+  const overallPct = pct(data.manning_percent)
+  const mannedCount = data.trains.filter((train) => train.current_steward_ids.length > 0).length
+  const overallOk = overallPct !== null && overallPct >= MANNING_TARGET_PCT
+  const overallTrend = trendOf(mannedCount, data.trains.length, overallPct)
 
   return (
     <section className="card train-card">
@@ -94,13 +192,13 @@ function TrainCardContent({ data, lineGroup }: { data: TrainsUpdate; lineGroup: 
       ) : (
         <div className="train-summary">
           <div className="train-summary-main">
-            <RouteBadges routes={groupRoutes} />
+            <RouteBadges routes={scopeRoutes} />
             <span className="train-summary-label">Toge bemandede</span>
             <span className="train-summary-count-row">
               <span className="train-summary-count">
-                {groupMannedCount}/{groupTrains.length}
+                {scopeMannedCount}/{scopeTrains.length}
               </span>
-              {groupMannedCount > 0 && (
+              {scopeMannedCount > 0 && (
                 <span className="train-live">
                   <span className="train-live-dot" />
                   LIVE
@@ -111,22 +209,22 @@ function TrainCardContent({ data, lineGroup }: { data: TrainsUpdate; lineGroup: 
           <div className="train-summary-side">
             <span className="train-summary-pct-row">
               <span className="train-summary-pct">
-                {groupPct === null ? '—' : `${groupPct}%`}
+                {scopePct === null ? '—' : `${scopePct}%`}
               </span>
-              <TrendArrow trend={groupTrend} label={`Bemandede tog i ${lineGroup}`} />
+              <TrendArrow trend={scopeTrend} label={`Bemandede tog i ${scopeLabel}`} />
             </span>
             <div className="train-bar slim">
               <div
                 className="progress"
                 role="progressbar"
-                aria-valuenow={groupPct ?? 0}
+                aria-valuenow={scopePct ?? 0}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label={`Bemanding ${lineGroup}`}
+                aria-label={barLabel}
               >
                 <div
-                  className={`progress-fill${groupOk ? '' : ' low'}`}
-                  style={{ width: `${groupPct ?? 0}%` }}
+                  className={`progress-fill${scopeOk ? '' : ' low'}`}
+                  style={{ width: `${scopePct ?? 0}%` }}
                 />
               </div>
               <span className="train-bar-tick" style={{ left: `${MANNING_TARGET_PCT}%` }} />
@@ -134,31 +232,37 @@ function TrainCardContent({ data, lineGroup }: { data: TrainsUpdate; lineGroup: 
           </div>
         </div>
       )}
-      <header className="train-card-head">
-        <h2>
-          <RouteBadges routes={allRoutes} />
-        </h2>
-        <span className="train-head-status">
-          <span className="train-head-pct">{overallPct === null ? '—' : `${overallPct}%`}</span>
-          <TrendArrow trend={overallTrend} label="Bemandede tog i alt" />
-        </span>
-      </header>
-      <div className="train-bar">
-        <div
-          className="progress"
-          role="progressbar"
-          aria-valuenow={overallPct ?? 0}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Samlet bemanding"
-        >
-          <div
-            className={`progress-fill${overallOk ? '' : ' low'}`}
-            style={{ width: `${overallPct ?? 0}%` }}
-          />
-        </div>
-        <span className="train-bar-tick" style={{ left: `${MANNING_TARGET_PCT}%` }} />
-      </div>
+      {!isAll && (
+        <>
+          <header className="train-card-head">
+            <h2>
+              <RouteBadges routes={allRoutes} />
+            </h2>
+            <span className="train-head-status">
+              <span className="train-head-pct">
+                {overallPct === null ? '—' : `${overallPct}%`}
+              </span>
+              <TrendArrow trend={overallTrend} label="Bemandede tog i alt" />
+            </span>
+          </header>
+          <div className="train-bar">
+            <div
+              className="progress"
+              role="progressbar"
+              aria-valuenow={overallPct ?? 0}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Samlet bemanding"
+            >
+              <div
+                className={`progress-fill${overallOk ? '' : ' low'}`}
+                style={{ width: `${overallPct ?? 0}%` }}
+              />
+            </div>
+            <span className="train-bar-tick" style={{ left: `${MANNING_TARGET_PCT}%` }} />
+          </div>
+        </>
+      )}
     </section>
   )
 }

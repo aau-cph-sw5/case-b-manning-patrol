@@ -1,0 +1,314 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Report API",
+		"description": "Backend API contract for the historical compliance report of one shift. The report rebuilds station coverage and train manning from the append-only event log, using the same computation as the live dashboard streams, and is evaluated at the end of the shift. Consumed by the control room dashboard (Web UI) to show how the manning and patrol requirements were held during a finished shift.",
+		"version": "2.9.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8000",
+			"description": "Local development"
+		}
+	],
+	"paths": {
+		"/api/v2/report_data": {
+			"get": {
+				"summary": "Get the historical compliance report of one shift",
+				"description": "Rebuilds the compliance picture of the night shift that starts on `date` from the stored event log and returns it with station names and lines resolved. The report is evaluated at the shift end (or earlier when `known_at` is given). Requires the `historical_data` permission (operations_administrator role): 401 without a bearer token, 403 for any other role.",
+				"parameters": [
+					{
+						"name": "date",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "date"
+						},
+						"description": "Local date (Europe/Copenhagen) the shift starts on. A night shift runs past midnight, so the shift starting on this date also covers the early hours of the next day.",
+						"example": "2026-05-30"
+					},
+					{
+						"name": "known_at",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						},
+						"description": "ISO 8601 date-time with timezone offset. When given, only events the backend had received by then count and the report is evaluated no later than then, so the result matches what the live dashboard showed at that moment. Without it, every stored event is used, including late arrivals. Must include an offset.",
+						"example": "2026-05-30T23:59:00+02:00"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The compliance report of the shift.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ReportData"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "The shift had not started by now or by `known_at`, or `known_at` has no timezone offset.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ReportData": {
+				"type": "object",
+				"description": "The compliance report of one shift, evaluated at `as_of`.",
+				"properties": {
+					"shift": {
+						"$ref": "#/components/schemas/ShiftBoundary"
+					},
+					"as_of": {
+						"type": "string",
+						"format": "date-time",
+						"description": "The moment the report is evaluated at: the shift end, or earlier when `known_at` or the request time is earlier."
+					},
+					"known_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "The server-time cutoff the report was built with; null when every stored event was used."
+					},
+					"stations": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ReportStation"
+						}
+					},
+					"trains": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ReportTrain"
+						}
+					},
+					"manning_percent": {
+						"type": "number",
+						"nullable": true,
+						"description": "Manning percentage (0..100) over all trains: manned time / running time. Null when there is no running time.",
+						"example": 81.5
+					},
+					"m1m2_manning_percent": {
+						"type": "number",
+						"nullable": true,
+						"description": "Same percentage over trains whose `line` contains M1 or M2. Null when that group has no running time."
+					},
+					"m3m4_manning_percent": {
+						"type": "number",
+						"nullable": true,
+						"description": "Same percentage over trains whose `line` contains M3 or M4. Null when that group has no running time."
+					}
+				},
+				"required": [
+					"shift",
+					"as_of",
+					"stations",
+					"trains",
+					"manning_percent",
+					"m1m2_manning_percent",
+					"m3m4_manning_percent"
+				]
+			},
+			"ShiftBoundary": {
+				"type": "object",
+				"description": "The scheduled start and end of the reported shift, in UTC.",
+				"properties": {
+					"start": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"end": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"start",
+					"end"
+				]
+			},
+			"ReportStation": {
+				"type": "object",
+				"properties": {
+					"station_id": {
+						"type": "string",
+						"example": "STN-001"
+					},
+					"name": {
+						"type": "string",
+						"example": "Vestamager"
+					},
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The metro lines the station serves.",
+						"example": [
+							"M1"
+						]
+					},
+					"areas": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ReportArea"
+						}
+					}
+				},
+				"required": [
+					"station_id",
+					"name",
+					"line",
+					"areas"
+				]
+			},
+			"ReportArea": {
+				"type": "object",
+				"description": "One patrol area's coverage over the reported shift.",
+				"properties": {
+					"area_id": {
+						"type": "string",
+						"example": "PA-001-P"
+					},
+					"name": {
+						"type": "string",
+						"description": "Display label derived from the area kind.",
+						"example": "Platform"
+					},
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"area_type": {
+						"type": "string",
+						"enum": [
+							"platform",
+							"concourse"
+						]
+					},
+					"covered_now": {
+						"type": "boolean",
+						"description": "True while a qualifying steward visit was ongoing at `as_of`."
+					},
+					"overdue_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "When the area became (or would have become) overdue. Null while covered at `as_of`."
+					},
+					"last_covered_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "When the last finished qualifying visit ended. Null when no qualifying visit has finished."
+					},
+					"coverage_status": {
+						"type": "string",
+						"enum": [
+							"compliant",
+							"overdue"
+						],
+						"description": "Overdue once `as_of` is past `overdue_at`."
+					}
+				},
+				"required": [
+					"area_id",
+					"name",
+					"line",
+					"area_type",
+					"covered_now",
+					"overdue_at",
+					"last_covered_at",
+					"coverage_status"
+				]
+			},
+			"ReportTrain": {
+				"type": "object",
+				"description": "One train's manning over the reported shift.",
+				"properties": {
+					"train_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"slug": {
+						"type": "string",
+						"example": "train-1"
+					},
+					"line": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"example": [
+							"M1",
+							"M2"
+						]
+					},
+					"manned_ratio": {
+						"type": "number",
+						"nullable": true,
+						"description": "Manned time over running time (0..1) during the shift. Null when the train had no running time.",
+						"example": 0.83
+					},
+					"manned_now": {
+						"type": "boolean",
+						"description": "True while a steward was on the train at `as_of`."
+					},
+					"manned_time": {
+						"type": "number",
+						"description": "Seconds the train was manned during the shift.",
+						"example": 21600
+					},
+					"running_time": {
+						"type": "number",
+						"description": "Seconds the train was in service during the shift (shift end minus shift start).",
+						"example": 26100
+					}
+				},
+				"required": [
+					"train_id",
+					"slug",
+					"line",
+					"manned_ratio",
+					"manned_now",
+					"manned_time",
+					"running_time"
+				]
+			},
+			"Error": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Machine-readable error code"
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable error message intended for developers"
+					}
+				},
+				"required": [
+					"code",
+					"message"
+				]
+			}
+		}
+	}
+}

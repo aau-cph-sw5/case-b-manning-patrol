@@ -89,7 +89,9 @@
 }
 
 /* main layout: sidebar column + station grid; the page is fixed and nothing scrolls
-   except the attention list — cards are sized so 24 stations fit the viewport */
+   except the attention list — single-group cards are sized so a group fits the
+   viewport, and the composed all-lines view compacts them further so every
+   station fits (see .station-grid.all below) */
 .dash {
   flex: 1;
   min-height: 0;
@@ -119,6 +121,17 @@
   grid-auto-rows: min-content;
   gap: 14px;
   padding-right: 4px;
+}
+
+/* composed all-lines view: more, narrower columns so every station card still
+   fits the fixed page without scrolling, and rows stretch (min 1fr share) to
+   fill any leftover height instead of leaving an empty band at the bottom —
+   the card internals scale with the viewport in StationCard.css under
+   .station-grid.all */
+.station-grid.all {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-auto-rows: minmax(min-content, 1fr);
+  gap: 8px;
 }
 
 .dashboard-empty {
@@ -201,13 +214,16 @@
   background: #a8a8a8;
 }
 
-/* train manning card (top of the sidebar column) */
+/* message shown in the train card when no manning data is available */
 .train-empty {
   margin: 14px 0 0;
   color: #666666;
   font-size: 15px;
 }
 
+/* overall figures head of the train card — rendered only when a single line
+   group is selected; hidden for the composed all-lines view, where the
+   summary already shows the overall percentage and bar */
 .train-card-head {
   display: flex;
   align-items: center;
@@ -220,6 +236,9 @@
   display: flex;
   align-items: center;
   margin: 0;
+  color: #1e1e1e;
+  font-size: 24px;
+  font-weight: 800;
 }
 
 .train-card-head .route-badge {
@@ -227,13 +246,6 @@
   height: 22px;
   border-radius: 11px;
   font-size: 12px;
-}
-
-.train-card-head h2 {
-  margin: 0;
-  color: #1e1e1e;
-  font-size: 24px;
-  font-weight: 800;
 }
 
 .train-head-status {
@@ -249,6 +261,7 @@
   line-height: 1;
 }
 
+/* trend arrows next to the manning percentage in the train card summary */
 .ok-arrow {
   color: #007d55;
   font-size: 24px;
