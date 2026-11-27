@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import Dashboard from './Dashboard'
 
@@ -74,11 +74,51 @@ it('sends the selected local date unchanged and refreshes a partial report', asy
   }
 })
 
-it.each([401, 403])('shows an access error when the backend returns %d', async (status) => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status })))
+it('ignores a delayed response after closing and reopening the dialog', async () => {
+  let finishFirstRequest!: (response: Response) => void
+  const firstResponse = new Promise<Response>((resolve) => {
+    finishFirstRequest = resolve
+  })
+  const fetchMock = vi.fn()
+    .mockReturnValueOnce(firstResponse)
+    .mockResolvedValueOnce(Response.json({ shift, ...figures, as_of: shift.end, manning_percent: 75 }))
+  vi.stubGlobal('fetch', fetchMock)
+  const report = await openReport()
+  const dialog = screen.getByRole<HTMLDialogElement>('dialog', { name: 'Compliance report' })
+  dialog.close = () => {
+    dialog.open = false
+    fireEvent(dialog, new Event('close'))
+  }
+  const date = report.getByLabelText<HTMLInputElement>('Vagtens lokale startdato')
+  fireEvent.change(date, { target: { value: '2026-11-03' } })
+  fireEvent.click(report.getByRole('button', { name: 'Hent rapport' }))
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+  expect(report.getByRole('status').textContent).toContain('Henter rapport')
+
+  fireEvent.click(report.getByRole('button', { name: 'Luk' }))
+  expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Compliance report' }))
+  expect(date.value).toBe('2026-11-03')
+  fireEvent.click(report.getByRole('button', { name: 'Hent rapport' }))
+  expect(await report.findByText(/75\s*%/)).toBeTruthy()
+
+  await act(async () => {
+    finishFirstRequest(Response.json({ shift, ...figures, as_of: shift.end }))
+  })
+  expect(report.getByText(/75\s*%/)).toBeTruthy()
+  expect(report.queryByText(/70\s*%/)).toBeNull()
+})
+
+it.each([
+  [401, null, 'Din adgang kunne ikke bekræftes (401).'],
+  [403, null, 'Du har ikke adgang til rapporten (403).'],
+  [400, '{"code":"400","message":"Vagten er endnu ikke startet."}', 'Vagten er endnu ikke startet.'],
+  [500, 'Invalid JSON', 'Serveren svarede med HTTP 500.'],
+])('shows the report error when the backend returns %d', async (status, body, message) => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { status })))
   const report = await openReport()
   fireEvent.change(report.getByLabelText('Vagtens lokale startdato'), { target: { value: '2026-11-03' } })
   fireEvent.click(report.getByRole('button', { name: 'Hent rapport' }))
-  expect((await report.findByRole('alert')).textContent).toContain(`(${status})`)
+  expect((await report.findByRole('alert')).textContent).toContain(message)
   expect(report.queryByRole('region', { name: 'Rapportresultat' })).toBeNull()
 })

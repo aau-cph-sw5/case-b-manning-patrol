@@ -19,6 +19,52 @@ type ReportState =
   | { status: 'error'; message: string }
   | { status: 'ready'; report: ReportData }
 
+/** Convert the API result into the dialog state for a completed request. */
+async function fetchReportState(date: string, signal: AbortSignal): Promise<ReportState> {
+  try {
+    const report = await getReportData(date, signal)
+    return { status: 'ready', report }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+    return { status: 'error', message: `Kunne ikke hente rapporten. ${message}` }
+  }
+}
+
+/**
+ * Track the report request and expose its state, load and reset actions.
+ *
+ * Ignore duplicate submissions while a request is pending. Reset aborts it
+ * and clears the result. Unmount also aborts any outstanding request.
+ */
+function useComplianceReport() {
+  const request = useRef<AbortController | null>(null)
+  const [state, setState] = useState<ReportState>({ status: 'idle' })
+
+  useEffect(() => () => request.current?.abort(), [])
+
+  function reset() {
+    request.current?.abort()
+    request.current = null
+    setState({ status: 'idle' })
+  }
+
+  async function load(date: string) {
+    if (!date || request.current) return
+
+    const controller = new AbortController()
+    request.current = controller
+    setState({ status: 'loading' })
+
+    const result = await fetchReportState(date, controller.signal)
+    if (controller.signal.aborted) return
+
+    request.current = null
+    setState(result)
+  }
+
+  return { state, load, reset }
+}
+
 /** Format the backend's 0–100 percentage or show that the scope had no running time. */
 function formatManning(percent: number | null): string {
   return percent === null ? 'Ingen køretid' : manningPercent.format(percent / 100)
@@ -68,37 +114,13 @@ function ReportSummary({ report }: { report: ReportData }) {
 export default function ComplianceReport() {
   const titleId = useId()
   const dialog = useRef<HTMLDialogElement>(null)
-  const request = useRef<AbortController | null>(null)
   const [date, setDate] = useState('')
-  const [state, setState] = useState<ReportState>({ status: 'idle' })
+  const { state, load, reset } = useComplianceReport()
   const isLoading = state.status === 'loading'
 
-  useEffect(() => () => request.current?.abort(), [])
-
-  function handleClose() {
-    request.current?.abort()
-    request.current = null
-    setState({ status: 'idle' })
-  }
-
-  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!date || request.current) return
-
-    const controller = new AbortController()
-    request.current = controller
-    setState({ status: 'loading' })
-    try {
-      const report = await getReportData(date, controller.signal)
-      if (!controller.signal.aborted) setState({ status: 'ready', report })
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        const message = error instanceof Error ? error.message : ''
-        setState({ status: 'error', message: `Kunne ikke hente rapporten. ${message}` })
-      }
-    } finally {
-      if (request.current === controller) request.current = null
-    }
+    void load(date)
   }
 
   return (
@@ -108,7 +130,7 @@ export default function ComplianceReport() {
         Compliance report
       </button>
       <dialog className="compliance-report-dialog" ref={dialog} aria-labelledby={titleId}
-        onClose={handleClose}>
+        onClose={reset}>
         <h2 id={titleId}>Compliance report</h2>
         <form className="compliance-report-form" onSubmit={handleSubmit}>
           <label>
@@ -121,7 +143,7 @@ export default function ComplianceReport() {
               disabled={isLoading}
               onChange={(event) => {
                 setDate(event.currentTarget.value)
-                setState({ status: 'idle' })
+                reset()
               }}
             />
           </label>

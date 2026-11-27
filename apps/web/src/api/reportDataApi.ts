@@ -13,6 +13,20 @@ export interface ReportData extends Pick<
   as_of: string
 }
 
+const accessErrorMessages: Partial<Record<number, string>> = {
+  401: 'Din adgang kunne ikke bekræftes (401).',
+  403: 'Du har ikke adgang til rapporten (403).',
+}
+
+/** Prefer the local access message, then the API error body or HTTP status. */
+async function toReportError(response: Response): Promise<Error> {
+  const accessMessage = accessErrorMessages[response.status]
+  if (accessMessage) return new Error(accessMessage)
+
+  const error: ApiError | null = await response.json().catch(() => null)
+  return new Error(error?.message ?? `Serveren svarede med HTTP ${response.status}.`)
+}
+
 /**
  * Fetch `GET /api/v2/report_data` using the API v2 `ReportData` response schema.
  *
@@ -26,16 +40,7 @@ export async function getReportData(date: string, signal: AbortSignal): Promise<
   const query = new URLSearchParams({ date })
   const response = await authFetch(`/api/v2/report_data?${query}`, { signal, cache: 'no-store' })
 
-  if (response.status === 401) {
-    throw new Error('Din adgang kunne ikke bekræftes (401).')
-  }
-  if (response.status === 403) {
-    throw new Error('Du har ikke adgang til rapporten (403).')
-  }
-  if (!response.ok) {
-    const error: ApiError | null = await response.json().catch(() => null)
-    throw new Error(error?.message ?? `Serveren svarede med HTTP ${response.status}.`)
-  }
+  if (!response.ok) throw await toReportError(response)
 
   return response.json() as Promise<ReportData>
 }
