@@ -1,12 +1,12 @@
 # ADR 0003. Which branching strategy should be used?
 
-**Status.** Proposed
+**Status:** Accepted
 
-**Date.** 2026-09-21
+**Date:** 2026-09-21
 
-**Deciders.** Sebastian Milo & Tue Elhegn, Team 3
+**Deciders:** Sebastian Milo & Tue Elhegn, Team 3
 
-**Related backlog items.** None
+**Related backlog items:** None
 
 ## Context
 

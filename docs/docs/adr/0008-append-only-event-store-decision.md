@@ -1,9 +1,12 @@
 # ADR 0008. Append-only Eventstore decision.
 
-**Status.** Proposed 
-**Date.** 2026-10-09
-**Deciders.** Peter Rasmussen, Tue Elhegn, team 3
-**Related backlog items.** MET-B-020
+**Status:** Accepted
+
+**Date:** 2026-10-09
+
+**Deciders:** Peter Rasmussen, Tue Elhegn, team 3
+
+**Related backlog items:** MET-B-020
 
 ## Context
 
