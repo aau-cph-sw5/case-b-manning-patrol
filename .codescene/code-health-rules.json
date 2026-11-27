@@ -1,0 +1,34 @@
+{
+  "usage": "Persist this file inside your repositories as .codescene/code-health-rules.json. Rule sets are evaluated top to bottom and only the first match applies; anything not matched uses CodeScene's defaults.",
+  "rule_sets": [
+    {
+      "matching_content_path": "services/api/alembic/versions/**",
+      "matching_content_path_doc": "Alembic migrations: generated, append-only and never refactored once applied, so size and duplication say nothing about maintainability.",
+      "rules": [
+        { "name": "Large Method", "weight": 0.0 },
+        { "name": "Code Duplication", "weight": 0.0 },
+        { "name": "Lines of Code in a Single File", "weight": 0.0 }
+      ]
+    },
+    {
+      "matching_content_path": "services/api/tests/**",
+      "matching_content_path_doc": "Backend tests (pytest): explicit, repetitive arrange/assert blocks are preferred over clever helpers, so test smells count at half weight instead of being ignored.",
+      "rules": [
+        { "name": "Code Duplication", "weight": 0.5 },
+        { "name": "Duplicated Assertion Blocks", "weight": 0.5 },
+        { "name": "Large Assertion Blocks", "weight": 0.5 },
+        { "name": "Large Method", "weight": 0.5 }
+      ]
+    },
+    {
+      "matching_content_path": "**/*.test.*",
+      "matching_content_path_doc": "Frontend tests (vitest/jest, co-located as *.test.ts/tsx): describe/it callbacks are large anonymous functions by design, so the same half weights as backend tests.",
+      "rules": [
+        { "name": "Code Duplication", "weight": 0.5 },
+        { "name": "Duplicated Assertion Blocks", "weight": 0.5 },
+        { "name": "Large Assertion Blocks", "weight": 0.5 },
+        { "name": "Large Method", "weight": 0.5 }
+      ]
+    }
+  ]
+}

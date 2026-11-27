@@ -1,0 +1,19 @@
+{
+  "usage": "Persist this file inside your repositories as .codescene/custom-quality-gates.json",
+  "rule_sets": [
+    {
+      "quality_gates": {
+        "hotspot_decline": true,
+        "critical_health_rules": true,
+        "new_code_health": true,
+        "advisory_health_rules": false,
+        "refactoring_goals": false,
+        "supervise_goals": false,
+        "codeowners_for_critical_code": false
+      },
+      "quality_gates_doc": "Same as Bare Minimum: critical rules, new code health and hotspot decline. Advisory rules (e.g. Excess Number of Function Arguments) are not enforced.",
+      "matching_content_path": "**/*",
+      "matching_content_path_doc": "Catch-all: applies to all code in the repo."
+    }
+  ]
+}
