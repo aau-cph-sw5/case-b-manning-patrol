@@ -14,7 +14,7 @@ graph TD
 
 ## Endpoints
 
-- `GET api/v2/dashboard/stream` - Server-Sent Events stream of [Dashboard] updates (stations only)
+- `GET api/v2/dashboard/stream` - Server-Sent Events stream of [Dashboard] updates (stations only) and [AtRiskThreshold] updates (see below)
 - `GET api/v2/trains/stream` - Server-Sent Events stream of [TrainsUpdate] updates (trains + manning percentages)
 - `GET api/v2/config/at-risk-threshold` - At-risk threshold configuration ([AtRiskThreshold])
 - `POST api/v2/config/at-risk-threshold` - Update the at-risk threshold; accepts an [AtRiskThreshold] body and returns the updated configuration
@@ -29,6 +29,13 @@ event: dashboard
 data: {"stations": [...], "time": "2026-09-21T10:15:00+00:00"}
 ```
 
+The same stream also carries the at-risk threshold as SSE events named `at-risk-threshold` whose `data` is a JSON-encoded [AtRiskThreshold]. The current threshold is sent right after the first `dashboard` event when a client connects, and a new `at-risk-threshold` event is pushed to every connected client whenever the threshold is changed through `POST api/v2/config/at-risk-threshold`:
+
+```
+event: at-risk-threshold
+data: {"at_risk_threshold_minutes": 10}
+```
+
 `/api/v2/trains/stream` is a second SSE stream on the same API. Every message is an SSE event named `trains` whose `data` is a JSON-encoded [TrainsUpdate] — every train plus the manning percentages computed in the backend on every event (never stored; trains are not persisted state, the events are):
 
 ```
@@ -36,11 +43,11 @@ event: trains
 data: {"trains": [...], "manning_percent": 70, "m1m2_manning_percent": 50, "m3m4_manning_percent": 100, "time": "2026-09-21T10:15:00+00:00"}
 ```
 
-- Every event on either stream contains the full payload for that stream, changed or not, so clients need no separate initial fetch and replace their whole state on each event.
-- An event is sent each time the server recomputes coverage (dashboard stream) or train manning from the events (trains stream): when a positioning or patrol session event arrives, and periodically. An event is sent even when nothing changed.
+- Every `dashboard` and `trains` event contains the full payload for its stream, changed or not, so clients need no separate initial fetch and replace their whole state on each event.
+- A `dashboard` event is sent each time the server recomputes coverage: when a positioning or patrol session event arrives, and periodically. An event is sent even when nothing changed. An `at-risk-threshold` event is sent only when the threshold actually changes (plus once on connect).
 - `time` is when the server sent the event.
-- `overdue_at` is a point in time, not a duration. Clients count down to it themselves, so the server does not push an event every second.
-- Browsers reconnect an SSE stream automatically. After a reconnect the first event is again the full dashboard.
+- `overdue_at` is a point in time, not a duration. Clients count down to it themselves, so the server does not push an event every second. Clients use `at_risk_threshold_minutes` to decide when an area turns at-risk (yellow) before it turns overdue (red).
+- Browsers reconnect an SSE stream automatically. After a reconnect the first events are again the full dashboard and the current threshold.
 
 ## Data Models
 

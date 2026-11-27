@@ -1,7 +1,8 @@
-// pins the SSE boundary contract: schema-valid payloads reach onUpdate with
-// overdueAt coerced to Date, malformed or empty data routes to onError, and
-// the returned function closes the stream. the EventSource is a fake, so these
-// tests run in the plain node environment with no react-native involved.
+// pins the SSE boundary contract: schema-valid payloads reach the matching
+// handler with overdueAt coerced to Date and the threshold mapped to
+// camelCase, malformed or empty data routes to onError, and the returned
+// function closes the stream. the EventSource is a fake, so these tests run
+// in the plain node environment with no react-native involved.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { connectToStationUpdates } from "@/api/stationEventStream";
@@ -39,7 +40,6 @@ const { getAccessToken } = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
 
 vi.mock("@/fixtures/auth", () => ({ getAccessToken }));
 
-
 const validPayload = JSON.stringify({
   stations: [
     {
@@ -61,13 +61,18 @@ const validPayload = JSON.stringify({
   time: "2026-10-23T09:59:00.000Z",
 });
 
+const validThresholdPayload = JSON.stringify({ at_risk_threshold_minutes: 15 });
+
 async function connect() {
-  const onUpdate = vi.fn();
-  const onError = vi.fn();
-  const disconnect = connectToStationUpdates(onUpdate, onError);
+  const handlers = {
+    onStations: vi.fn(),
+    onAtRiskThreshold: vi.fn(),
+    onError: vi.fn(),
+  };
+  const disconnect = connectToStationUpdates(handlers);
   await vi.waitFor(() => expect(instances).toHaveLength(1));
   const source = instances[0];
-  return { onUpdate, onError, disconnect, source };
+  return { ...handlers, disconnect, source };
 }
 
 beforeEach(() => {
@@ -76,25 +81,26 @@ beforeEach(() => {
 });
 
 describe("connectToStationUpdates", () => {
-  it("opens one stream per call with open, dashboard and error handlers", async () => {
+  it("opens one stream per call with handlers for both event types and errors", async () => {
     const { source } = await connect();
 
     expect(instances).toHaveLength(1);
     expect(source.url).toBe("http://localhost:8000/api/v2/dashboard/stream");
     expect(Object.keys(source.listeners).sort()).toEqual([
+      "at-risk-threshold",
       "dashboard",
       "error",
       "open",
     ]);
   });
 
-  it("delivers a valid payload to onUpdate with overdueAt as a Date", async () => {
-    const { onUpdate, onError, source } = await connect();
+  it("delivers a valid dashboard payload to onStations with overdueAt as a Date", async () => {
+    const { onStations, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: validPayload });
 
-    expect(onUpdate).toHaveBeenCalledTimes(1);
-    const [overview] = onUpdate.mock.calls[0];
+    expect(onStations).toHaveBeenCalledTimes(1);
+    const [overview] = onStations.mock.calls[0];
     expect(overview.stations).toHaveLength(1);
     expect(overview.stations[0].stationId).toBe("vanlose");
     expect(overview.stations[0].name).toBe("Vanløse");
@@ -105,41 +111,65 @@ describe("connectToStationUpdates", () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it("delivers each message as its own snapshot", async () => {
-    const { onUpdate, source } = await connect();
+  it("delivers each dashboard message as its own snapshot", async () => {
+    const { onStations, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: validPayload });
     source.listeners["dashboard"][0]({ data: validPayload });
 
-    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onStations).toHaveBeenCalledTimes(2);
   });
 
-  it("ignores messages without data", async () => {
-    const { onUpdate, onError, source } = await connect();
+  it("delivers a valid threshold payload to onAtRiskThreshold in camelCase", async () => {
+    const { onAtRiskThreshold, onStations, onError, source } = await connect();
 
-    source.listeners["dashboard"][0]({ data: null });
+    source.listeners["at-risk-threshold"][0]({ data: validThresholdPayload });
 
-    expect(onUpdate).not.toHaveBeenCalled();
+    expect(onAtRiskThreshold).toHaveBeenCalledTimes(1);
+    expect(onAtRiskThreshold).toHaveBeenCalledWith({ atRiskThresholdMinutes: 15 });
+    expect(onStations).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it("routes a malformed payload to onError instead of onUpdate", async () => {
-    const { onUpdate, onError, source } = await connect();
+  it("ignores messages without data on either event type", async () => {
+    const { onStations, onAtRiskThreshold, onError, source } = await connect();
+
+    source.listeners["dashboard"][0]({ data: null });
+    source.listeners["at-risk-threshold"][0]({ data: null });
+
+    expect(onStations).not.toHaveBeenCalled();
+    expect(onAtRiskThreshold).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("routes a malformed dashboard payload to onError instead of onStations", async () => {
+    const { onStations, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({
       data: JSON.stringify({ stations: [{ areas: [] }] }),
     });
 
-    expect(onUpdate).not.toHaveBeenCalled();
+    expect(onStations).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
-  it("routes a non-JSON payload to onError", async () => {
-    const { onUpdate, onError, source } = await connect();
+  it("routes a non-JSON dashboard payload to onError", async () => {
+    const { onStations, onError, source } = await connect();
 
     source.listeners["dashboard"][0]({ data: "not json" });
 
-    expect(onUpdate).not.toHaveBeenCalled();
+    expect(onStations).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes a malformed threshold payload to onError instead of onAtRiskThreshold", async () => {
+    const { onAtRiskThreshold, onError, source } = await connect();
+
+    source.listeners["at-risk-threshold"][0]({
+      data: JSON.stringify({ at_risk_threshold_minutes: 0 }),
+    });
+
+    expect(onAtRiskThreshold).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
@@ -176,7 +206,11 @@ describe("connectToStationUpdates", () => {
       }),
     );
 
-    const disconnect = connectToStationUpdates(vi.fn(), vi.fn());
+    const disconnect = connectToStationUpdates({
+      onStations: vi.fn(),
+      onAtRiskThreshold: vi.fn(),
+      onError: vi.fn(),
+    });
     disconnect();
     resolveToken("test-token");
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -189,7 +223,11 @@ describe("connectToStationUpdates", () => {
     getAccessToken.mockRejectedValue(failure);
     const onError = vi.fn();
 
-    connectToStationUpdates(vi.fn(), onError);
+    connectToStationUpdates({
+      onStations: vi.fn(),
+      onAtRiskThreshold: vi.fn(),
+      onError,
+    });
 
     await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(failure));
     expect(instances).toHaveLength(0);

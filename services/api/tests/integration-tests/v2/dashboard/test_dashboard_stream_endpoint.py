@@ -57,6 +57,51 @@ def test_dashboard_stream_sends_a_stations_only_dashboard_event(live_base_url):
     assert payload["stations"] == []
 
 
+def test_dashboard_stream_sends_the_current_threshold_on_connect(live_base_url):
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
+        with http.stream("GET", "/api/v2/dashboard/stream") as response:
+            assert response.status_code == 200
+            lines = response.iter_lines()
+
+            dashboard_event, dashboard_payload = read_sse_event(lines)
+            threshold_event, threshold_payload = read_sse_event(lines)
+
+    assert dashboard_event == "dashboard"
+    assert set(dashboard_payload) == {"stations", "time"}
+    assert threshold_event == "at-risk-threshold"
+    assert set(threshold_payload) == {"at_risk_threshold_minutes"}
+    assert threshold_payload["at_risk_threshold_minutes"] >= 1
+
+
+def test_dashboard_stream_emits_at_risk_threshold_when_it_is_changed(
+    live_base_url, client
+):
+    with httpx2.Client(
+        base_url=live_base_url,
+        timeout=5.0,
+        headers={"Authorization": "Bearer controlRoomOperator"},
+    ) as http:
+        with http.stream("GET", "/api/v2/dashboard/stream") as response:
+            lines = response.iter_lines()
+            read_sse_event(lines)
+            read_sse_event(lines)
+
+            response = client.post(
+                "/api/v2/config/at-risk-threshold",
+                json={"at_risk_threshold_minutes": 20},
+            )
+            assert response.status_code == 200
+
+            event_name, payload = read_sse_event(lines)
+
+    assert event_name == "at-risk-threshold"
+    assert payload == {"at_risk_threshold_minutes": 20}
+
+
 def test_dashboard_stream_reemits_when_coverage_is_recomputed(live_base_url):
     with httpx2.Client(
         base_url=live_base_url,
@@ -70,6 +115,7 @@ def test_dashboard_stream_reemits_when_coverage_is_recomputed(live_base_url):
         ) as poster:
             with http.stream("GET", "/api/v2/dashboard/stream") as response:
                 lines = response.iter_lines()
+                read_sse_event(lines)
                 read_sse_event(lines)
 
                 post_connect(poster)

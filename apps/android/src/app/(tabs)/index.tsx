@@ -63,7 +63,7 @@ export default function Index() {
   );
   const { state: patrolSession, start, stop } = usePatrolSession();
   const { start: startScan, stop: stopScan } = useBeaconScanner(scanner);
-  const { stations, lastUpdatedAt } = useStationUpdates();
+  const { stations, lastUpdatedAt, atRiskThresholdMinutes } = useStationUpdates();
   const now = useNow();
 
   const [lineGroup, setLineGroup] = useState<LineGroup>(LINE_GROUPS[0]);
@@ -102,7 +102,12 @@ export default function Index() {
               : `Sidst opdateret ${formatClock(lastUpdatedAt)}`}
           </Text>
           {round.map((station) => (
-            <Station key={station.stationId} station={station} now={now} />
+            <Station
+              key={station.stationId}
+              station={station}
+              now={now}
+              atRiskThresholdMinutes={atRiskThresholdMinutes}
+            />
           ))}
       </View>
       </ScrollView>

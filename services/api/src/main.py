@@ -17,6 +17,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.repository.train import get_train_lines, get_trains
 from src.services.anonymizer import anonymize_old_records
+from src.services.config.at_risk_threshold_broadcaster import AtRiskThresholdBroadcaster
+from src.services.config.config_service import ConfigService
 from src.services.event_store.event_producer import (
     EventValidationError,
     TargetEventNotFoundError,
@@ -82,6 +84,25 @@ def start_anonymizer_scheduler() -> AsyncIOScheduler:
     return scheduler
 
 
+async def initialize_presenters(
+    session: AsyncSession,
+) -> tuple[DashboardPresenter, TrainsUpdatePresenter]:
+    """
+    Added this function to wrap some parameters for ``lifespan``, as CodeScene 
+    does not allow methods with more than 69 lines. Purely workaround. 
+    """
+    return (
+        DashboardPresenter(
+            await get_stations(session),
+            await get_station_lines(session),
+        ),
+        TrainsUpdatePresenter(
+            await get_trains(session),
+            await get_train_lines(session),
+        ),
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Set up the database, coverage and train manning pipelines; stop them on exit.
@@ -94,11 +115,12 @@ async def lifespan(app: FastAPI):
     await init_db()
     async with AsyncSession(engine) as session:
         await load_reference_data(session)
-        dashboard_presenter = DashboardPresenter(
-            await get_stations(session), await get_station_lines(session)
+        dashboard_presenter, trains_update_presenter = await initialize_presenters(
+            session
         )
-        trains_update_presenter = TrainsUpdatePresenter(
-            await get_trains(session), await get_train_lines(session)
+
+        at_risk_threshold_broadcaster = AtRiskThresholdBroadcaster(
+            current_minutes=await ConfigService(session).get_at_risk_threshold_minutes()
         )
 
     builder = IntervalBuilder()
@@ -141,6 +163,7 @@ async def lifespan(app: FastAPI):
 
     app.state.coverage_updater = coverage_updater
     app.state.sse_broadcaster = sse_broadcaster
+    app.state.at_risk_threshold_broadcaster = at_risk_threshold_broadcaster
     app.state.train_manning_updater = train_manning_updater
     app.state.train_manning_broadcaster = train_manning_broadcaster
     app.state.dashboard_presenter = dashboard_presenter

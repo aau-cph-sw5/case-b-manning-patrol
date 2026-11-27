@@ -57,6 +57,22 @@ describe("areaStatus", () => {
     expect(areaStatus(10 * MINUTE)).toBe("due");
     expect(areaStatus(10 * MINUTE + 1)).toBe("fresh");
   });
+
+  it("uses the streamed threshold instead of the default when given one", () => {
+    const dueSoonMs = 25 * MINUTE;
+    expect(areaStatus(25 * MINUTE, dueSoonMs)).toBe("due");
+    expect(areaStatus(25 * MINUTE + 1, dueSoonMs)).toBe("fresh");
+    expect(areaStatus(10 * MINUTE, dueSoonMs)).toBe("due");
+  });
+
+  it("treats a raised threshold as no longer due for levels inside the old window", () => {
+    expect(areaStatus(10 * MINUTE, 5 * MINUTE)).toBe("fresh");
+    expect(areaStatus(10 * MINUTE, 10 * MINUTE)).toBe("due");
+  });
+
+  it("still marks a level overdue regardless of the threshold", () => {
+    expect(areaStatus(-1, 60 * MINUTE)).toBe("overdue");
+  });
 });
 
 describe("remainingMs", () => {
