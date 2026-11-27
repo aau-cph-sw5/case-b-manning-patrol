@@ -91,7 +91,7 @@ full setup: `docker-compose.yml` defines the local PostgreSQL container
 
 ### Resetting the database
 
-- Run `uv run reset-db` — drops every table (including `alembic_version`) and re-applies all migrations. Stations, lines and patrol areas are re-ingested on the next server start; other rows (events, adjustments) are lost. Use `docker compose down -v` to start completely fresh.
+- Run `uv run reset-db` — drops every table (including `alembic_version`) and re-applies all migrations. Use `docker compose down -v` to start completely fresh.
 
 ## Reconstructing a past shift
 
@@ -118,4 +118,25 @@ uv run reconstruct --date 2026-11-03 --json
 - A shift that has not started yet exits with status 1.
 
 The reconstruction uses today's stations, patrol areas, trains and patrol
-rules, and does not apply adjustments.
+rules, and does not apply adjustments.  
+  
+## Change of data
+
+`src/data/` holds the reference data the system is built around: the metro
+network, the fleet, the shift and the access policy. They are JSON files
+rather than code, so the network can change without a code change. Edit the
+file to change them:
+
+| File | Contains | Affects | Takes effect |
+|---|---|---|---|
+| `stations.v1.json` | Lines, stations, patrol areas and their beacons | Which areas need patrolling, and the station coverage on the dashboard and Android app | On restart |
+| `trains.v1.json` | Trains, their beacons and lines | Which trains count toward the 70 % manning requirement | On restart |
+| `shifts.v1.json` | Night shift start and end time | When coverage and manning reset, and what counts as the current shift | On restart |
+| `permissions.v1.json` | Which role may access which data | Which endpoints each role can call (403 otherwise) | On the next request |
+
+Events from a beacon that is in neither file are still stored, but they count
+toward no area or train.
+
+On restart the station and train tables are replaced with the file contents,
+so rows added to them by hand are lost. See `src/data/README.md` for the
+fields in each file.
