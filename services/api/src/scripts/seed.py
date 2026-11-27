@@ -102,7 +102,7 @@ def build_events(fixture: list[dict]) -> list[Event]:
                 entry["android_id"],
                 _parse_timestamp(entry["timestamp"]),
             ),
-            beacon_id=entry["beacon_id"],
+            beacon_id=UUID(entry["beacon_id"]),
             device_timestamp=_parse_timestamp(entry["timestamp"]),
             server_timestamp=_parse_timestamp(entry["timestamp"]),
             source=SOURCE,
