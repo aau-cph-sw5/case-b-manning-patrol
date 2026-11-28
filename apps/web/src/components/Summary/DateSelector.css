@@ -1,0 +1,21 @@
+.date-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1e1e1e;
+  font-weight: 600;
+}
+
+.date-selector__input {
+  padding: 8px 12px;
+  border: 1px solid #b8bec7;
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.date-selector__input:focus-visible {
+  outline: 2px solid #e40037;
+  outline-offset: 2px;
+}

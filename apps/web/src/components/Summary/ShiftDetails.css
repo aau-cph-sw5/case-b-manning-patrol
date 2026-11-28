@@ -1,0 +1,21 @@
+.shift-details {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e1e1e;
+}
+
+.shift-details h1 {
+  margin-top: 0;
+}
+
+.shift-details dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.shift-details dd {
+  margin: 0.25rem 0 0;
+  font-weight: 600;
+}
